@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#0a0a0c" />
+<title>Inside Surplus - Course Modules by Rosario</title>
+<style>
+  html,body{background:#0a0a0c;color:#f4efe2;color-scheme:dark}
+  html.preload-transition::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    background:#0a0a0c;
+    pointer-events:none;
+  }
+</style>
+<script>
+  (() => {
+    try {
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (!reduce && sessionStorage.getItem("surplusIrisTransition") === "1") {
+        document.documentElement.classList.add("preload-transition");
+      }
+    } catch {}
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0c;
+    --ink:#f4efe2;
+    --ink-dim:#aaa397;
+    --ink-faint:#6e685f;
+    --gold:#b99a55;
+    --gold-bright:#d8bb70;
+    --gold-deep:#806936;
+    --line:rgba(185,154,85,.2);
+    --glass:rgba(255,255,255,.04);
+    --serif:"Fraunces",serif;
+    --sans:"Inter Tight",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;background:var(--bg);color-scheme:dark}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse 58% 46% at 18% 8%,rgba(185,154,85,.18),transparent 64%),
+      radial-gradient(ellipse 48% 38% at 78% 24%,rgba(216,187,112,.11),transparent 64%),
+      #0a0a0c;
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.5;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::after{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    opacity:.04;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.55'/></svg>");
+  }
+  .wrap{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:0 28px}
+  nav{
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    z-index:100;
+    padding:16px 28px;
+    border-bottom:1px solid var(--line);
+    background:rgba(10,10,12,.74);
+    backdrop-filter:blur(18px) saturate(1.35);
+  }
+  .nav-inner{max-width:1180px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:24px}
+  .logo{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none}
+  .logo-mark{
+    width:36px;height:36px;border-radius:10px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--gold-bright),var(--gold-deep));
+    color:#0a0a0c;font-family:var(--serif);font-style:italic;font-size:21px;font-weight:500;
+    box-shadow:0 0 28px rgba(185,154,85,.32),inset 0 1px 0 rgba(255,255,255,.32);
+  }
+  .logo-text{display:flex;flex-direction:column;line-height:1.05}
+  .logo-name{font-family:var(--serif);font-size:21px;letter-spacing:-.02em}
+  .logo-by{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint);font-weight:600;margin-top:3px}
+  .nav-links{display:flex;align-items:center;gap:24px}
+  .nav-links a{color:var(--ink-dim);text-decoration:none;font-size:14px;transition:.25s color}
+  .nav-links a:hover{color:var(--gold-bright)}
+  .nav-links a.nav-cta{color:var(--ink)}
+  .nav-menu-toggle{
+    display:none;
+    width:42px;
+    height:42px;
+    border-radius:14px;
+    border:1px solid var(--line);
+    background:rgba(255,255,255,.035);
+    color:var(--ink);
+    font-family:inherit;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .nav-cta{
+    border-radius:999px;
+    padding:11px 18px;
+    background:var(--gold);
+    font-weight:600;
+    text-shadow:0 1px 10px rgba(0,0,0,.28);
+  }
+  .page-transition{
+    --transition-dur:680ms;
+    --transition-ease:cubic-bezier(.16,1,.3,1);
+    position:fixed;
+    inset:0;
+    z-index:3000;
+    opacity:0;
+    pointer-events:none;
+    overflow:hidden;
+    background:
+      radial-gradient(circle at 50% 50%,rgba(216,187,112,.11),transparent 34%),
+      rgba(10,10,12,.78);
+    backdrop-filter:blur(0);
+    transition:opacity .18s ease,backdrop-filter .28s ease;
+  }
+  .page-transition::before{
+    content:"";
+    position:absolute;
+    top:50%;
+    left:50%;
+    width:150vw;
+    height:150vh;
+    background:
+      linear-gradient(90deg,transparent 0 41%,rgba(216,187,112,.12) 47%,rgba(244,239,226,.86) 50%,rgba(185,154,85,.38) 53%,transparent 60%),
+      linear-gradient(90deg,transparent 0 47%,rgba(185,154,85,.9) 50%,transparent 53%);
+    filter:blur(.2px);
+    opacity:0;
+    transform:translate(-50%,-50%) translateX(-92vw) rotate(-14deg);
+    transform-origin:center;
+    will-change:transform,opacity;
+  }
+  .page-transition::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+      linear-gradient(90deg,transparent,rgba(216,187,112,.08),transparent),
+      rgba(10,10,12,.82);
+    opacity:0;
+    transform:scaleX(.94);
+    transform-origin:center;
+    will-change:opacity,transform;
+  }
+  .transition-logo{
+    position:absolute;
+    left:50%;
+    top:50%;
+    z-index:3;
+    display:grid;
+    grid-template-columns:auto 1fr;
+    align-items:center;
+    gap:13px;
+    min-width:216px;
+    padding:12px 16px 12px 12px;
+    border:1px solid rgba(216,187,112,.24);
+    border-radius:22px;
+    background:rgba(10,10,12,.72);
+    box-shadow:0 26px 80px rgba(0,0,0,.44),0 0 44px rgba(185,154,85,.16);
+    backdrop-filter:blur(20px);
+    opacity:0;
+    filter:blur(8px);
+    transform:translate(-50%,-50%) translateY(12px) scale(.98);
+    text-align:left;
+  }
+  .transition-mark{
+    width:48px;
+    height:48px;
+    border-radius:14px;
+    display:grid;
+    place-items:center;
+    background:linear-gradient(135deg,var(--gold-bright),var(--gold-deep));
+    color:#0a0a0c;
+    font-family:var(--serif);
+    font-size:27px;
+    font-style:italic;
+    font-weight:500;
+    box-shadow:0 14px 36px rgba(0,0,0,.38),0 0 24px rgba(185,154,85,.28),inset 0 1px 0 rgba(255,255,255,.28);
+  }
+  .transition-word{font-family:var(--serif);font-size:21px;font-weight:500;color:var(--ink);line-height:1}
+  .transition-by{margin-top:5px;color:var(--gold-bright);font-size:9px;font-weight:700;letter-spacing:.25em;text-transform:uppercase}
+  body.page-leaving .page-transition,
+  body.page-entering .page-transition{opacity:1;pointer-events:auto;backdrop-filter:blur(14px)}
+  body.page-leaving .page-transition::before{animation:goldSweepOut var(--transition-dur) var(--transition-ease) forwards}
+  body.page-leaving .page-transition::after{animation:veilIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .page-transition::before{animation:goldSweepIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .page-transition::after{animation:veilOut var(--transition-dur) var(--transition-ease) forwards}
+  body.page-leaving .transition-logo{animation:transitionLogoIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .transition-logo{opacity:1;animation:transitionLogoOut var(--transition-dur) var(--transition-ease) forwards}
+  @keyframes goldSweepOut{
+    0%{opacity:0;transform:translate(-50%,-50%) translateX(-92vw) rotate(-14deg)}
+    18%,76%{opacity:1}
+    100%{opacity:0;transform:translate(-50%,-50%) translateX(92vw) rotate(-14deg)}
+  }
+  @keyframes goldSweepIn{
+    0%{opacity:0;transform:translate(-50%,-50%) translateX(-82vw) rotate(-14deg)}
+    15%,68%{opacity:.95}
+    100%{opacity:0;transform:translate(-50%,-50%) translateX(82vw) rotate(-14deg)}
+  }
+  @keyframes veilIn{
+    0%{opacity:0;transform:scaleX(.94)}
+    42%,100%{opacity:1;transform:scaleX(1)}
+  }
+  @keyframes veilOut{
+    0%,18%{opacity:1;transform:scaleX(1)}
+    100%{opacity:0;transform:scaleX(1.04)}
+  }
+  @keyframes transitionLogoIn{
+    0%,24%{opacity:0;filter:blur(8px);transform:translate(-50%,-50%) translateY(12px) scale(.98)}
+    58%,100%{opacity:1;filter:blur(0);transform:translate(-50%,-50%) translateY(0) scale(1)}
+  }
+  @keyframes transitionLogoOut{
+    0%,32%{opacity:1;filter:blur(0);transform:translate(-50%,-50%) translateY(0) scale(1)}
+    100%{opacity:0;filter:blur(7px);transform:translate(-50%,-50%) translateY(-10px) scale(.985)}
+  }
+  .page-transition{
+    --transition-dur:560ms;
+    --transition-ease:cubic-bezier(.22,1,.36,1);
+    background:rgba(10,10,12,.88);
+    backdrop-filter:blur(0);
+  }
+  .page-transition::before{
+    top:50%;
+    left:50%;
+    width:min(360px,64vw);
+    height:2px;
+    border:0;
+    background:linear-gradient(90deg,transparent,var(--gold-bright),transparent);
+    box-shadow:0 0 22px rgba(216,187,112,.48);
+    opacity:0;
+    transform:translate(-50%,76px) scaleX(.18);
+  }
+  .page-transition::after{
+    display:none;
+  }
+  .transition-logo{
+    display:grid;
+    grid-template-columns:auto 1fr;
+    gap:12px;
+    min-width:210px;
+    padding:12px 15px 12px 12px;
+    border:1px solid rgba(216,187,112,.22);
+    border-radius:20px;
+    background:rgba(12,12,15,.72);
+    box-shadow:0 24px 70px rgba(0,0,0,.42),0 0 34px rgba(185,154,85,.12);
+    backdrop-filter:blur(18px);
+    filter:blur(8px);
+    transform:translate(-50%,-50%) translateY(8px) scale(.98);
+    text-align:left;
+  }
+  .transition-mark{width:46px;height:46px;border-radius:14px;font-size:26px}
+  .transition-word{font-size:21px;color:var(--ink)}
+  .transition-by{margin-top:5px;color:var(--gold-bright);font-size:9px;letter-spacing:.25em}
+  body.page-leaving .page-transition,
+  body.page-entering .page-transition{opacity:1;pointer-events:auto;backdrop-filter:blur(10px)}
+  body.page-leaving .page-transition::before{animation:transitionLineLoad var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .page-transition::before{animation:transitionLineUnload var(--transition-dur) var(--transition-ease) forwards}
+  body.page-leaving .transition-logo{animation:minimalLogoIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .transition-logo{opacity:1;animation:minimalLogoOut var(--transition-dur) var(--transition-ease) forwards}
+  @keyframes transitionLineLoad{
+    0%{opacity:0;transform:translate(-50%,76px) scaleX(.18)}
+    36%{opacity:1}
+    100%{opacity:1;transform:translate(-50%,76px) scaleX(1)}
+  }
+  @keyframes transitionLineUnload{
+    0%{opacity:1;transform:translate(-50%,76px) scaleX(1)}
+    100%{opacity:0;transform:translate(-50%,76px) scaleX(.18)}
+  }
+  @keyframes minimalLogoIn{
+    0%{opacity:0;filter:blur(8px);transform:translate(-50%,-50%) translateY(8px) scale(.98)}
+    100%{opacity:1;filter:blur(0);transform:translate(-50%,-50%) translateY(0) scale(1)}
+  }
+  @keyframes minimalLogoOut{
+    0%{opacity:1;filter:blur(0);transform:translate(-50%,-50%) translateY(0) scale(1)}
+    100%{opacity:0;filter:blur(7px);transform:translate(-50%,-50%) translateY(-6px) scale(.99)}
+  }
+  .page-transition{
+    --transition-dur:620ms;
+    --transition-ease:cubic-bezier(.19,1,.22,1);
+    background:
+      radial-gradient(circle at 12% 10%,rgba(216,187,112,.18),transparent 28%),
+      rgba(10,10,12,.72);
+    backdrop-filter:blur(0);
+    clip-path:polygon(0 0,0 0,0 0,0 0);
+  }
+  .page-transition::before{
+    left:auto;
+    top:0;
+    right:-18vw;
+    width:34vw;
+    min-width:220px;
+    height:145vh;
+    border:0;
+    background:linear-gradient(90deg,transparent,rgba(216,187,112,.62),rgba(244,239,226,.96),rgba(185,154,85,.3),transparent);
+    box-shadow:0 0 44px rgba(216,187,112,.35);
+    opacity:0;
+    transform:translate3d(-138vw,-34vh,0) rotate(-18deg);
+  }
+  .page-transition::after{display:none}
+  .transition-logo{
+    grid-template-columns:auto 1fr;
+    min-width:214px;
+    gap:12px;
+    padding:12px 15px 12px 12px;
+    border-radius:20px;
+    background:rgba(12,12,15,.76);
+    border:1px solid rgba(216,187,112,.24);
+    box-shadow:0 26px 76px rgba(0,0,0,.44),0 0 36px rgba(185,154,85,.14);
+    transform:translate(-50%,-50%) translate(-10px,-10px) scale(.985);
+    filter:blur(8px);
+    text-align:left;
+  }
+  .transition-mark{width:48px;height:48px;border-radius:14px;font-size:27px}
+  body.page-leaving .page-transition,
+  body.page-entering .page-transition{opacity:1;pointer-events:auto;backdrop-filter:blur(12px)}
+  body.page-leaving .page-transition{animation:diagonalCover var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .page-transition{clip-path:polygon(0 0,180% 0,100% 180%,0 100%);animation:diagonalReveal var(--transition-dur) var(--transition-ease) forwards}
+  body.page-leaving .page-transition::before{animation:diagonalEdgeIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .page-transition::before{animation:diagonalEdgeOut var(--transition-dur) var(--transition-ease) forwards}
+  body.page-leaving .transition-logo{animation:diagonalLogoIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .transition-logo{opacity:1;animation:diagonalLogoOut var(--transition-dur) var(--transition-ease) forwards}
+  @keyframes diagonalCover{
+    0%{clip-path:polygon(0 0,0 0,0 0,0 0)}
+    100%{clip-path:polygon(0 0,180% 0,100% 180%,0 100%)}
+  }
+  @keyframes diagonalReveal{
+    0%{clip-path:polygon(0 0,180% 0,100% 180%,0 100%)}
+    100%{clip-path:polygon(100% 100%,100% 100%,100% 100%,100% 100%)}
+  }
+  @keyframes diagonalEdgeIn{
+    0%{opacity:0;transform:translate3d(-138vw,-34vh,0) rotate(-18deg)}
+    18%,72%{opacity:1}
+    100%{opacity:0;transform:translate3d(28vw,22vh,0) rotate(-18deg)}
+  }
+  @keyframes diagonalEdgeOut{
+    0%{opacity:0;transform:translate3d(-86vw,-22vh,0) rotate(-18deg)}
+    16%,66%{opacity:.95}
+    100%{opacity:0;transform:translate3d(72vw,32vh,0) rotate(-18deg)}
+  }
+  @keyframes diagonalLogoIn{
+    0%,28%{opacity:0;filter:blur(8px);transform:translate(-50%,-50%) translate(-10px,-10px) scale(.985)}
+    74%,100%{opacity:1;filter:blur(0);transform:translate(-50%,-50%) translate(0,0) scale(1)}
+  }
+  @keyframes diagonalLogoOut{
+    0%,24%{opacity:1;filter:blur(0);transform:translate(-50%,-50%) translate(0,0) scale(1)}
+    100%{opacity:0;filter:blur(7px);transform:translate(-50%,-50%) translate(10px,10px) scale(.985)}
+  }
+  body.page-leaving main,
+  body.page-leaving footer{
+    animation:pageFadeOut 420ms cubic-bezier(.22,1,.36,1) forwards;
+  }
+  body.page-entering main,
+  body.page-entering footer{
+    animation:pageFadeIn 760ms cubic-bezier(.16,1,.3,1) both;
+  }
+  @keyframes pageFadeOut{
+    to{opacity:.68;filter:blur(4px);transform:translate3d(0,-8px,0) scale(.997)}
+  }
+  @keyframes pageFadeIn{
+    0%{opacity:.35;filter:blur(10px);transform:translate3d(0,14px,0) scale(.994)}
+    42%{opacity:.65}
+    100%{opacity:1;filter:blur(0);transform:translate3d(0,0,0) scale(1)}
+  }
+  .page-transition{
+    --transition-dur:560ms;
+    --transition-ease:cubic-bezier(.2,.8,.2,1);
+    clip-path:none !important;
+    background:rgba(10,10,12,.96);
+    backdrop-filter:none;
+    transform:translateZ(0);
+  }
+  .page-transition::before{
+    display:block;
+    top:50%;
+    left:50%;
+    right:auto;
+    width:150vmax;
+    min-width:0;
+    height:4px;
+    border:0;
+    background:linear-gradient(90deg,transparent,rgba(216,187,112,.5),var(--gold-bright),rgba(244,239,226,.95),var(--gold-bright),rgba(216,187,112,.38),transparent);
+    box-shadow:0 0 28px rgba(216,187,112,.58);
+    opacity:0;
+    transform:translate3d(-86vmax,-48vmax,0) rotate(45deg);
+  }
+  .page-transition::after{display:none}
+  .transition-logo{
+    filter:none;
+    backdrop-filter:none;
+    transform:translate(-50%,-50%) translate3d(-6px,-6px,0) scale(.99);
+    will-change:opacity,transform;
+  }
+  body.page-leaving .page-transition,
+  body.page-entering .page-transition{opacity:1;pointer-events:auto;backdrop-filter:none}
+  body.page-leaving .page-transition{animation:fastOverlayIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .page-transition{animation:fastOverlayOut var(--transition-dur) var(--transition-ease) forwards}
+  body.page-leaving .page-transition::before{animation:fastDiagonalIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .page-transition::before{animation:fastDiagonalOut var(--transition-dur) var(--transition-ease) forwards}
+  body.page-leaving .transition-logo{animation:fastLogoIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .transition-logo{opacity:1;animation:fastLogoOut var(--transition-dur) var(--transition-ease) forwards}
+  @keyframes fastOverlayIn{
+    from{opacity:0}
+    to{opacity:1}
+  }
+  @keyframes fastOverlayOut{
+    from{opacity:1}
+    to{opacity:0}
+  }
+  @keyframes fastDiagonalIn{
+    0%{opacity:0;transform:translate3d(-86vmax,-48vmax,0) rotate(45deg)}
+    18%,78%{opacity:1}
+    100%{opacity:0;transform:translate3d(38vmax,38vmax,0) rotate(45deg)}
+  }
+  @keyframes fastDiagonalOut{
+    0%{opacity:0;transform:translate3d(-56vmax,-32vmax,0) rotate(45deg)}
+    16%,72%{opacity:.95}
+    100%{opacity:0;transform:translate3d(60vmax,44vmax,0) rotate(45deg)}
+  }
+  @keyframes fastLogoIn{
+    from{opacity:0;transform:translate(-50%,-50%) translate3d(-6px,-6px,0) scale(.99)}
+    to{opacity:1;transform:translate(-50%,-50%) translate3d(0,0,0) scale(1)}
+  }
+  @keyframes fastLogoOut{
+    from{opacity:1;transform:translate(-50%,-50%) translate3d(0,0,0) scale(1)}
+    to{opacity:0;transform:translate(-50%,-50%) translate3d(6px,6px,0) scale(.99)}
+  }
+  .transition-logo{
+    grid-template-columns:48px minmax(138px,1fr);
+    width:min(330px,88vw);
+  }
+  .transition-icons{
+    grid-column:1/-1;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:8px;
+    margin-top:2px;
+  }
+  .transition-icons span{
+    min-height:30px;
+    border:1px solid rgba(216,187,112,.18);
+    border-radius:12px;
+    display:grid;
+    place-items:center;
+    background:rgba(185,154,85,.07);
+    color:var(--gold-bright);
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:.04em;
+    opacity:.82;
+  }
+  .transition-quote{
+    grid-column:1/-1;
+    color:var(--ink-dim);
+    font-size:13px;
+    line-height:1.35;
+    text-align:center;
+    opacity:.9;
+  }
+  body.page-leaving .transition-icons span,
+  body.page-entering .transition-icons span{animation:iconPulse 430ms cubic-bezier(.2,.8,.2,1) both}
+  body.page-leaving .transition-icons span:nth-child(2),
+  body.page-entering .transition-icons span:nth-child(2){animation-delay:45ms}
+  body.page-leaving .transition-icons span:nth-child(3),
+  body.page-entering .transition-icons span:nth-child(3){animation-delay:90ms}
+  body.page-leaving .transition-icons span:nth-child(4),
+  body.page-entering .transition-icons span:nth-child(4){animation-delay:135ms}
+  @keyframes iconPulse{
+    0%{opacity:.35;transform:translate3d(0,5px,0) scale(.98)}
+    60%{opacity:1;transform:translate3d(0,0,0) scale(1)}
+    100%{opacity:.82;transform:translate3d(0,0,0) scale(1)}
+  }
+  .page-transition .transition-logo{display:none !important}
+  @keyframes pageFadeOut{
+    to{opacity:.82;transform:translate3d(0,-4px,0) scale(.999)}
+  }
+  @keyframes pageFadeIn{
+    0%{opacity:.72;transform:translate3d(0,8px,0) scale(.998)}
+    100%{opacity:1;transform:translate3d(0,0,0) scale(1)}
+  }
+  .page-transition{
+    --transition-dur:760ms;
+    --transition-ease:cubic-bezier(.83,0,.17,1);
+    background:transparent;
+    clip-path:none !important;
+    backdrop-filter:none;
+    overflow:hidden;
+    contain:paint;
+    transform:translateZ(0);
+  }
+  .page-transition::before{
+    display:block;
+    top:50%;
+    left:50%;
+    right:auto;
+    width:210vmax;
+    min-width:0;
+    height:210vmax;
+    border:0;
+    background:
+      radial-gradient(circle at 26% 20%,rgba(216,187,112,.12),transparent 34%),
+      rgba(10,10,12,.98);
+    box-shadow:0 0 90px rgba(0,0,0,.52);
+    opacity:1;
+    transform:translate3d(calc(-50% - 185vmax),calc(-50% - 185vmax),0) rotate(45deg);
+    will-change:transform;
+  }
+  .page-transition::after{
+    content:"";
+    display:block;
+    position:absolute;
+    top:50%;
+    left:50%;
+    width:190vmax;
+    height:3px;
+    border:0;
+    background:linear-gradient(90deg,transparent,rgba(216,187,112,.45),var(--gold-bright),rgba(244,239,226,.95),var(--gold-bright),rgba(216,187,112,.35),transparent);
+    box-shadow:0 0 26px rgba(216,187,112,.58);
+    opacity:1;
+    transform:translate3d(calc(-50% - 185vmax),calc(-50% - 185vmax),0) rotate(45deg);
+    will-change:transform;
+  }
+  .page-transition .transition-logo{display:none !important}
+  body.page-leaving .page-transition,
+  body.page-entering .page-transition{opacity:1;pointer-events:auto;backdrop-filter:none;animation:none}
+  body.page-leaving main,
+  body.page-leaving footer{animation:pageFadeOut 520ms cubic-bezier(.22,1,.36,1) forwards}
+  body.page-entering main,
+  body.page-entering footer{animation:pageFadeIn 780ms cubic-bezier(.16,1,.3,1) 80ms both}
+  body.page-leaving .page-transition::before{animation:diagonalPanelIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .page-transition::before{transform:translate3d(-50%,-50%,0) rotate(45deg);animation:diagonalPanelOut var(--transition-dur) var(--transition-ease) forwards}
+  body.page-leaving .page-transition::after{animation:diagonalEdgeIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .page-transition::after{transform:translate3d(-50%,-50%,0) rotate(45deg);animation:diagonalEdgeOut var(--transition-dur) var(--transition-ease) forwards}
+  @keyframes diagonalPanelIn{
+    from{transform:translate3d(calc(-50% - 185vmax),calc(-50% - 185vmax),0) rotate(45deg)}
+    to{transform:translate3d(-50%,-50%,0) rotate(45deg)}
+  }
+  @keyframes diagonalPanelOut{
+    from{transform:translate3d(-50%,-50%,0) rotate(45deg)}
+    to{transform:translate3d(calc(-50% + 185vmax),calc(-50% + 185vmax),0) rotate(45deg)}
+  }
+  @keyframes diagonalEdgeIn{
+    from{transform:translate3d(calc(-50% - 185vmax),calc(-50% - 185vmax),0) rotate(45deg);opacity:.55}
+    to{transform:translate3d(-50%,-50%,0) rotate(45deg)}
+  }
+  @keyframes diagonalEdgeOut{
+    from{transform:translate3d(-50%,-50%,0) rotate(45deg)}
+    to{transform:translate3d(calc(-50% + 185vmax),calc(-50% + 185vmax),0) rotate(45deg);opacity:.55}
+  }
+  .page-transition{
+    --transition-dur:720ms;
+    --transition-ease:cubic-bezier(.78,0,.22,1);
+    background:transparent;
+    clip-path:none !important;
+    transform:translateZ(0);
+  }
+  .page-transition::before{
+    inset:0;
+    width:auto;
+    height:auto;
+    min-width:0;
+    background:
+      radial-gradient(circle at 18% 12%,rgba(216,187,112,.14),transparent 34%),
+      linear-gradient(135deg,rgba(10,10,12,.96),rgba(10,10,12,.995));
+    box-shadow:none;
+    transform:none;
+    clip-path:polygon(0 0,0 0,0 0);
+  }
+  .page-transition::after{
+    top:-12vmax;
+    left:-12vmax;
+    width:170vmax;
+    height:2px;
+    background:linear-gradient(90deg,transparent,rgba(216,187,112,.35),var(--gold-bright),rgba(244,239,226,.84),var(--gold-bright),rgba(216,187,112,.28),transparent);
+    box-shadow:0 0 22px rgba(216,187,112,.45);
+    transform:translate3d(-16vmax,-16vmax,0) rotate(45deg);
+  }
+  body.page-leaving .page-transition,
+  body.page-entering .page-transition{opacity:1;pointer-events:auto;backdrop-filter:none}
+  body.page-leaving .page-transition{animation:none}
+  body.page-entering .page-transition{animation:none}
+  body.page-leaving .page-transition::before{animation:cornerSwipeIn var(--transition-dur) var(--transition-ease) forwards !important}
+  body.page-entering .page-transition::before{clip-path:polygon(0 0,220% 0,0 220%);animation:cornerSwipeOut var(--transition-dur) var(--transition-ease) forwards !important}
+  body.page-leaving .page-transition::after{animation:cornerEdgeIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .page-transition::after{animation:cornerEdgeOut var(--transition-dur) var(--transition-ease) forwards}
+  @keyframes cornerSwipeIn{
+    from{clip-path:polygon(0 0,0 0,0 0)}
+    to{clip-path:polygon(0 0,220% 0,0 220%)}
+  }
+  @keyframes cornerSwipeOut{
+    from{clip-path:polygon(0 0,220% 0,0 220%)}
+    to{clip-path:polygon(100% 100%,100% 100%,100% 100%)}
+  }
+  @keyframes cornerEdgeIn{
+    from{transform:translate3d(-16vmax,-16vmax,0) rotate(45deg);opacity:.45}
+    to{transform:translate3d(112vmax,112vmax,0) rotate(45deg);opacity:.7}
+  }
+  @keyframes cornerEdgeOut{
+    from{transform:translate3d(-8vmax,-8vmax,0) rotate(45deg);opacity:.7}
+    to{transform:translate3d(116vmax,116vmax,0) rotate(45deg);opacity:.35}
+  }
+  section{position:relative;z-index:2;padding:104px 0;scroll-margin-top:86px}
+  .hero{padding:150px 0 96px}
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:10px;margin-bottom:26px;padding:8px 14px;
+    border:1px solid var(--line);border-radius:999px;background:var(--glass);
+    color:var(--gold-bright);font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;
+  }
+  .eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gold-bright);box-shadow:0 0 14px var(--gold-bright)}
+  h1,.section-title{
+    font-family:var(--serif);
+    font-weight:400;
+    letter-spacing:-.03em;
+    line-height:1.02;
+  }
+  h1{font-size:clamp(48px,7vw,92px);max-width:920px;margin-bottom:24px}
+  em{font-style:italic;color:var(--gold-bright);font-weight:300}
+  .lede{max-width:730px;color:var(--ink-dim);font-size:20px;line-height:1.62;margin-bottom:34px}
+  .btn-row{display:flex;gap:14px;flex-wrap:wrap}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;
+    border-radius:999px;padding:15px 24px;border:1px solid var(--line);
+    color:var(--ink);text-decoration:none;font-size:15px;font-weight:600;
+    transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;
+  }
+  .btn:hover{transform:translateY(-2px);border-color:rgba(216,187,112,.5)}
+  .btn-primary{
+    border:0;background:linear-gradient(135deg,var(--gold-bright),var(--gold) 58%,var(--gold-deep));
+    color:#0a0a0c;box-shadow:0 14px 34px rgba(185,154,85,.25),inset 0 1px 0 rgba(255,255,255,.32);
+  }
+  .section-head{margin-bottom:42px}
+  .section-title{font-size:clamp(36px,5vw,64px);max-width:880px;margin-bottom:18px}
+  .section-lede{max-width:720px;color:var(--ink-dim);font-size:18px;line-height:1.65}
+  .split{
+    display:grid;
+    grid-template-columns:.9fr 1.1fr;
+    gap:42px;
+    align-items:start;
+  }
+  .panel{
+    border:1px solid var(--line);
+    border-radius:30px;
+    background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(255,255,255,.015));
+    box-shadow:0 34px 90px rgba(0,0,0,.35);
+    overflow:hidden;
+  }
+  .panel-pad{padding:36px}
+  .module-list{display:grid;gap:16px}
+  .module{
+    border:1px solid var(--line);
+    border-radius:22px;
+    padding:26px;
+    background:rgba(255,255,255,.025);
+  }
+  .kicker{color:var(--gold-bright);font-size:11px;letter-spacing:.17em;text-transform:uppercase;font-weight:700;margin-bottom:10px}
+  .module h3,.week h3,.compare h3,.template h3,.script-card h3{
+    font-family:var(--serif);
+    font-size:27px;
+    font-weight:500;
+    line-height:1.1;
+    margin-bottom:10px;
+  }
+  .module p,.week p,.compare li,.template p,.script-card p{color:var(--ink-dim);font-size:15px;line-height:1.62}
+  .lessons{list-style:none;display:grid;gap:8px;margin-top:15px;color:var(--ink-dim);font-size:13px}
+  .lessons li{display:flex;gap:8px;align-items:flex-start}
+  .lessons li::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--gold);margin-top:7px;flex:0 0 auto}
+  .timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .week{
+    border:1px solid var(--line);
+    border-radius:22px;
+    padding:26px;
+    background:linear-gradient(145deg,rgba(255,255,255,.052),rgba(255,255,255,.012));
+  }
+  .deliverable{border-top:1px solid var(--line);padding-top:14px;margin-top:16px;color:var(--ink);font-size:13px;line-height:1.45}
+  .deliverable strong{display:block;color:var(--gold-bright);font-family:var(--serif);font-size:15px;margin-bottom:3px}
+  .template-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .template{
+    border:1px solid var(--line);
+    border-radius:22px;
+    padding:24px;
+    background:rgba(255,255,255,.025);
+    min-height:190px;
+  }
+  .compare-grid{display:grid;grid-template-columns:1fr 1fr}
+  .compare{padding:34px;border-right:1px solid var(--line)}
+  .compare:last-child{border-right:0;background:rgba(185,154,85,.055)}
+  .compare ul{list-style:none;display:grid;gap:14px}
+  .compare li{display:flex;gap:10px}
+  .compare li::before{content:"-";color:var(--ink-faint);font-weight:700}
+  .compare:last-child li::before{content:"+";color:var(--gold-bright)}
+  .script-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:26px;align-items:start}
+  .script-lines{display:grid;gap:12px}
+  .script-lines div{
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:16px 18px;
+    background:rgba(10,10,12,.5);
+    color:var(--ink);
+    font-size:15px;
+    line-height:1.5;
+  }
+  .cta-panel{text-align:center;padding:70px 34px}
+  .cta-panel h2{font-family:var(--serif);font-size:clamp(38px,5vw,68px);font-weight:400;line-height:1;margin-bottom:18px}
+  .cta-panel p{color:var(--ink-dim);font-size:18px;max-width:620px;margin:0 auto 30px;line-height:1.65}
+  footer{position:relative;z-index:2;border-top:1px solid var(--line);padding:42px 0;color:var(--ink-faint);font-size:13px}
+  .footer-inner{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+  @media(max-width:980px){
+    .split,.timeline,.template-grid,.compare-grid,.script-grid{grid-template-columns:1fr}
+    .compare{border-right:0;border-bottom:1px solid var(--line)}
+    .compare:last-child{border-bottom:0}
+    .nav-menu-toggle{display:grid;place-items:center}
+    .nav-links{
+      position:absolute;
+      top:calc(100% + 10px);
+      left:18px;
+      right:18px;
+      display:grid;
+      gap:6px;
+      padding:14px;
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:rgba(10,10,12,.94);
+      box-shadow:0 24px 70px rgba(0,0,0,.42);
+      backdrop-filter:blur(20px);
+      opacity:0;
+      transform:translateY(-10px);
+      pointer-events:none;
+      transition:opacity .25s ease,transform .25s ease;
+    }
+    body.nav-open .nav-links{opacity:1;transform:translateY(0);pointer-events:auto}
+    .nav-links a{padding:12px 14px;border-radius:14px}
+    .nav-links a:hover{background:rgba(185,154,85,.08)}
+    .nav-links .nav-cta{display:flex;justify-content:center;margin-top:4px}
+  }
+  @media(max-width:640px){
+    nav{padding:14px 18px}
+    .wrap{padding:0 20px}
+    section{padding:78px 0}
+    .hero{padding-top:120px}
+    h1{font-size:48px}
+    .panel-pad,.module,.week,.template,.compare{padding:22px}
+  }
+</style>
+</head>
+<body>
+<nav aria-label="Primary navigation">
+  <div class="nav-inner">
+    <a class="logo" href="/surplus.html" aria-label="Back to Surplus homepage">
+      <span class="logo-mark">S</span>
+      <span class="logo-text"><span class="logo-name">Surplus</span><span class="logo-by">by Rosario</span></span>
+    </a>
+    <button class="nav-menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="courseNav">Menu</button>
+    <div class="nav-links" id="courseNav">
+      <a href="/surplus.html">Home</a>
+      <a href="#modules" data-scroll="#modules">Modules</a>
+      <a href="#first-30" data-scroll="#first-30">First 30 Days</a>
+      <a href="#templates" data-scroll="#templates">Templates</a>
+      <a href="#comparison" data-scroll="#comparison">Why Surplus</a>
+      <a href="/surplus-member.html">Member Preview</a>
+      <a class="nav-cta" href="/surplus.html#signup">Join Surplus</a>
+    </div>
+  </div>
+</nav>
+<div class="page-transition" aria-hidden="true"></div>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div class="eyebrow">Inside the $50/month membership</div>
+      <h1>The course page, with room to <em>breathe.</em></h1>
+      <p class="lede">This page holds the deeper details: modules, first 30 days, spreadsheets, AI lessons, community structure, and the reason Surplus is different from expensive guru courses.</p>
+      <div class="btn-row">
+        <a class="btn btn-primary" href="/surplus.html#signup">Start the climb for $50/mo <span aria-hidden="true">&rarr;</span></a>
+        <a class="btn" href="/surplus-member.html">View member portal</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="modules">
+    <div class="wrap split">
+      <div class="section-head">
+        <div class="eyebrow">Course Modules</div>
+        <h2 class="section-title">What members unlock inside Surplus.</h2>
+        <p class="section-lede">The curriculum starts with personal foundation, then builds into money control, income, AI, business, and wealth basics.</p>
+      </div>
+      <div class="module-list">
+        <article class="module"><div class="kicker">Module 01</div><h3>The Wake-Up</h3><p>The mindset shift that starts everything: nobody is coming to save you, so you need a system and a standard.</p><ul class="lessons"><li>My story from helper to business owner</li><li>Why motivation is unreliable</li><li>Building discipline while life is busy</li></ul></article>
+        <article class="module"><div class="kicker">Module 02</div><h3>Money Control</h3><p>Budgeting for people who hate budgeting. Know the number, find the leak, and stop letting money disappear.</p><ul class="lessons"><li>Zero-based budget setup</li><li>Expense audit and spending leaks</li><li>Emergency fund and sinking funds</li></ul></article>
+        <article class="module"><div class="kicker">Module 03</div><h3>Income Ladder</h3><p>Grow income from where you are, whether that is a job, trade, side hustle, or service business.</p><ul class="lessons"><li>First $500/month side-income plan</li><li>High-value skills and service offers</li><li>Pricing your time without guessing</li></ul></article>
+        <article class="module"><div class="kicker">Module 04</div><h3>AI as a Tool</h3><p>Practical AI for people who want to move faster, plan better, and create more without pretending AI replaces work.</p><ul class="lessons"><li>AI for personal planning and decisions</li><li>AI for business owners and operators</li><li>Prompts for content, research, and systems</li></ul></article>
+        <article class="module"><div class="kicker">Module 05</div><h3>Business and Trades</h3><p>Lessons from starting a contracting company young while still working a job and learning through real pressure.</p><ul class="lessons"><li>Turning a skill into a paid offer</li><li>Getting first customers and referrals</li><li>Keeping standards when you are tired</li></ul></article>
+        <article class="module"><div class="kicker">Module 06</div><h3>Property and Wealth Basics</h3><p>First property decisions, renovation plans, long-term investing, and putting surplus to work.</p><ul class="lessons"><li>Primary home as an investment mindset</li><li>Renovation, resale, and risk basics</li><li>S&P 500 and long-term investing basics</li></ul></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="first-30">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">First 30 Days</div>
+        <h2 class="section-title">A clear first month, not content overload.</h2>
+        <p class="section-lede">Members should leave month one with clarity, a working budget, a first income plan, and AI workflows they can actually use.</p>
+      </div>
+      <div class="timeline">
+        <article class="week"><div class="kicker">Week 01</div><h3>Audit your real life.</h3><p>List income, bills, debts, subscriptions, and pressure points.</p><div class="deliverable"><strong>Deliverable</strong>Your true monthly number and leak list.</div></article>
+        <article class="week"><div class="kicker">Week 02</div><h3>Build the budget rhythm.</h3><p>Set up the monthly budget and weekly check-in system.</p><div class="deliverable"><strong>Deliverable</strong>A live budget you can run every week.</div></article>
+        <article class="week"><div class="kicker">Week 03</div><h3>Pick your income move.</h3><p>Choose one income track and map the first $500/month attempt.</p><div class="deliverable"><strong>Deliverable</strong>A first offer, outreach plan, or raise plan.</div></article>
+        <article class="week"><div class="kicker">Week 04</div><h3>Install AI into the system.</h3><p>Use AI to plan, write, research, organize, and execute faster.</p><div class="deliverable"><strong>Deliverable</strong>Your first AI workflow and weekly action plan.</div></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="templates">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Templates</div>
+        <h2 class="section-title">Spreadsheets that make the system visible.</h2>
+        <p class="section-lede">Built for Google Sheets and Excel-compatible. Plug in your numbers, follow the prompts, and let the formulas show the next move.</p>
+      </div>
+      <div class="template-grid">
+        <article class="template"><div class="kicker">01</div><h3>Monthly Budget</h3><p>Zero-based budget with category alerts and weekly review flow.</p></article>
+        <article class="template"><div class="kicker">02</div><h3>Debt Snowball</h3><p>Side-by-side payoff calculators for snowball and avalanche.</p></article>
+        <article class="template"><div class="kicker">03</div><h3>Net Worth Tracker</h3><p>Track cash, investments, equity, liabilities, and trajectory.</p></article>
+        <article class="template"><div class="kicker">04</div><h3>Sinking Funds</h3><p>Plan irregular expenses before they wreck the month.</p></article>
+        <article class="template"><div class="kicker">05</div><h3>Side Income Log</h3><p>Track gigs, hours, rates, profit, and best income plays.</p></article>
+        <article class="template"><div class="kicker">06+</div><h3>More Tools</h3><p>Savings goals, expense audit, salary calculator, AI prompts, and more.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="comparison">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Why Surplus</div>
+        <h2 class="section-title">Not another guru course.</h2>
+        <p class="section-lede">People have seen the rented cars, vague advice, and overpriced courses. Surplus should feel different immediately.</p>
+      </div>
+      <div class="panel">
+        <div class="compare-grid">
+          <div class="compare">
+            <h3>Typical online courses</h3>
+            <ul><li>Expensive upfront pricing before trust is built.</li><li>Advice from people too far removed from the beginning.</li><li>Polished lifestyle content with unclear next steps.</li><li>One-way videos with no real community.</li><li>Generic motivation that fades after a week.</li></ul>
+          </div>
+          <div class="compare">
+            <h3>Surplus by Rosario</h3>
+            <ul><li>$50/month so people can start without a huge gamble.</li><li>Real-time lessons from someone still building the climb.</li><li>Budget sheets, AI prompts, income plays, and weekly actions.</li><li>Discord community for questions and accountability.</li><li>Built around execution, not pretending success is effortless.</li></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="recording">
+    <div class="wrap panel panel-pad script-grid">
+      <div class="script-card">
+        <div class="eyebrow">Recording Plan</div>
+        <h3>Record this intro first.</h3>
+        <p>This video can live on the site and get chopped into TikToks, Reels, and shorts. Keep it raw, direct, and specific.</p>
+      </div>
+      <div class="script-lines">
+        <div>"I went from zero to roughly $200K across income streams by 21, and I am still not pretending I made it."</div>
+        <div>"Most courses are sold by people at the finish line. Surplus is from someone still doing the work in real time."</div>
+        <div>"Nobody is coming to save you. That thought changed my life, and this community is built for people ready to act on it."</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap panel cta-panel">
+      <h2>Ready to start the climb?</h2>
+      <p>Join Surplus for $50/month and get the course, Discord community, spreadsheets, AI playbooks, and live direction.</p>
+      <a class="btn btn-primary" href="/surplus.html#signup">Join Surplus <span aria-hidden="true">&rarr;</span></a>
+      <a class="btn" href="/surplus-member.html" style="margin-left:10px">Preview the portal</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap footer-inner">
+    <div class="logo" aria-label="Surplus by Rosario">
+      <span class="logo-mark" style="width:28px;height:28px;border-radius:8px;font-size:16px">S</span>
+      <span>&copy; 2026 Surplus by Rosario. All rights reserved.</span>
+    </div>
+    <a style="color:var(--ink-faint);text-decoration:none" href="/surplus.html">Back to homepage</a>
+  </div>
+</footer>
+
+<script>
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const PAGE_TRANSITION_MS = 720;
+  const TRANSITION_QUOTES = [
+    "Know your number. Widen the gap.",
+    "Nobody is coming to save you.",
+    "Budget smarter. Earn more.",
+    "Turn pressure into a plan.",
+    "The climb starts with clarity.",
+    "Use AI. Save hours. Move faster."
+  ];
+  const updateTransitionQuote = () => {
+    const quote = document.querySelector(".transition-quote");
+    if (!quote) return;
+    quote.textContent = TRANSITION_QUOTES[Math.floor(Math.random() * TRANSITION_QUOTES.length)];
+  };
+  updateTransitionQuote();
+  const shouldPlayEntryTransition = sessionStorage.getItem("surplusIrisTransition") === "1";
+  sessionStorage.removeItem("surplusIrisTransition");
+  if (shouldPlayEntryTransition && !reducedMotion) {
+    document.body.classList.add("page-entering");
+    setTimeout(() => document.body.classList.remove("page-entering"), PAGE_TRANSITION_MS);
+  }
+  document.body.classList.add("page-ready");
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => document.documentElement.classList.remove("preload-transition"));
+  });
+  document.querySelectorAll("[data-scroll]").forEach((item) => {
+    item.addEventListener("click", (event) => {
+      const selector = item.getAttribute("data-scroll");
+      const target = selector ? document.querySelector(selector) : null;
+      if (!target) return;
+      event.preventDefault();
+      document.body.classList.remove("nav-open");
+      document.querySelector(".nav-menu-toggle")?.setAttribute("aria-expanded", "false");
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+
+  const menuToggle = document.querySelector(".nav-menu-toggle");
+  menuToggle?.addEventListener("click", () => {
+    const isOpen = document.body.classList.toggle("nav-open");
+    menuToggle.setAttribute("aria-expanded", String(isOpen));
+  });
+
+  document.querySelectorAll('a[href]').forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const href = link.getAttribute("href");
+      if (!href || href.startsWith("#") || href.startsWith("mailto:") || link.target === "_blank" || link.hasAttribute("download")) return;
+      const next = new URL(href, window.location.href);
+      if (next.origin !== window.location.origin) return;
+      if (next.pathname === window.location.pathname && next.hash) return;
+      event.preventDefault();
+      document.body.classList.remove("nav-open");
+      if (reducedMotion) {
+        window.location.href = next.href;
+        return;
+      }
+      updateTransitionQuote();
+      sessionStorage.setItem("surplusIrisTransition", "1");
+      document.body.classList.add("page-leaving");
+      setTimeout(() => { window.location.href = next.href; }, PAGE_TRANSITION_MS);
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,2511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#0a0a0c" />
+<title>Surplus by Rosario - Budget Smarter, Earn More</title>
+<style>
+  html,body{background:#0a0a0c;color:#f4efe2;color-scheme:dark}
+  html.preload-transition::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    background:#0a0a0c;
+    pointer-events:none;
+  }
+</style>
+<script>
+  (() => {
+    try {
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (!reduce && sessionStorage.getItem("surplusIrisTransition") === "1") {
+        document.documentElement.classList.add("preload-transition");
+      }
+    } catch {}
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0c;
+    --bg-2:#101013;
+    --ink:#f4efe2;
+    --ink-dim:#c2bbb0;
+    --ink-faint:#6e685f;
+    --gold:#b99a55;
+    --gold-bright:#d8bb70;
+    --gold-deep:#806936;
+    --line:rgba(185,154,85,.2);
+    --glass:rgba(255,255,255,.035);
+    --glass-strong:rgba(255,255,255,.075);
+    --serif:"Fraunces",serif;
+    --sans:"Inter Tight",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;background:var(--bg);color-scheme:dark}
+  body{
+    min-height:100vh;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.58;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    background:
+      radial-gradient(ellipse 58% 46% at 18% 8%,rgba(185,154,85,.18),transparent 64%),
+      radial-gradient(ellipse 48% 38% at 78% 24%,rgba(216,187,112,.11),transparent 64%),
+      radial-gradient(ellipse 80% 64% at 50% 100%,rgba(128,105,54,.14),transparent 72%);
+  }
+  body::after{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:1;
+    pointer-events:none;
+    opacity:.04;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.55'/></svg>");
+  }
+  .wrap{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:0 28px}
+  .skip{position:absolute;left:-999px;top:12px;z-index:200;background:var(--gold);color:#0a0a0c;padding:10px 14px;border-radius:999px}
+  .skip:focus{left:12px}
+  nav{
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    z-index:100;
+    padding:16px 28px;
+    border-bottom:1px solid var(--line);
+    background:rgba(10,10,12,.72);
+    backdrop-filter:blur(18px) saturate(1.35);
+    transition:padding .28s ease,background .28s ease,box-shadow .28s ease,border-color .28s ease;
+  }
+  .nav-inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:24px}
+  .logo{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none}
+  .logo-mark{
+    width:36px;
+    height:36px;
+    border-radius:10px;
+    display:grid;
+    place-items:center;
+    background:linear-gradient(135deg,var(--gold-bright),var(--gold-deep));
+    color:#0a0a0c;
+    font-family:var(--serif);
+    font-style:italic;
+    font-size:21px;
+    font-weight:500;
+    box-shadow:0 0 28px rgba(185,154,85,.32),inset 0 1px 0 rgba(255,255,255,.32);
+  }
+  .logo-text{display:flex;flex-direction:column;line-height:1.05}
+  .logo-name{font-family:var(--serif);font-size:21px;letter-spacing:-.02em}
+  .logo-by{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint);font-weight:600;margin-top:3px}
+  .nav-links{display:flex;align-items:center;gap:24px}
+  .nav-links a{color:var(--ink-dim);text-decoration:none;font-size:14px;transition:.25s color,.25s background}
+  .nav-links a:hover,.nav-links a.is-active{color:var(--gold-bright)}
+  .nav-links a.nav-cta{color:var(--ink)}
+  .nav-menu-toggle{
+    display:none;
+    width:42px;
+    height:42px;
+    border-radius:14px;
+    border:1px solid var(--line);
+    background:rgba(255,255,255,.035);
+    color:var(--ink);
+    font-family:inherit;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .nav-cta{
+    border:0;
+    border-radius:999px;
+    padding:11px 18px;
+    background:var(--gold);
+    color:var(--ink);
+    font-family:inherit;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    text-shadow:0 1px 10px rgba(0,0,0,.28);
+  }
+  .nav-cta:hover{background:var(--gold-bright)}
+  body.nav-scrolled nav{
+    padding:10px 28px;
+    background:rgba(10,10,12,.86);
+    border-color:rgba(185,154,85,.28);
+    box-shadow:0 16px 50px rgba(0,0,0,.34);
+  }
+  body.nav-scrolled .logo-mark{box-shadow:0 0 20px rgba(185,154,85,.25),inset 0 1px 0 rgba(255,255,255,.32)}
+  @media(max-width:860px){
+    .nav-menu-toggle{display:grid;place-items:center}
+    .nav-links{
+      position:absolute;
+      top:calc(100% + 10px);
+      left:18px;
+      right:18px;
+      display:grid;
+      gap:6px;
+      padding:14px;
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:rgba(10,10,12,.94);
+      box-shadow:0 24px 70px rgba(0,0,0,.42);
+      backdrop-filter:blur(20px);
+      opacity:0;
+      transform:translateY(-10px);
+      pointer-events:none;
+      transition:opacity .25s ease,transform .25s ease;
+    }
+    body.nav-open .nav-links{opacity:1;transform:translateY(0);pointer-events:auto}
+    .nav-links a{padding:12px 14px;border-radius:14px}
+    .nav-links a:hover{background:rgba(185,154,85,.08)}
+    .nav-links .nav-cta{display:flex;justify-content:center;margin-top:4px}
+    nav{padding:14px 18px}
+    .wrap{padding:0 20px}
+  }
+  .page-transition{
+    --transition-dur:680ms;
+    --transition-ease:cubic-bezier(.16,1,.3,1);
+    position:fixed;
+    inset:0;
+    z-index:3000;
+    opacity:0;
+    pointer-events:none;
+    overflow:hidden;
+    background:
+      radial-gradient(circle at 50% 50%,rgba(216,187,112,.11),transparent 34%),
+      rgba(10,10,12,.78);
+    backdrop-filter:blur(0);
+    transition:opacity .18s ease,backdrop-filter .28s ease;
+  }
+  .page-transition::before{
+    content:"";
+    position:absolute;
+    top:50%;
+    left:50%;
+    width:150vw;
+    height:150vh;
+    background:
+      linear-gradient(90deg,transparent 0 41%,rgba(216,187,112,.12) 47%,rgba(244,239,226,.86) 50%,rgba(185,154,85,.38) 53%,transparent 60%),
+      linear-gradient(90deg,transparent 0 47%,rgba(185,154,85,.9) 50%,transparent 53%);
+    filter:blur(.2px);
+    opacity:0;
+    transform:translate(-50%,-50%) translateX(-92vw) rotate(-14deg);
+    transform-origin:center;
+    will-change:transform,opacity;
+  }
+  .page-transition::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+      linear-gradient(90deg,transparent,rgba(216,187,112,.08),transparent),
+      rgba(10,10,12,.82);
+    opacity:0;
+    transform:scaleX(.94);
+    transform-origin:center;
+    will-change:opacity,transform;
+  }
+  .transition-logo{
+    position:absolute;
+    left:50%;
+    top:50%;
+    z-index:3;
+    display:grid;
+    grid-template-columns:auto 1fr;
+    align-items:center;
+    gap:13px;
+    min-width:216px;
+    padding:12px 16px 12px 12px;
+    border:1px solid rgba(216,187,112,.24);
+    border-radius:22px;
+    background:rgba(10,10,12,.72);
+    box-shadow:0 26px 80px rgba(0,0,0,.44),0 0 44px rgba(185,154,85,.16);
+    backdrop-filter:blur(20px);
+    opacity:0;
+    filter:blur(8px);
+    transform:translate(-50%,-50%) translateY(12px) scale(.98);
+    text-align:left;
+  }
+  .transition-mark{
+    width:48px;
+    height:48px;
+    border-radius:14px;
+    display:grid;
+    place-items:center;
+    background:linear-gradient(135deg,var(--gold-bright),var(--gold-deep));
+    color:#0a0a0c;
+    font-family:var(--serif);
+    font-size:27px;
+    font-style:italic;
+    font-weight:500;
+    box-shadow:0 14px 36px rgba(0,0,0,.38),0 0 24px rgba(185,154,85,.28),inset 0 1px 0 rgba(255,255,255,.28);
+  }
+  .transition-word{font-family:var(--serif);font-size:21px;font-weight:500;color:var(--ink);line-height:1}
+  .transition-by{margin-top:5px;color:var(--gold-bright);font-size:9px;font-weight:700;letter-spacing:.25em;text-transform:uppercase}
+  body.page-leaving .page-transition,
+  body.page-entering .page-transition{opacity:1;pointer-events:auto;backdrop-filter:blur(14px)}
+  body.page-leaving .page-transition::before{animation:goldSweepOut var(--transition-dur) var(--transition-ease) forwards}
+  body.page-leaving .page-transition::after{animation:veilIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .page-transition::before{animation:goldSweepIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .page-transition::after{animation:veilOut var(--transition-dur) var(--transition-ease) forwards}
+  body.page-leaving .transition-logo{animation:transitionLogoIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .transition-logo{opacity:1;animation:transitionLogoOut var(--transition-dur) var(--transition-ease) forwards}
+  @keyframes goldSweepOut{
+    0%{opacity:0;transform:translate(-50%,-50%) translateX(-92vw) rotate(-14deg)}
+    18%,76%{opacity:1}
+    100%{opacity:0;transform:translate(-50%,-50%) translateX(92vw) rotate(-14deg)}
+  }
+  @keyframes goldSweepIn{
+    0%{opacity:0;transform:translate(-50%,-50%) translateX(-82vw) rotate(-14deg)}
+    15%,68%{opacity:.95}
+    100%{opacity:0;transform:translate(-50%,-50%) translateX(82vw) rotate(-14deg)}
+  }
+  @keyframes veilIn{
+    0%{opacity:0;transform:scaleX(.94)}
+    42%,100%{opacity:1;transform:scaleX(1)}
+  }
+  @keyframes veilOut{
+    0%,18%{opacity:1;transform:scaleX(1)}
+    100%{opacity:0;transform:scaleX(1.04)}
+  }
+  @keyframes transitionLogoIn{
+    0%,24%{opacity:0;filter:blur(8px);transform:translate(-50%,-50%) translateY(12px) scale(.98)}
+    58%,100%{opacity:1;filter:blur(0);transform:translate(-50%,-50%) translateY(0) scale(1)}
+  }
+  @keyframes transitionLogoOut{
+    0%,32%{opacity:1;filter:blur(0);transform:translate(-50%,-50%) translateY(0) scale(1)}
+    100%{opacity:0;filter:blur(7px);transform:translate(-50%,-50%) translateY(-10px) scale(.985)}
+  }
+  .page-transition{
+    --transition-dur:560ms;
+    --transition-ease:cubic-bezier(.22,1,.36,1);
+    background:rgba(10,10,12,.88);
+    backdrop-filter:blur(0);
+  }
+  .page-transition::before{
+    top:50%;
+    left:50%;
+    width:min(360px,64vw);
+    height:2px;
+    border:0;
+    background:linear-gradient(90deg,transparent,var(--gold-bright),transparent);
+    box-shadow:0 0 22px rgba(216,187,112,.48);
+    opacity:0;
+    transform:translate(-50%,76px) scaleX(.18);
+  }
+  .page-transition::after{
+    display:none;
+  }
+  .transition-logo{
+    display:grid;
+    grid-template-columns:auto 1fr;
+    gap:12px;
+    min-width:210px;
+    padding:12px 15px 12px 12px;
+    border:1px solid rgba(216,187,112,.22);
+    border-radius:20px;
+    background:rgba(12,12,15,.72);
+    box-shadow:0 24px 70px rgba(0,0,0,.42),0 0 34px rgba(185,154,85,.12);
+    backdrop-filter:blur(18px);
+    filter:blur(8px);
+    transform:translate(-50%,-50%) translateY(8px) scale(.98);
+    text-align:left;
+  }
+  .transition-mark{width:46px;height:46px;border-radius:14px;font-size:26px}
+  .transition-word{font-size:21px;color:var(--ink)}
+  .transition-by{margin-top:5px;color:var(--gold-bright);font-size:9px;letter-spacing:.25em}
+  body.page-leaving .page-transition,
+  body.page-entering .page-transition{opacity:1;pointer-events:auto;backdrop-filter:blur(10px)}
+  body.page-leaving .page-transition::before{animation:transitionLineLoad var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .page-transition::before{animation:transitionLineUnload var(--transition-dur) var(--transition-ease) forwards}
+  body.page-leaving .transition-logo{animation:minimalLogoIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .transition-logo{opacity:1;animation:minimalLogoOut var(--transition-dur) var(--transition-ease) forwards}
+  @keyframes transitionLineLoad{
+    0%{opacity:0;transform:translate(-50%,76px) scaleX(.18)}
+    36%{opacity:1}
+    100%{opacity:1;transform:translate(-50%,76px) scaleX(1)}
+  }
+  @keyframes transitionLineUnload{
+    0%{opacity:1;transform:translate(-50%,76px) scaleX(1)}
+    100%{opacity:0;transform:translate(-50%,76px) scaleX(.18)}
+  }
+  @keyframes minimalLogoIn{
+    0%{opacity:0;filter:blur(8px);transform:translate(-50%,-50%) translateY(8px) scale(.98)}
+    100%{opacity:1;filter:blur(0);transform:translate(-50%,-50%) translateY(0) scale(1)}
+  }
+  @keyframes minimalLogoOut{
+    0%{opacity:1;filter:blur(0);transform:translate(-50%,-50%) translateY(0) scale(1)}
+    100%{opacity:0;filter:blur(7px);transform:translate(-50%,-50%) translateY(-6px) scale(.99)}
+  }
+  .page-transition{
+    --transition-dur:620ms;
+    --transition-ease:cubic-bezier(.19,1,.22,1);
+    background:
+      radial-gradient(circle at 12% 10%,rgba(216,187,112,.18),transparent 28%),
+      rgba(10,10,12,.72);
+    backdrop-filter:blur(0);
+    clip-path:polygon(0 0,0 0,0 0,0 0);
+  }
+  .page-transition::before{
+    left:auto;
+    top:0;
+    right:-18vw;
+    width:34vw;
+    min-width:220px;
+    height:145vh;
+    border:0;
+    background:linear-gradient(90deg,transparent,rgba(216,187,112,.62),rgba(244,239,226,.96),rgba(185,154,85,.3),transparent);
+    box-shadow:0 0 44px rgba(216,187,112,.35);
+    opacity:0;
+    transform:translate3d(-138vw,-34vh,0) rotate(-18deg);
+  }
+  .page-transition::after{display:none}
+  .transition-logo{
+    grid-template-columns:auto 1fr;
+    min-width:214px;
+    gap:12px;
+    padding:12px 15px 12px 12px;
+    border-radius:20px;
+    background:rgba(12,12,15,.76);
+    border:1px solid rgba(216,187,112,.24);
+    box-shadow:0 26px 76px rgba(0,0,0,.44),0 0 36px rgba(185,154,85,.14);
+    transform:translate(-50%,-50%) translate(-10px,-10px) scale(.985);
+    filter:blur(8px);
+    text-align:left;
+  }
+  .transition-mark{width:48px;height:48px;border-radius:14px;font-size:27px}
+  body.page-leaving .page-transition,
+  body.page-entering .page-transition{opacity:1;pointer-events:auto;backdrop-filter:blur(12px)}
+  body.page-leaving .page-transition{animation:diagonalCover var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .page-transition{clip-path:polygon(0 0,180% 0,100% 180%,0 100%);animation:diagonalReveal var(--transition-dur) var(--transition-ease) forwards}
+  body.page-leaving .page-transition::before{animation:diagonalEdgeIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .page-transition::before{animation:diagonalEdgeOut var(--transition-dur) var(--transition-ease) forwards}
+  body.page-leaving .transition-logo{animation:diagonalLogoIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .transition-logo{opacity:1;animation:diagonalLogoOut var(--transition-dur) var(--transition-ease) forwards}
+  @keyframes diagonalCover{
+    0%{clip-path:polygon(0 0,0 0,0 0,0 0)}
+    100%{clip-path:polygon(0 0,180% 0,100% 180%,0 100%)}
+  }
+  @keyframes diagonalReveal{
+    0%{clip-path:polygon(0 0,180% 0,100% 180%,0 100%)}
+    100%{clip-path:polygon(100% 100%,100% 100%,100% 100%,100% 100%)}
+  }
+  @keyframes diagonalEdgeIn{
+    0%{opacity:0;transform:translate3d(-138vw,-34vh,0) rotate(-18deg)}
+    18%,72%{opacity:1}
+    100%{opacity:0;transform:translate3d(28vw,22vh,0) rotate(-18deg)}
+  }
+  @keyframes diagonalEdgeOut{
+    0%{opacity:0;transform:translate3d(-86vw,-22vh,0) rotate(-18deg)}
+    16%,66%{opacity:.95}
+    100%{opacity:0;transform:translate3d(72vw,32vh,0) rotate(-18deg)}
+  }
+  @keyframes diagonalLogoIn{
+    0%,28%{opacity:0;filter:blur(8px);transform:translate(-50%,-50%) translate(-10px,-10px) scale(.985)}
+    74%,100%{opacity:1;filter:blur(0);transform:translate(-50%,-50%) translate(0,0) scale(1)}
+  }
+  @keyframes diagonalLogoOut{
+    0%,24%{opacity:1;filter:blur(0);transform:translate(-50%,-50%) translate(0,0) scale(1)}
+    100%{opacity:0;filter:blur(7px);transform:translate(-50%,-50%) translate(10px,10px) scale(.985)}
+  }
+  body.page-leaving main,
+  body.page-leaving footer{
+    animation:pageFadeOut 420ms cubic-bezier(.22,1,.36,1) forwards;
+  }
+  body.page-entering main,
+  body.page-entering footer{
+    animation:pageFadeIn 760ms cubic-bezier(.16,1,.3,1) both;
+  }
+  @keyframes pageFadeOut{
+    to{opacity:.68;filter:blur(4px);transform:translate3d(0,-8px,0) scale(.997)}
+  }
+  @keyframes pageFadeIn{
+    0%{opacity:.35;filter:blur(10px);transform:translate3d(0,14px,0) scale(.994)}
+    42%{opacity:.65}
+    100%{opacity:1;filter:blur(0);transform:translate3d(0,0,0) scale(1)}
+  }
+  .page-transition{
+    --transition-dur:560ms;
+    --transition-ease:cubic-bezier(.2,.8,.2,1);
+    clip-path:none !important;
+    background:rgba(10,10,12,.96);
+    backdrop-filter:none;
+    transform:translateZ(0);
+  }
+  .page-transition::before{
+    display:block;
+    top:50%;
+    left:50%;
+    right:auto;
+    width:150vmax;
+    min-width:0;
+    height:4px;
+    border:0;
+    background:linear-gradient(90deg,transparent,rgba(216,187,112,.5),var(--gold-bright),rgba(244,239,226,.95),var(--gold-bright),rgba(216,187,112,.38),transparent);
+    box-shadow:0 0 28px rgba(216,187,112,.58);
+    opacity:0;
+    transform:translate3d(-86vmax,-48vmax,0) rotate(45deg);
+  }
+  .page-transition::after{display:none}
+  .transition-logo{
+    filter:none;
+    backdrop-filter:none;
+    transform:translate(-50%,-50%) translate3d(-6px,-6px,0) scale(.99);
+    will-change:opacity,transform;
+  }
+  body.page-leaving .page-transition,
+  body.page-entering .page-transition{opacity:1;pointer-events:auto;backdrop-filter:none}
+  body.page-leaving .page-transition{animation:fastOverlayIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .page-transition{animation:fastOverlayOut var(--transition-dur) var(--transition-ease) forwards}
+  body.page-leaving .page-transition::before{animation:fastDiagonalIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .page-transition::before{animation:fastDiagonalOut var(--transition-dur) var(--transition-ease) forwards}
+  body.page-leaving .transition-logo{animation:fastLogoIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .transition-logo{opacity:1;animation:fastLogoOut var(--transition-dur) var(--transition-ease) forwards}
+  @keyframes fastOverlayIn{
+    from{opacity:0}
+    to{opacity:1}
+  }
+  @keyframes fastOverlayOut{
+    from{opacity:1}
+    to{opacity:0}
+  }
+  @keyframes fastDiagonalIn{
+    0%{opacity:0;transform:translate3d(-86vmax,-48vmax,0) rotate(45deg)}
+    18%,78%{opacity:1}
+    100%{opacity:0;transform:translate3d(38vmax,38vmax,0) rotate(45deg)}
+  }
+  @keyframes fastDiagonalOut{
+    0%{opacity:0;transform:translate3d(-56vmax,-32vmax,0) rotate(45deg)}
+    16%,72%{opacity:.95}
+    100%{opacity:0;transform:translate3d(60vmax,44vmax,0) rotate(45deg)}
+  }
+  @keyframes fastLogoIn{
+    from{opacity:0;transform:translate(-50%,-50%) translate3d(-6px,-6px,0) scale(.99)}
+    to{opacity:1;transform:translate(-50%,-50%) translate3d(0,0,0) scale(1)}
+  }
+  @keyframes fastLogoOut{
+    from{opacity:1;transform:translate(-50%,-50%) translate3d(0,0,0) scale(1)}
+    to{opacity:0;transform:translate(-50%,-50%) translate3d(6px,6px,0) scale(.99)}
+  }
+  .transition-logo{
+    grid-template-columns:48px minmax(138px,1fr);
+    width:min(330px,88vw);
+  }
+  .transition-icons{
+    grid-column:1/-1;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:8px;
+    margin-top:2px;
+  }
+  .transition-icons span{
+    min-height:30px;
+    border:1px solid rgba(216,187,112,.18);
+    border-radius:12px;
+    display:grid;
+    place-items:center;
+    background:rgba(185,154,85,.07);
+    color:var(--gold-bright);
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:.04em;
+    opacity:.82;
+  }
+  .transition-quote{
+    grid-column:1/-1;
+    color:var(--ink-dim);
+    font-size:13px;
+    line-height:1.35;
+    text-align:center;
+    opacity:.9;
+  }
+  body.page-leaving .transition-icons span,
+  body.page-entering .transition-icons span{animation:iconPulse 430ms cubic-bezier(.2,.8,.2,1) both}
+  body.page-leaving .transition-icons span:nth-child(2),
+  body.page-entering .transition-icons span:nth-child(2){animation-delay:45ms}
+  body.page-leaving .transition-icons span:nth-child(3),
+  body.page-entering .transition-icons span:nth-child(3){animation-delay:90ms}
+  body.page-leaving .transition-icons span:nth-child(4),
+  body.page-entering .transition-icons span:nth-child(4){animation-delay:135ms}
+  @keyframes iconPulse{
+    0%{opacity:.35;transform:translate3d(0,5px,0) scale(.98)}
+    60%{opacity:1;transform:translate3d(0,0,0) scale(1)}
+    100%{opacity:.82;transform:translate3d(0,0,0) scale(1)}
+  }
+  .page-transition .transition-logo{display:none !important}
+  @keyframes pageFadeOut{
+    to{opacity:.82;transform:translate3d(0,-4px,0) scale(.999)}
+  }
+  @keyframes pageFadeIn{
+    0%{opacity:.72;transform:translate3d(0,8px,0) scale(.998)}
+    100%{opacity:1;transform:translate3d(0,0,0) scale(1)}
+  }
+  .page-transition{
+    --transition-dur:760ms;
+    --transition-ease:cubic-bezier(.83,0,.17,1);
+    background:transparent;
+    clip-path:none !important;
+    backdrop-filter:none;
+    overflow:hidden;
+    contain:paint;
+    transform:translateZ(0);
+  }
+  .page-transition::before{
+    display:block;
+    top:50%;
+    left:50%;
+    right:auto;
+    width:210vmax;
+    min-width:0;
+    height:210vmax;
+    border:0;
+    background:
+      radial-gradient(circle at 26% 20%,rgba(216,187,112,.12),transparent 34%),
+      rgba(10,10,12,.98);
+    box-shadow:0 0 90px rgba(0,0,0,.52);
+    opacity:1;
+    transform:translate3d(calc(-50% - 185vmax),calc(-50% - 185vmax),0) rotate(45deg);
+    will-change:transform;
+  }
+  .page-transition::after{
+    content:"";
+    display:block;
+    position:absolute;
+    top:50%;
+    left:50%;
+    width:190vmax;
+    height:3px;
+    border:0;
+    background:linear-gradient(90deg,transparent,rgba(216,187,112,.45),var(--gold-bright),rgba(244,239,226,.95),var(--gold-bright),rgba(216,187,112,.35),transparent);
+    box-shadow:0 0 26px rgba(216,187,112,.58);
+    opacity:1;
+    transform:translate3d(calc(-50% - 185vmax),calc(-50% - 185vmax),0) rotate(45deg);
+    will-change:transform;
+  }
+  .page-transition .transition-logo{display:none !important}
+  body.page-leaving .page-transition,
+  body.page-entering .page-transition{opacity:1;pointer-events:auto;backdrop-filter:none;animation:none}
+  body.page-leaving main,
+  body.page-leaving footer{animation:pageFadeOut 520ms cubic-bezier(.22,1,.36,1) forwards}
+  body.page-entering main,
+  body.page-entering footer{animation:pageFadeIn 780ms cubic-bezier(.16,1,.3,1) 80ms both}
+  body.page-leaving .page-transition::before{animation:diagonalPanelIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .page-transition::before{transform:translate3d(-50%,-50%,0) rotate(45deg);animation:diagonalPanelOut var(--transition-dur) var(--transition-ease) forwards}
+  body.page-leaving .page-transition::after{animation:diagonalEdgeIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .page-transition::after{transform:translate3d(-50%,-50%,0) rotate(45deg);animation:diagonalEdgeOut var(--transition-dur) var(--transition-ease) forwards}
+  @keyframes diagonalPanelIn{
+    from{transform:translate3d(calc(-50% - 185vmax),calc(-50% - 185vmax),0) rotate(45deg)}
+    to{transform:translate3d(-50%,-50%,0) rotate(45deg)}
+  }
+  @keyframes diagonalPanelOut{
+    from{transform:translate3d(-50%,-50%,0) rotate(45deg)}
+    to{transform:translate3d(calc(-50% + 185vmax),calc(-50% + 185vmax),0) rotate(45deg)}
+  }
+  @keyframes diagonalEdgeIn{
+    from{transform:translate3d(calc(-50% - 185vmax),calc(-50% - 185vmax),0) rotate(45deg);opacity:.55}
+    to{transform:translate3d(-50%,-50%,0) rotate(45deg)}
+  }
+  @keyframes diagonalEdgeOut{
+    from{transform:translate3d(-50%,-50%,0) rotate(45deg)}
+    to{transform:translate3d(calc(-50% + 185vmax),calc(-50% + 185vmax),0) rotate(45deg);opacity:.55}
+  }
+  .page-transition{
+    --transition-dur:720ms;
+    --transition-ease:cubic-bezier(.78,0,.22,1);
+    background:transparent;
+    clip-path:none !important;
+    transform:translateZ(0);
+  }
+  .page-transition::before{
+    inset:0;
+    width:auto;
+    height:auto;
+    min-width:0;
+    background:
+      radial-gradient(circle at 18% 12%,rgba(216,187,112,.14),transparent 34%),
+      linear-gradient(135deg,rgba(10,10,12,.96),rgba(10,10,12,.995));
+    box-shadow:none;
+    transform:none;
+    clip-path:polygon(0 0,0 0,0 0);
+  }
+  .page-transition::after{
+    top:-12vmax;
+    left:-12vmax;
+    width:170vmax;
+    height:2px;
+    background:linear-gradient(90deg,transparent,rgba(216,187,112,.35),var(--gold-bright),rgba(244,239,226,.84),var(--gold-bright),rgba(216,187,112,.28),transparent);
+    box-shadow:0 0 22px rgba(216,187,112,.45);
+    transform:translate3d(-16vmax,-16vmax,0) rotate(45deg);
+  }
+  body.page-leaving .page-transition,
+  body.page-entering .page-transition{opacity:1;pointer-events:auto;backdrop-filter:none}
+  body.page-leaving .page-transition{animation:none}
+  body.page-entering .page-transition{animation:none}
+  body.page-leaving .page-transition::before{animation:cornerSwipeIn var(--transition-dur) var(--transition-ease) forwards !important}
+  body.page-entering .page-transition::before{clip-path:polygon(0 0,220% 0,0 220%);animation:cornerSwipeOut var(--transition-dur) var(--transition-ease) forwards !important}
+  body.page-leaving .page-transition::after{animation:cornerEdgeIn var(--transition-dur) var(--transition-ease) forwards}
+  body.page-entering .page-transition::after{animation:cornerEdgeOut var(--transition-dur) var(--transition-ease) forwards}
+  @keyframes cornerSwipeIn{
+    from{clip-path:polygon(0 0,0 0,0 0)}
+    to{clip-path:polygon(0 0,220% 0,0 220%)}
+  }
+  @keyframes cornerSwipeOut{
+    from{clip-path:polygon(0 0,220% 0,0 220%)}
+    to{clip-path:polygon(100% 100%,100% 100%,100% 100%)}
+  }
+  @keyframes cornerEdgeIn{
+    from{transform:translate3d(-16vmax,-16vmax,0) rotate(45deg);opacity:.45}
+    to{transform:translate3d(112vmax,112vmax,0) rotate(45deg);opacity:.7}
+  }
+  @keyframes cornerEdgeOut{
+    from{transform:translate3d(-8vmax,-8vmax,0) rotate(45deg);opacity:.7}
+    to{transform:translate3d(116vmax,116vmax,0) rotate(45deg);opacity:.35}
+  }
+  .scroll-progress{
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    z-index:2200;
+    height:2px;
+    transform:scaleX(var(--page-progress,0));
+    transform-origin:left center;
+    background:linear-gradient(90deg,var(--gold-deep),var(--gold-bright),var(--ink));
+    box-shadow:0 0 18px rgba(216,187,112,.5);
+    pointer-events:none;
+  }
+
+  section{position:relative;z-index:2;padding:108px 0;scroll-margin-top:86px}
+  .hero{min-height:100vh;display:flex;align-items:center;padding:138px 0 84px;overflow:hidden}
+  .hero-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);gap:56px;align-items:center}
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:28px;
+    padding:8px 14px;
+    border:1px solid var(--line);
+    border-radius:999px;
+    background:var(--glass);
+    color:var(--gold-bright);
+    font-size:12px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    font-weight:600;
+  }
+  .eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gold-bright);box-shadow:0 0 14px var(--gold-bright)}
+  h1{
+    max-width:780px;
+    font-family:var(--serif);
+    font-size:clamp(48px,7vw,92px);
+    line-height:.98;
+    letter-spacing:-.03em;
+    font-weight:400;
+    margin-bottom:26px;
+  }
+  .hero h1,.hero .lede,.hero .btn-row,.hero .hero-meta{will-change:transform,opacity}
+  .hero h1{transform:translate3d(0,calc(var(--hero-progress,0) * -18px),0)}
+  .hero .lede{transform:translate3d(0,calc(var(--hero-progress,0) * -8px),0)}
+  .hero .btn-row,.hero .hero-meta{transform:translate3d(0,calc(var(--hero-progress,0) * 8px),0)}
+  em{font-style:italic;color:var(--gold-bright);font-weight:300}
+  .lede{max-width:610px;color:var(--ink-dim);font-size:20px;line-height:1.58;margin-bottom:36px}
+  .btn-row{display:flex;flex-wrap:wrap;gap:14px}
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    min-height:52px;
+    border-radius:999px;
+    padding:15px 24px;
+    border:1px solid var(--line);
+    font-family:inherit;
+    font-size:15px;
+    font-weight:600;
+    text-decoration:none;
+    cursor:pointer;
+    transition:transform .25s ease,box-shadow .25s ease,background .25s ease,border-color .25s ease;
+  }
+  .btn:hover{transform:translateY(-2px)}
+  .btn-primary{
+    border:0;
+    background:linear-gradient(135deg,var(--gold-bright),var(--gold) 58%,var(--gold-deep));
+    color:#0a0a0c;
+    box-shadow:0 14px 34px rgba(185,154,85,.25),inset 0 1px 0 rgba(255,255,255,.32);
+  }
+  .btn-primary:hover{box-shadow:0 18px 42px rgba(185,154,85,.38),inset 0 1px 0 rgba(255,255,255,.32)}
+  .btn-ghost{background:var(--glass);color:var(--ink)}
+  .btn-ghost:hover{background:var(--glass-strong);border-color:rgba(185,154,85,.42)}
+  .hero-meta{display:flex;flex-wrap:wrap;gap:26px;margin-top:42px;color:var(--ink-dim);font-size:13px}
+  .hero-meta span{display:inline-flex;align-items:center;gap:8px}
+  .hero-meta span::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--gold)}
+  .hero-card{
+    position:relative;
+    min-height:520px;
+    border:1px solid var(--line);
+    border-radius:28px;
+    background:linear-gradient(145deg,rgba(255,255,255,.07),rgba(255,255,255,.018));
+    box-shadow:0 36px 90px rgba(0,0,0,.48),0 0 70px rgba(185,154,85,.08);
+    overflow:visible;
+    backdrop-filter:blur(22px);
+    isolation:isolate;
+    animation:heroCardFloat 7s ease-in-out infinite;
+    transform:translate3d(0,calc(var(--hero-progress,0) * 32px),0) rotateX(calc(var(--hero-progress,0) * 3deg)) rotateY(calc(var(--hero-progress,0) * -5deg));
+    transform-style:preserve-3d;
+  }
+  .hero-card::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:-2;
+    border-radius:inherit;
+    background:
+      radial-gradient(circle at 28% 20%,rgba(216,187,112,.22),transparent 42%),
+      linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.01));
+  }
+  .hero-card::after{
+    content:"";
+    position:absolute;
+    inset:-1px;
+    z-index:-1;
+    border-radius:inherit;
+    padding:1px;
+    background:conic-gradient(from var(--spin,0deg),transparent 0 18%,rgba(216,187,112,.7) 25%,transparent 34% 62%,rgba(185,154,85,.45) 72%,transparent 82% 100%);
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;
+    mask-composite:exclude;
+    animation:borderSpin 9s linear infinite;
+  }
+  .hero-orbit{
+    position:absolute;
+    inset:34px;
+    border:1px solid rgba(185,154,85,.1);
+    border-radius:32px;
+    opacity:.75;
+    pointer-events:none;
+  }
+  .hero-orbit::before,
+  .hero-orbit::after{
+    content:"";
+    position:absolute;
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:var(--gold-bright);
+    box-shadow:0 0 18px rgba(216,187,112,.85);
+  }
+  .hero-orbit::before{top:-4px;left:22%;animation:orbitDot 6s ease-in-out infinite}
+  .hero-orbit::after{right:-4px;bottom:28%;animation:orbitDot 7.5s ease-in-out infinite reverse}
+  .flow-line{
+    position:absolute;
+    left:8%;
+    right:8%;
+    height:1px;
+    border-radius:999px;
+    background:linear-gradient(90deg,transparent,rgba(216,187,112,.48),transparent);
+    opacity:.35;
+    animation:scanLine 4.5s ease-in-out infinite;
+  }
+  .flow-line.one{top:23%}
+  .flow-line.two{bottom:21%;animation-delay:1.2s}
+  @keyframes heroCardFloat{50%{translate:0 -10px}}
+  @keyframes borderSpin{to{--spin:360deg}}
+  @keyframes orbitDot{50%{transform:translate(26px,18px);opacity:.45}}
+  @keyframes scanLine{0%,100%{transform:translateX(-10%);opacity:.12}50%{transform:translateX(10%);opacity:.52}}
+  @property --spin{
+    syntax:"<angle>";
+    inherits:false;
+    initial-value:0deg;
+  }
+  .dashboard{
+    position:absolute;
+    inset:32px;
+    z-index:2;
+    border-radius:22px;
+    border:1px solid var(--line);
+    background:
+      linear-gradient(rgba(185,154,85,.035) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(185,154,85,.035) 1px,transparent 1px),
+      rgba(10,10,12,.72);
+    background-size:34px 34px;
+    padding:22px;
+    overflow:hidden;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 22px 60px rgba(0,0,0,.32);
+    transform:translate3d(0,calc(var(--hero-progress,0) * -18px),34px);
+  }
+  .dashboard::after{
+    content:"";
+    position:absolute;
+    left:-20%;
+    right:-20%;
+    top:-30%;
+    height:42%;
+    background:linear-gradient(180deg,transparent,rgba(216,187,112,.09),transparent);
+    transform:rotate(-8deg);
+    animation:dashboardSweep 5.5s ease-in-out infinite;
+    pointer-events:none;
+  }
+  .dash-top{display:flex;justify-content:space-between;gap:20px;align-items:start;padding-bottom:18px;border-bottom:1px solid var(--line)}
+  .dash-title{font-family:var(--serif);font-size:20px}
+  .dash-pill{border-radius:999px;background:rgba(185,154,85,.14);color:var(--gold-bright);padding:6px 10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;animation:pillPulse 2.8s ease-in-out infinite}
+  .big-number{font-family:var(--serif);font-size:58px;line-height:1;margin:24px 0 8px;letter-spacing:-.04em;text-shadow:0 0 28px rgba(216,187,112,.18);animation:numberGlow 3.2s ease-in-out infinite}
+  .dash-sub{color:var(--ink-dim);font-size:14px;margin-bottom:24px}
+  .dash-metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+  .dash-metric{
+    border:1px solid rgba(185,154,85,.16);
+    border-radius:14px;
+    padding:10px 12px;
+    background:rgba(255,255,255,.035);
+    color:var(--ink-dim);
+    font-size:12px;
+  }
+  .dash-metric strong{display:block;color:var(--gold-bright);font-family:var(--serif);font-size:20px;line-height:1.05;margin-bottom:3px}
+  .bar-row{display:grid;grid-template-columns:92px 1fr 60px;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid rgba(185,154,85,.09);font-size:13px}
+  .bar-row:last-child{border-bottom:0}
+  .bar-label{color:var(--ink-dim)}
+  .bar{height:8px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}
+  .bar i{
+    position:relative;
+    display:block;
+    height:100%;
+    width:0;
+    border-radius:999px;
+    background:linear-gradient(90deg,var(--gold-bright),var(--gold-deep));
+    animation:barFill 1.4s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  .bar i::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);
+    transform:translateX(-100%);
+    animation:barShimmer 2.7s ease-in-out infinite;
+  }
+  .bar-value{text-align:right;font-family:var(--serif)}
+  .float-note{
+    position:absolute;
+    right:22px;
+    bottom:24px;
+    z-index:3;
+    width:180px;
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:16px;
+    background:rgba(16,16,19,.84);
+    box-shadow:0 20px 50px rgba(0,0,0,.42);
+    animation:chipFloat 5.8s ease-in-out infinite;
+    transform:translate3d(0,calc(var(--hero-progress,0) * -22px),70px);
+  }
+  .float-note strong{display:block;font-family:var(--serif);font-size:26px;color:var(--gold-bright);line-height:1}
+  .float-note span{display:block;color:var(--ink-dim);font-size:12px;margin-top:6px}
+  .insight-card{
+    position:absolute;
+    z-index:4;
+    width:180px;
+    border:1px solid rgba(185,154,85,.2);
+    border-radius:18px;
+    padding:14px 15px;
+    background:rgba(13,13,16,.82);
+    backdrop-filter:blur(18px);
+    box-shadow:0 18px 48px rgba(0,0,0,.38);
+    color:var(--ink-dim);
+    font-size:12px;
+    line-height:1.35;
+    transform:translate3d(0,calc(var(--hero-progress,0) * -28px),84px);
+  }
+  .insight-card strong{display:block;color:var(--ink);font-family:var(--serif);font-size:22px;font-weight:500;line-height:1.05;margin-bottom:5px}
+  .insight-top{top:-18px;right:30px;animation:chipFloat 6.4s ease-in-out infinite reverse}
+  .insight-left{left:-18px;bottom:18%;animation:chipFloat 6.8s ease-in-out infinite}
+  .mini-chart{display:flex;align-items:end;gap:4px;height:28px;margin-top:10px}
+  .mini-chart span{display:block;width:100%;border-radius:999px;background:linear-gradient(180deg,var(--gold-bright),var(--gold-deep));animation:miniBar 2.2s ease-in-out infinite}
+  .mini-chart span:nth-child(1){height:34%;animation-delay:.1s}
+  .mini-chart span:nth-child(2){height:58%;animation-delay:.25s}
+  .mini-chart span:nth-child(3){height:44%;animation-delay:.4s}
+  .mini-chart span:nth-child(4){height:78%;animation-delay:.55s}
+  .mini-chart span:nth-child(5){height:92%;animation-delay:.7s}
+  @keyframes dashboardSweep{0%,100%{transform:translateY(-70%) rotate(-8deg)}50%{transform:translateY(230%) rotate(-8deg)}}
+  @keyframes pillPulse{50%{box-shadow:0 0 20px rgba(216,187,112,.25)}}
+  @keyframes numberGlow{50%{text-shadow:0 0 40px rgba(216,187,112,.32)}}
+  @keyframes barFill{to{width:var(--target)}}
+  @keyframes barShimmer{0%,35%{transform:translateX(-110%)}70%,100%{transform:translateX(110%)}}
+  @keyframes chipFloat{50%{translate:0 -10px}}
+  @keyframes miniBar{50%{filter:brightness(1.22);transform:scaleY(.86)}}
+  .scroll-cue{
+    position:absolute;
+    left:50%;
+    bottom:28px;
+    z-index:5;
+    width:48px;
+    height:48px;
+    border:1px solid var(--line);
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    color:var(--gold-bright);
+    background:rgba(10,10,12,.5);
+    backdrop-filter:blur(14px);
+    transform:translateX(-50%);
+    animation:scrollCue 2.4s ease-in-out infinite;
+  }
+  .scroll-cue::before{
+    content:"";
+    width:7px;
+    height:7px;
+    border-right:1px solid currentColor;
+    border-bottom:1px solid currentColor;
+    transform:rotate(45deg) translate(-1px,-1px);
+  }
+  @keyframes scrollCue{
+    0%,100%{opacity:.45;transform:translate(-50%,0)}
+    50%{opacity:1;transform:translate(-50%,8px)}
+  }
+
+  .proof{padding:46px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .proof-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;text-align:center}
+  .proof-item strong{display:block;font-family:var(--serif);font-size:28px;font-weight:400;color:var(--gold-bright)}
+  .proof-item span{display:block;color:var(--ink-dim);font-size:13px;margin-top:4px}
+  .proof-label{text-align:center;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:30px}
+  .marquee{overflow:hidden;mask:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
+  .marquee-track{display:flex;gap:58px;animation:scroll 40s linear infinite;width:max-content}
+  @keyframes scroll{to{transform:translateX(-50%)}}
+  .marquee-item{font-family:var(--serif);font-style:italic;font-size:28px;color:var(--ink-faint);white-space:nowrap}
+  .marquee-item::after{content:"*";margin-left:58px;color:var(--gold)}
+
+  .section-eyebrow{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    color:var(--gold-bright);
+    font-size:12px;
+    letter-spacing:.19em;
+    text-transform:uppercase;
+    font-weight:600;
+    margin-bottom:22px;
+  }
+  .section-eyebrow::before{content:"";width:34px;height:1px;background:var(--gold)}
+  .section-title{
+    max-width:860px;
+    font-family:var(--serif);
+    font-size:clamp(36px,5vw,64px);
+    line-height:1.04;
+    letter-spacing:-.03em;
+    font-weight:400;
+    margin-bottom:20px;
+  }
+  .section-lede{max-width:700px;color:var(--ink-dim);font-size:18px;line-height:1.65;margin-bottom:46px}
+
+  .story-grid{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(360px,.88fr);gap:48px;align-items:start}
+  .video-shell{
+    position:sticky;
+    top:104px;
+    width:100%;
+    max-width:none;
+    justify-self:center;
+    border:1px solid var(--line);
+    border-radius:24px;
+    background:linear-gradient(145deg,rgba(255,255,255,.065),rgba(255,255,255,.018));
+    overflow:hidden;
+    box-shadow:0 36px 90px rgba(0,0,0,.48);
+  }
+  .video-frame{position:relative;aspect-ratio:16/9;min-height:0;background:#000}
+  .video-frame video,.video-frame iframe{position:absolute;inset:0;z-index:1;width:100%;height:100%;border:0;object-fit:cover;background:#000}
+  .video-poster{
+    position:absolute;
+    inset:0;
+    z-index:2;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+    cursor:pointer;
+    background:
+      url("https://img.youtube.com/vi/aOQndPlfNhU/maxresdefault.jpg") center/cover,
+      linear-gradient(145deg,#18171a,#050506);
+    opacity:1;
+    transition:opacity .28s ease,transform .28s ease;
+  }
+  .video-poster.is-hidden{opacity:0;pointer-events:none;transform:scale(1.01)}
+  .video-poster:not(.is-hidden) .video-poster-content{animation:posterPop .38s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes posterPop{
+    from{opacity:.65;transform:translate3d(0,10px,0) scale(.985)}
+    to{opacity:1;transform:translate3d(0,0,0) scale(1)}
+  }
+  .video-poster-content{
+    width:100%;
+    min-height:100%;
+    border:0;
+    border-radius:0;
+    background:transparent;
+    box-shadow:none;
+    padding:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .video-topline{display:none}
+  .video-topline span{
+    border:1px solid rgba(185,154,85,.22);
+    border-radius:999px;
+    padding:7px 10px;
+    background:rgba(8,8,10,.72);
+    backdrop-filter:blur(12px);
+  }
+  .video-main-action{display:flex;align-items:center;justify-content:center}
+  .play{
+    width:82px;
+    height:82px;
+    border-radius:50%;
+    border:1px solid rgba(244,239,226,.18);
+    display:grid;
+    place-items:center;
+    background:linear-gradient(135deg,var(--gold-bright),var(--gold-deep));
+    color:#0a0a0c;
+    font-size:30px;
+    box-shadow:0 18px 56px rgba(185,154,85,.42),0 10px 34px rgba(0,0,0,.48);
+    cursor:pointer;
+    margin:0;
+    flex:0 0 auto;
+    transition:transform .22s ease,box-shadow .22s ease;
+  }
+  .video-poster:hover .play{transform:scale(1.04);box-shadow:0 22px 70px rgba(185,154,85,.5),0 8px 28px rgba(0,0,0,.34)}
+  .video-copy,
+  .video-progress{display:none}
+  .video-copy h3{font-family:var(--serif);font-size:23px;font-weight:500;line-height:1.12;margin-bottom:6px}
+  .video-copy p{color:var(--ink-dim);font-size:14px;max-width:430px;line-height:1.45}
+  .video-progress{width:118px;height:4px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.12);flex:0 0 auto}
+  .video-progress span{display:block;width:36%;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--gold-bright),var(--gold-deep))}
+  .video-caption{padding:16px 18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:14px;align-items:center}
+  .video-caption strong{font-family:var(--serif);font-size:18px;font-weight:500}
+  .video-caption span{color:var(--ink-dim);font-size:13px}
+  .story-panel{
+    display:grid;
+    gap:16px;
+  }
+  .story-card{
+    border:1px solid var(--line);
+    border-radius:18px;
+    background:rgba(255,255,255,.055);
+    padding:24px;
+  }
+  .motion-ready .scroll-reveal{
+    opacity:0;
+    transform:translate3d(0,42px,0) scale(.985);
+    transition:
+      opacity .7s cubic-bezier(.2,.8,.2,1),
+      transform .7s cubic-bezier(.2,.8,.2,1);
+    transition-delay:var(--reveal-delay,0ms);
+    will-change:opacity,transform;
+  }
+  .motion-ready .scroll-reveal.is-visible{
+    opacity:1;
+    transform:translate3d(0,0,0) scale(1);
+  }
+  .motion-ready .scroll-reveal[data-reveal="left"]{transform:translate3d(-38px,24px,0) scale(.985)}
+  .motion-ready .scroll-reveal[data-reveal="right"]{transform:translate3d(38px,24px,0) scale(.985)}
+  .motion-ready .scroll-reveal[data-reveal="left"].is-visible,
+  .motion-ready .scroll-reveal[data-reveal="right"].is-visible{transform:translate3d(0,0,0) scale(1)}
+  .motion-ready .feature,
+  .motion-ready .story-card,
+  .motion-ready .audience-item,
+  .motion-ready .rung,
+  .motion-ready .preview-item,
+  .motion-ready .proof-stat{
+    transition-delay:var(--reveal-delay,0ms);
+  }
+  .story-card .tag{color:var(--gold-bright);font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;margin-bottom:8px}
+  .story-card h3{font-family:var(--serif);font-size:25px;font-weight:500;letter-spacing:-.01em;margin-bottom:8px}
+  .story-card p{color:var(--ink-dim);font-size:16px;line-height:1.68}
+  .story-quote{
+    font-family:var(--serif);
+    font-style:italic;
+    font-size:clamp(26px,3vw,38px);
+    line-height:1.18;
+    letter-spacing:-.02em;
+    margin:28px 0;
+  }
+  .proof-stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+    margin-top:34px;
+  }
+  .proof-stat{
+    border:1px solid var(--line);
+    border-radius:16px;
+    background:rgba(255,255,255,.035);
+    padding:18px;
+    min-height:122px;
+  }
+  .proof-stat strong{display:block;font-family:var(--serif);font-size:30px;font-weight:500;line-height:1;color:var(--gold-bright);margin-bottom:8px}
+  .proof-stat span{display:block;color:var(--ink-dim);font-size:13px;line-height:1.45}
+
+  .features-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+  .feature{
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:28px;
+    background:var(--glass);
+    min-height:260px;
+  }
+  .feature-icon{
+    width:46px;
+    height:46px;
+    border-radius:14px;
+    display:grid;
+    place-items:center;
+    margin-bottom:22px;
+    border:1px solid var(--line);
+    color:var(--gold-bright);
+    font-family:var(--serif);
+    font-size:22px;
+    background:rgba(185,154,85,.08);
+  }
+  .feature h3{font-family:var(--serif);font-size:23px;font-weight:500;line-height:1.15;margin-bottom:12px}
+  .feature p{color:var(--ink-dim);font-size:15px;line-height:1.62}
+  .audience-grid{
+    display:grid;
+    grid-template-columns:.88fr 1.12fr;
+    gap:42px;
+    align-items:start;
+  }
+  .audience-list{
+    display:grid;
+    gap:14px;
+  }
+  .audience-item{
+    border:1px solid var(--line);
+    border-radius:18px;
+    background:linear-gradient(135deg,rgba(255,255,255,.045),rgba(255,255,255,.015));
+    padding:22px;
+    display:grid;
+    grid-template-columns:42px 1fr;
+    gap:16px;
+    align-items:start;
+  }
+  .audience-check{
+    width:42px;
+    height:42px;
+    border-radius:14px;
+    display:grid;
+    place-items:center;
+    background:rgba(185,154,85,.12);
+    border:1px solid var(--line);
+    color:var(--gold-bright);
+    font-family:var(--serif);
+    font-size:22px;
+  }
+  .audience-item h3{font-family:var(--serif);font-size:24px;font-weight:500;line-height:1.1;margin-bottom:7px}
+  .audience-item p{color:var(--ink-dim);font-size:15px;line-height:1.58}
+  .not-box{
+    border:1px solid rgba(185,154,85,.28);
+    border-radius:26px;
+    background:rgba(185,154,85,.07);
+    padding:30px;
+    position:sticky;
+    top:104px;
+  }
+  .not-box h3{font-family:var(--serif);font-size:31px;font-weight:500;line-height:1.08;margin-bottom:14px}
+  .not-box p{color:var(--ink-dim);font-size:15px;line-height:1.65;margin-bottom:20px}
+  .mini-list{list-style:none;display:grid;gap:11px;color:var(--ink-dim);font-size:14px}
+  .mini-list li{display:flex;gap:10px;align-items:flex-start}
+  .mini-list li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gold);margin-top:8px;flex:0 0 auto}
+  .modules-shell{
+    border:1px solid var(--line);
+    border-radius:30px;
+    background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(255,255,255,.015));
+    box-shadow:0 34px 90px rgba(0,0,0,.35);
+    overflow:hidden;
+  }
+  .modules-head{
+    display:grid;
+    grid-template-columns:.9fr 1.1fr;
+    gap:36px;
+    align-items:end;
+    padding:42px;
+    border-bottom:1px solid var(--line);
+    background:radial-gradient(circle at 18% 10%,rgba(216,187,112,.12),transparent 46%);
+  }
+  .modules-head p{color:var(--ink-dim);font-size:16px;line-height:1.65}
+  .modules-grid{display:grid;grid-template-columns:repeat(3,1fr)}
+  .module-card{
+    position:relative;
+    min-height:280px;
+    border-right:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    padding:30px;
+    background:rgba(255,255,255,.018);
+    overflow:hidden;
+  }
+  .module-card:nth-child(3n){border-right:0}
+  .module-card:nth-last-child(-n+3){border-bottom:0}
+  .module-card::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:radial-gradient(circle at 80% 0,rgba(185,154,85,.13),transparent 52%);
+    opacity:0;
+    transition:opacity .35s ease;
+  }
+  .module-card:hover::before{opacity:1}
+  .module-kicker{position:relative;color:var(--gold-bright);font-size:11px;letter-spacing:.17em;text-transform:uppercase;font-weight:700;margin-bottom:14px}
+  .module-card h3{position:relative;font-family:var(--serif);font-size:27px;font-weight:500;line-height:1.08;margin-bottom:12px}
+  .module-card p{position:relative;color:var(--ink-dim);font-size:15px;line-height:1.62;margin-bottom:18px}
+  .lesson-list{position:relative;display:grid;gap:9px;list-style:none;color:var(--ink-dim);font-size:13px}
+  .lesson-list li{display:flex;gap:8px;align-items:flex-start}
+  .lesson-list li::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--gold);margin-top:7px;flex:0 0 auto}
+  .recording-card{
+    margin-top:26px;
+    border:1px solid rgba(216,187,112,.34);
+    border-radius:22px;
+    padding:28px;
+    background:rgba(185,154,85,.08);
+    display:grid;
+    grid-template-columns:.9fr 1.1fr;
+    gap:26px;
+    align-items:center;
+  }
+  .recording-card h3{font-family:var(--serif);font-size:30px;font-weight:500;line-height:1.1;margin-bottom:10px}
+  .recording-card p{color:var(--ink-dim);font-size:15px;line-height:1.6}
+  .hook-lines{display:grid;gap:10px}
+  .hook-lines div{
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px 16px;
+    background:rgba(10,10,12,.5);
+    color:var(--ink);
+    font-size:14px;
+    line-height:1.45;
+  }
+  .thirty-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:16px;
+  }
+  .week-card{
+    border:1px solid var(--line);
+    border-radius:22px;
+    padding:26px;
+    background:linear-gradient(145deg,rgba(255,255,255,.052),rgba(255,255,255,.012));
+    min-height:280px;
+    position:relative;
+    overflow:hidden;
+  }
+  .week-card::before{
+    content:"";
+    position:absolute;
+    left:26px;
+    right:26px;
+    top:0;
+    height:2px;
+    background:linear-gradient(90deg,transparent,var(--gold-bright),transparent);
+    opacity:.7;
+  }
+  .week-card small{display:block;color:var(--gold-bright);font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;margin-bottom:16px}
+  .week-card h3{font-family:var(--serif);font-size:27px;font-weight:500;line-height:1.08;margin-bottom:12px}
+  .week-card p{color:var(--ink-dim);font-size:15px;line-height:1.62;margin-bottom:16px}
+  .deliverable{border-top:1px solid var(--line);padding-top:14px;color:var(--ink);font-size:13px;line-height:1.45}
+  .deliverable strong{display:block;color:var(--gold-bright);font-family:var(--serif);font-size:15px;margin-bottom:3px}
+
+  .sheets-wrap{
+    padding:56px;
+    border-radius:30px;
+    background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(255,255,255,.015));
+    border:1px solid var(--line);
+    backdrop-filter:blur(24px);
+    position:relative;
+    overflow:hidden;
+  }
+  .sheets-wrap::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:radial-gradient(circle at 28% 0,rgba(185,154,85,.13),transparent 52%);
+  }
+  .sheets-grid{position:relative;display:grid;grid-template-columns:.95fr 1.05fr;gap:48px;align-items:center}
+  .sheets-stack{position:relative;min-height:470px}
+  .sheet-card{
+    position:absolute;
+    width:92%;
+    border-radius:18px;
+    padding:22px;
+    background:linear-gradient(135deg,rgba(20,20,24,.96),rgba(12,12,15,.96));
+    border:1px solid var(--line);
+    box-shadow:0 24px 60px rgba(0,0,0,.5);
+    transition:transform .45s cubic-bezier(.2,.8,.2,1);
+  }
+  .sheet-1{top:0;left:0;transform:rotate(-4deg)}
+  .sheet-2{top:62px;left:8%;transform:rotate(2deg)}
+  .sheet-3{top:126px;left:5%;transform:rotate(-1deg)}
+  .sheets-stack:hover .sheet-1{transform:rotate(-7deg) translate(-8px,-8px)}
+  .sheets-stack:hover .sheet-2{transform:rotate(4deg) translate(4px,-4px)}
+  .sheets-stack:hover .sheet-3{transform:rotate(0deg) translate(0,8px)}
+  .sheet-card-head{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+  .sheet-card-dot{width:10px;height:10px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold)}
+  .sheet-card-title{font-family:var(--serif);font-weight:500;font-size:14px}
+  .sheet-mini-row{display:flex;justify-content:space-between;gap:18px;font-size:12px;color:var(--ink-dim);padding:7px 0;border-bottom:1px dashed rgba(185,154,85,.12)}
+  .sheet-mini-row:last-child{border-bottom:0}
+  .sheet-mini-row strong{color:var(--ink);font-family:var(--serif);font-weight:500}
+  .sheets-list{list-style:none;margin-top:24px}
+  .sheets-list li{padding:16px 0;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px}
+  .sheets-list li:last-child{border-bottom:0}
+  .sheet-num{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--gold);width:32px;flex:0 0 auto}
+  .sheet-info strong{display:block;font-size:16px;margin-bottom:2px;font-weight:600;color:var(--ink)}
+  .sheet-info span{display:block;color:var(--ink-dim);font-size:14px}
+
+  .ladder{position:relative;display:grid;gap:18px}
+  .rung{
+    display:grid;
+    grid-template-columns:74px 1fr 280px;
+    gap:24px;
+    align-items:start;
+    padding:26px;
+    border:1px solid var(--line);
+    border-radius:22px;
+    background:linear-gradient(135deg,rgba(255,255,255,.05),rgba(255,255,255,.015));
+  }
+  .rung-num{
+    width:58px;
+    height:58px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    background:linear-gradient(135deg,var(--gold-bright),var(--gold-deep));
+    color:#0a0a0c;
+    font-family:var(--serif);
+    font-size:25px;
+    font-style:italic;
+  }
+  .rung small{display:block;color:var(--gold-bright);font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;margin-bottom:8px}
+  .rung h3{font-family:var(--serif);font-size:25px;font-weight:500;margin-bottom:8px}
+  .rung p,.rung aside{color:var(--ink-dim);font-size:15px;line-height:1.62}
+  .rung aside strong{display:block;color:var(--ink);font-family:var(--serif);font-weight:500;margin-bottom:6px}
+
+  .pricing-card{
+    display:grid;
+    grid-template-columns:.95fr 1.05fr;
+    gap:42px;
+    align-items:center;
+    border:1px solid var(--line);
+    border-radius:30px;
+    padding:42px;
+    background:linear-gradient(145deg,rgba(255,255,255,.07),rgba(255,255,255,.018));
+    box-shadow:0 34px 90px rgba(0,0,0,.38);
+  }
+  .price-note{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:7px 11px;color:var(--gold-bright);font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;margin-bottom:16px}
+  .price{font-family:var(--serif);font-size:88px;line-height:1;letter-spacing:-.04em;margin-bottom:8px}
+  .price span{font-family:var(--sans);font-size:17px;color:var(--ink-dim);letter-spacing:0}
+  .included{list-style:none;display:grid;gap:13px}
+  .included li{display:flex;gap:12px;align-items:start;color:var(--ink-dim);font-size:15px}
+  .included li::before{
+    content:"\2713";
+    flex:0 0 auto;
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    background:linear-gradient(135deg,var(--gold-bright),var(--gold-deep));
+    color:#0a0a0c;
+    font-size:12px;
+    font-weight:800;
+  }
+  .compare-wrap{
+    border:1px solid var(--line);
+    border-radius:30px;
+    overflow:hidden;
+    background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(255,255,255,.015));
+  }
+  .compare-grid{display:grid;grid-template-columns:1fr 1fr}
+  .compare-col{padding:34px;border-right:1px solid var(--line)}
+  .compare-col:last-child{border-right:0;background:rgba(185,154,85,.055)}
+  .compare-col h3{font-family:var(--serif);font-size:31px;font-weight:500;line-height:1.1;margin-bottom:20px}
+  .compare-list{list-style:none;display:grid;gap:14px}
+  .compare-list li{display:flex;gap:12px;color:var(--ink-dim);font-size:15px;line-height:1.55}
+  .compare-list li::before{content:"-";color:var(--ink-faint);font-weight:700}
+  .compare-col:last-child .compare-list li::before{content:"+";color:var(--gold-bright)}
+  .course-preview{
+    border:1px solid var(--line);
+    border-radius:30px;
+    padding:42px;
+    background:
+      radial-gradient(circle at 18% 10%,rgba(216,187,112,.12),transparent 42%),
+      linear-gradient(135deg,rgba(255,255,255,.055),rgba(255,255,255,.015));
+    box-shadow:0 34px 90px rgba(0,0,0,.35);
+    display:grid;
+    grid-template-columns:.9fr 1.1fr;
+    gap:36px;
+    align-items:center;
+  }
+  .preview-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .preview-item{
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:20px;
+    background:rgba(10,10,12,.45);
+  }
+  .preview-item strong{display:block;font-family:var(--serif);font-size:23px;font-weight:500;line-height:1.08;margin-bottom:8px}
+  .preview-item span{display:block;color:var(--ink-dim);font-size:14px;line-height:1.5}
+
+  .signup-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:48px;align-items:start}
+  .signup-card{
+    border:1px solid var(--line);
+    border-radius:28px;
+    padding:32px;
+    background:rgba(255,255,255,.045);
+    box-shadow:0 28px 72px rgba(0,0,0,.35);
+  }
+  label{display:block;color:var(--ink-dim);font-size:13px;margin-bottom:8px}
+  input,textarea{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px 15px;
+    margin-bottom:16px;
+    background:rgba(10,10,12,.72);
+    color:var(--ink);
+    font:inherit;
+    outline:none;
+  }
+  textarea{resize:vertical;min-height:112px}
+  input:focus,textarea:focus{border-color:rgba(216,187,112,.62);box-shadow:0 0 0 3px rgba(185,154,85,.12)}
+  .form-note{margin-top:14px;color:var(--ink-dim);font-size:13px;line-height:1.5}
+  .success{
+    display:none;
+    margin-top:16px;
+    border:1px solid rgba(216,187,112,.5);
+    border-radius:16px;
+    padding:14px;
+    color:var(--ink);
+    background:rgba(185,154,85,.1);
+    font-size:14px;
+  }
+  .success.is-visible{display:block}
+  .final{text-align:center;padding:128px 0 112px}
+  .final h2{font-family:var(--serif);font-weight:400;font-size:clamp(40px,6vw,80px);letter-spacing:-.03em;line-height:1;margin-bottom:24px}
+  .final p{font-size:19px;color:var(--ink-dim);max-width:590px;margin:0 auto 38px}
+  .faq-list{max-width:850px}
+  .faq-item{border-bottom:1px solid var(--line)}
+  .faq-button{
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:20px;
+    border:0;
+    background:transparent;
+    color:var(--ink);
+    padding:24px 0;
+    font-family:var(--serif);
+    font-size:22px;
+    text-align:left;
+    cursor:pointer;
+  }
+  .faq-plus{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--gold-bright);flex:0 0 auto}
+  .faq-answer{display:none;color:var(--ink-dim);font-size:16px;line-height:1.65;padding:0 0 24px}
+  .faq-item.is-open .faq-answer{display:block}
+  .faq-item.is-open .faq-plus{background:var(--gold);color:#0a0a0c;border-color:var(--gold);transform:rotate(45deg)}
+
+  footer{position:relative;z-index:2;border-top:1px solid var(--line);padding:42px 0;color:var(--ink-faint);font-size:13px}
+  .footer-inner{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+  .footer-links{display:flex;gap:20px;flex-wrap:wrap}
+  .footer-links a{color:var(--ink-faint);text-decoration:none}
+  .footer-links a:hover{color:var(--gold-bright)}
+  .toast{
+    position:fixed;
+    z-index:1000;
+    left:50%;
+    bottom:26px;
+    transform:translate(-50%,120%);
+    max-width:min(92vw,520px);
+    border-radius:999px;
+    padding:14px 20px;
+    background:linear-gradient(135deg,var(--gold-bright),var(--gold-deep));
+    color:#0a0a0c;
+    font-weight:700;
+    font-size:14px;
+    box-shadow:0 20px 60px rgba(185,154,85,.36);
+    transition:transform .35s ease;
+  }
+  .toast.is-visible{transform:translate(-50%,0)}
+
+  @media(max-width:980px){
+    .hero-grid,.story-grid,.pricing-card,.signup-grid,.sheets-grid,.modules-head,.recording-card,.audience-grid,.compare-grid,.course-preview{grid-template-columns:1fr}
+    .hero{align-items:flex-start}
+    .hero-card{min-height:430px}
+    .hero-orbit{inset:22px}
+    .insight-left{display:none}
+    .video-shell{position:relative;top:0;max-width:none}
+    .features-grid{grid-template-columns:repeat(2,1fr)}
+    .proof-stats{grid-template-columns:repeat(2,1fr)}
+    .modules-grid{grid-template-columns:1fr 1fr}
+    .thirty-grid{grid-template-columns:repeat(2,1fr)}
+    .not-box{position:relative;top:0}
+    .compare-col{border-right:0;border-bottom:1px solid var(--line)}
+    .compare-col:last-child{border-bottom:0}
+    .module-card:nth-child(3n){border-right:1px solid var(--line)}
+    .module-card:nth-child(2n){border-right:0}
+    .module-card:nth-last-child(-n+3){border-bottom:1px solid var(--line)}
+    .module-card:nth-last-child(-n+2){border-bottom:0}
+    .sheets-stack{min-height:430px}
+    .rung{grid-template-columns:54px 1fr}
+    .rung aside{grid-column:2}
+    .proof-grid{grid-template-columns:repeat(2,1fr)}
+  }
+  @media(max-width:640px){
+    section{padding:82px 0}
+    .hero{padding-top:118px}
+    h1{font-size:48px}
+    .lede{font-size:18px}
+    .hero-card{min-height:390px}
+    .dashboard{inset:18px;padding:18px}
+    .bar-row{grid-template-columns:1fr;gap:7px}
+    .bar-value{text-align:left}
+    .dash-metrics{grid-template-columns:1fr}
+    .insight-top{right:18px;top:auto;bottom:88px;width:152px}
+    .float-note{display:none}
+    .features-grid,.proof-grid,.proof-stats,.modules-grid,.thirty-grid,.preview-grid{grid-template-columns:1fr}
+    .video-caption{align-items:flex-start;flex-direction:column}
+    .video-poster-content{align-items:center;flex-direction:column}
+    .video-main-action{align-items:center;flex-direction:column}
+    .video-topline{align-items:flex-start;flex-direction:column}
+    .video-progress{width:100%}
+    .video-copy h3{font-size:21px}
+    .video-copy p{font-size:13px}
+    .course-preview{padding:26px}
+    .audience-item{grid-template-columns:1fr}
+    .modules-head,.module-card{padding:24px}
+    .module-card,.module-card:nth-child(2n),.module-card:nth-child(3n){border-right:0}
+    .module-card:nth-last-child(-n+2){border-bottom:1px solid var(--line)}
+    .module-card:last-child{border-bottom:0}
+    .recording-card{padding:22px}
+    .sheets-wrap{padding:24px}
+    .sheets-stack{min-height:380px}
+    .pricing-card,.signup-card{padding:26px}
+    .price{font-size:68px}
+    .rung{padding:20px;gap:16px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;scroll-behavior:auto !important}
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<nav aria-label="Primary navigation">
+  <div class="nav-inner">
+    <a class="logo" href="#top" data-scroll="#top" aria-label="Surplus by Rosario home">
+      <span class="logo-mark">S</span>
+      <span class="logo-text">
+        <span class="logo-name">Surplus</span>
+        <span class="logo-by">by Rosario</span>
+      </span>
+    </a>
+    <button class="nav-menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="primaryNav">Menu</button>
+    <div class="nav-links" id="primaryNav">
+      <a href="#story" data-scroll="#story">My Story</a>
+      <a href="#what" data-scroll="#what">What You Get</a>
+      <a href="/surplus-course.html">Inside Course</a>
+      <a href="/surplus-member.html">Portal Preview</a>
+      <a href="#ladder" data-scroll="#ladder">The Ladder</a>
+      <a href="#pricing" data-scroll="#pricing">Pricing</a>
+      <a class="nav-cta nav-cta-link" href="#signup" data-scroll="#signup">Join Surplus</a>
+    </div>
+  </div>
+</nav>
+<div class="page-transition" aria-hidden="true"></div>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<main id="main">
+  <span id="top"></span>
+
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="eyebrow">Monthly membership - $50</div>
+        <h1>Take control. Build <em>income.</em> Create surplus.</h1>
+        <p class="lede">A $50/month financial education community for people who want the real climb, not guru theory. Learn budgeting, income growth, AI, business, and wealth basics from someone still building in real time.</p>
+        <div class="btn-row">
+          <a class="btn btn-primary" href="#signup" data-scroll="#signup">Start the climb for $50/mo <span aria-hidden="true">&rarr;</span></a>
+          <a class="btn btn-ghost" href="#story" data-scroll="#story">Watch my story</a>
+        </div>
+        <div class="hero-meta" aria-label="Membership highlights">
+          <span>Video modules</span>
+          <span>Discord community</span>
+          <span>AI playbooks</span>
+        </div>
+      </div>
+
+      <div class="hero-card" aria-label="Surplus budget preview">
+        <div class="hero-orbit" aria-hidden="true"></div>
+        <div class="flow-line one" aria-hidden="true"></div>
+        <div class="flow-line two" aria-hidden="true"></div>
+        <div class="dashboard">
+          <div class="dash-top">
+            <div>
+              <div class="dash-title">April Surplus</div>
+              <div class="dash-sub" style="margin:4px 0 0">After bills, debt, savings, and life</div>
+            </div>
+            <div class="dash-pill">On Track</div>
+          </div>
+          <div class="big-number">$1,482</div>
+          <p class="dash-sub">The goal is not to be perfect. The goal is to know your number, widen the gap, and keep climbing.</p>
+          <div class="dash-metrics">
+            <div class="dash-metric"><strong>34%</strong>income saved</div>
+            <div class="dash-metric"><strong>+$312</strong>leaks found</div>
+          </div>
+          <div class="bar-row"><span class="bar-label">Housing</span><span class="bar"><i style="--target:58%"></i></span><span class="bar-value">$1,820</span></div>
+          <div class="bar-row"><span class="bar-label">Food</span><span class="bar"><i style="--target:42%"></i></span><span class="bar-value">$612</span></div>
+          <div class="bar-row"><span class="bar-label">Debt</span><span class="bar"><i style="--target:76%"></i></span><span class="bar-value">$940</span></div>
+          <div class="bar-row"><span class="bar-label">Savings</span><span class="bar"><i style="--target:88%"></i></span><span class="bar-value">$1,400</span></div>
+        </div>
+        <div class="insight-card insight-top">
+          <strong>76%</strong>
+          buffer funded
+          <div class="mini-chart" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+        </div>
+        <div class="insight-card insight-left">
+          <strong>-$214</strong>
+          subscriptions trimmed this month
+        </div>
+        <div class="float-note">
+          <strong>+$840</strong>
+          <span>side income created this month</span>
+        </div>
+      </div>
+    </div>
+    <a class="scroll-cue" href="#story" data-scroll="#story" aria-label="Scroll to story"></a>
+  </section>
+
+  <section class="proof" aria-label="What the system focuses on">
+    <div class="proof-label">A system built around</div>
+    <div class="marquee">
+      <div class="marquee-track">
+        <span class="marquee-item">Zero-Based Budgeting</span>
+        <span class="marquee-item">Side Income Stacking</span>
+        <span class="marquee-item">AI for Everyday Life</span>
+        <span class="marquee-item">Service Business Basics</span>
+        <span class="marquee-item">Expense Auditing</span>
+        <span class="marquee-item">Community Accountability</span>
+        <span class="marquee-item">Zero-Based Budgeting</span>
+        <span class="marquee-item">Side Income Stacking</span>
+        <span class="marquee-item">AI for Everyday Life</span>
+        <span class="marquee-item">Service Business Basics</span>
+        <span class="marquee-item">Expense Auditing</span>
+        <span class="marquee-item">Community Accountability</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="story">
+    <div class="wrap">
+      <div class="section-eyebrow">My Story</div>
+      <h2 class="section-title">Not a guru at the finish line. Someone still in the fight.</h2>
+      <p class="section-lede">I started learning trades at 11, launched my business at 19, left the slow college path, and kept working a 9-to-5 while building multiple income streams. Surplus is the real-time playbook from that climb.</p>
+
+      <div class="story-grid">
+        <div class="video-shell">
+          <div class="video-frame">
+            <iframe
+              id="storyVideo"
+              title="Surplus story video example"
+              src=""
+              data-video-id="aOQndPlfNhU"
+              data-src="https://www.youtube.com/embed/aOQndPlfNhU?autoplay=1&rel=0&enablejsapi=1"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen>
+            </iframe>
+            <div class="video-poster" id="videoPoster">
+              <div class="video-poster-content">
+                <div class="video-topline">
+                  <span>Story video</span>
+                  <span>Example - YouTube</span>
+                </div>
+                <div class="video-main-action">
+                  <button class="play" type="button" aria-label="Play Rosario story video">&#9654;</button>
+                  <div class="video-copy">
+                    <h3>Watch the climb first.</h3>
+                    <p>This example video holds the place for your final Rosario story: what changed, why Surplus exists, and where members should start.</p>
+                  </div>
+                </div>
+                <div class="video-progress" aria-hidden="true"><span></span></div>
+              </div>
+            </div>
+          </div>
+          <div class="video-caption">
+            <div>
+              <strong>Watch the story first</strong>
+              <span>Then start with the exact next step.</span>
+            </div>
+            <a class="btn btn-ghost" href="#signup" data-scroll="#signup">Join after watching</a>
+          </div>
+        </div>
+
+        <div>
+          <p class="story-quote">The moment it clicked: nobody is coming to save you. You either take control, or you stay where you are.</p>
+          <div class="story-panel">
+            <article class="story-card">
+              <div class="tag">The Start</div>
+              <h3>I learned the trades before I ever had a business card.</h3>
+              <p>I started helping my stepdad with contracting work at 11. Plumbing, electrical, HVAC, repairs, cleanup, problem solving. That foundation became the thing I could build from.</p>
+            </article>
+            <article class="story-card">
+              <div class="tag">The Decision</div>
+              <h3>I chose speed over waiting 10 to 15 years.</h3>
+              <p>I went to ASU for finance, saw the traditional path, and realized I did not want to wait a decade to build income. I dropped out, started the company, and kept working a $33/hour supervisor job while building on the side.</p>
+            </article>
+            <article class="story-card">
+              <div class="tag">The Proof</div>
+              <h3>This is not theory from someone ten steps removed.</h3>
+              <p>By 21, I had built roughly $200K across income streams and bought a half-million-dollar property with an investment plan. I am still renovating, still working, still learning, and that is the point.</p>
+            </article>
+          </div>
+          <div class="proof-stats" aria-label="Rosario proof points">
+            <div class="proof-stat"><strong>11</strong><span>started learning contracting work hands-on</span></div>
+            <div class="proof-stat"><strong>19</strong><span>launched the business instead of waiting</span></div>
+            <div class="proof-stat"><strong>21</strong><span>building while still working a 9-to-5</span></div>
+            <div class="proof-stat"><strong>$200K</strong><span>across income streams, not a shortcut fantasy</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="what">
+    <div class="wrap">
+      <div class="section-eyebrow">What You Get</div>
+      <h2 class="section-title">Part course. Part community. Part real-time climb.</h2>
+      <p class="section-lede">Surplus is not just videos sitting in a dashboard. It is modules you can unlock, a Discord community to stay connected, practical AI training, spreadsheets, and weekly direction for people trying to actually move.</p>
+      <div class="features-grid">
+        <article class="feature">
+          <div class="feature-icon">B</div>
+          <h3>The Budget System</h3>
+          <p>A zero-based setup that makes every dollar visible and gives members a weekly rhythm they can actually maintain.</p>
+        </article>
+        <article class="feature">
+          <div class="feature-icon">$</div>
+          <h3>The Income Playbook</h3>
+          <p>Side-income tracks, pricing guidance, scripts, and practical ways to widen the gap between income and lifestyle.</p>
+        </article>
+        <article class="feature">
+          <div class="feature-icon">X</div>
+          <h3>Prebuilt Spreadsheets</h3>
+          <p>Budgeting, debt payoff, savings goals, net worth, sinking funds, side income, and calculators that do the math.</p>
+        </article>
+        <article class="feature">
+          <div class="feature-icon">AI</div>
+          <h3>AI for Real Life</h3>
+          <p>Learn how to use AI for personal productivity, business workflows, content ideas, planning, research, and getting more done with less wasted time.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="audience">
+    <div class="wrap audience-grid">
+      <div>
+        <div class="section-eyebrow">Who This Is For</div>
+        <h2 class="section-title">For people close enough to want more, but early enough to need the map.</h2>
+        <p class="section-lede" style="margin-bottom:0">Surplus is built for the person who is not lazy, not helpless, and not waiting for magic. They just need structure, community, and a real example from someone still doing the work.</p>
+      </div>
+
+      <div class="audience-list">
+        <article class="audience-item">
+          <div class="audience-check">1</div>
+          <div>
+            <h3>You are starting from zero or close to it.</h3>
+            <p>You know you need to budget, make more, and get organized, but nobody ever showed you a practical first step.</p>
+          </div>
+        </article>
+        <article class="audience-item">
+          <div class="audience-check">2</div>
+          <div>
+            <h3>You work, but your money still feels stuck.</h3>
+            <p>You have income coming in, but it disappears too fast. The goal is to control the flow before trying to scale it.</p>
+          </div>
+        </article>
+        <article class="audience-item">
+          <div class="audience-check">3</div>
+          <div>
+            <h3>You want to use AI without getting lost.</h3>
+            <p>Not theory. You want prompts, workflows, planning systems, business use cases, and ways to save hours each week.</p>
+          </div>
+        </article>
+        <article class="audience-item">
+          <div class="audience-check">4</div>
+          <div>
+            <h3>You want people around you who are moving too.</h3>
+            <p>The Discord is for questions, accountability, networking, posting wins, and seeing what other builders are doing.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+    <div class="wrap" style="margin-top:28px">
+      <div class="not-box">
+        <h3>This is not for passive watchers.</h3>
+        <p>If someone wants a magic PDF, instant wealth, or a lifestyle fantasy, this is not the pitch. Surplus is for people willing to audit their life, use the tools, ask better questions, and execute weekly.</p>
+        <ul class="mini-list">
+          <li>No fake guru flexing.</li>
+          <li>No $7,000 mystery course.</li>
+          <li>No pretending the work is easy.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="inside">
+    <div class="wrap course-preview">
+      <div>
+        <div class="section-eyebrow">Inside Surplus</div>
+        <h2 class="section-title" style="margin-bottom:18px">The full course details now have their own page.</h2>
+        <p class="section-lede" style="margin-bottom:26px">To keep this page clean, the deep dive lives on a separate course page: modules, first 30 days, templates, AI training, comparison, and the recording plan.</p>
+        <a class="btn btn-primary" href="/surplus-course.html">Explore the course <span aria-hidden="true">&rarr;</span></a>
+        <a class="btn btn-ghost" href="/surplus-member.html" style="margin-left:10px">Preview portal</a>
+      </div>
+      <div class="preview-grid">
+        <div class="preview-item"><strong>6 modules</strong><span>Mindset, money control, income, AI, business, and wealth basics.</span></div>
+        <div class="preview-item"><strong>First 30 days</strong><span>A week-by-week path so new members know exactly what to do first.</span></div>
+        <div class="preview-item"><strong>12+ templates</strong><span>Budgeting, debt, net worth, sinking funds, and side-income tools.</span></div>
+        <div class="preview-item"><strong>Discord + AI</strong><span>Community accountability and practical workflows for life and business.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="modules" hidden>
+    <div class="wrap">
+      <div class="modules-shell">
+        <div class="modules-head">
+          <div>
+            <div class="section-eyebrow">Course Modules</div>
+            <h2 class="section-title" style="margin-bottom:0">What members unlock inside Surplus.</h2>
+          </div>
+          <p>Start with personal foundation, then move into money control, income growth, AI, business, and wealth building. The point is not to watch everything in one weekend. The point is to run the system, post wins, ask questions, and keep climbing with people doing the same thing.</p>
+        </div>
+
+        <div class="modules-grid">
+          <article class="module-card">
+            <div class="module-kicker">Module 01</div>
+            <h3>The Wake-Up</h3>
+            <p>The mindset shift that starts everything: nobody is coming to save you, so you need a system and a standard.</p>
+            <ul class="lesson-list">
+              <li>My story from helper to business owner</li>
+              <li>Why motivation is unreliable</li>
+              <li>Building discipline while life is busy</li>
+            </ul>
+          </article>
+          <article class="module-card">
+            <div class="module-kicker">Module 02</div>
+            <h3>Money Control</h3>
+            <p>Budgeting for people who hate budgeting. Know the number, find the leak, and stop letting money disappear.</p>
+            <ul class="lesson-list">
+              <li>Zero-based budget setup</li>
+              <li>Expense audit and spending leaks</li>
+              <li>Emergency fund and sinking funds</li>
+            </ul>
+          </article>
+          <article class="module-card">
+            <div class="module-kicker">Module 03</div>
+            <h3>Income Ladder</h3>
+            <p>How to think about growing income from where you are, whether that is a job, trade, side hustle, or service business.</p>
+            <ul class="lesson-list">
+              <li>First $500/month side-income plan</li>
+              <li>High-value skills and service offers</li>
+              <li>Pricing your time without guessing</li>
+            </ul>
+          </article>
+          <article class="module-card">
+            <div class="module-kicker">Module 04</div>
+            <h3>AI as a Tool</h3>
+            <p>Practical AI for people who want to move faster, plan better, and create more without pretending AI replaces work.</p>
+            <ul class="lesson-list">
+              <li>AI for personal planning and decisions</li>
+              <li>AI for business owners and operators</li>
+              <li>Prompts for content, research, and systems</li>
+            </ul>
+          </article>
+          <article class="module-card">
+            <div class="module-kicker">Module 05</div>
+            <h3>Business and Trades</h3>
+            <p>Lessons from starting a contracting company young while still working a job and learning through real pressure.</p>
+            <ul class="lesson-list">
+              <li>Turning a skill into a paid offer</li>
+              <li>Getting first customers and referrals</li>
+              <li>Keeping standards when you are tired</li>
+            </ul>
+          </article>
+          <article class="module-card">
+            <div class="module-kicker">Module 06</div>
+            <h3>Property and Wealth Basics</h3>
+            <p>How to think about first property decisions, renovation plans, long-term investing, and putting surplus to work.</p>
+            <ul class="lesson-list">
+              <li>Primary home as an investment mindset</li>
+              <li>Renovation, resale, and risk basics</li>
+              <li>S&P 500 and long-term investing basics</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+
+      <div class="recording-card">
+        <div>
+          <h3>Record this intro first.</h3>
+          <p>This is the video that can live on the site and get chopped into TikToks, Reels, and shorts. Keep it raw, direct, and specific.</p>
+        </div>
+        <div class="hook-lines">
+          <div>"I went from zero to roughly $200K across income streams by 21, and I am still not pretending I made it."</div>
+          <div>"Most courses are sold by people at the finish line. Surplus is from someone still doing the work in real time."</div>
+          <div>"Nobody is coming to save you. That thought changed my life, and this community is built for people ready to act on it."</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="first-30" hidden>
+    <div class="wrap">
+      <div class="section-eyebrow">First 30 Days</div>
+      <h2 class="section-title">What happens after someone joins.</h2>
+      <p class="section-lede">The first month should feel simple and action-based. Members should leave month one with clarity, a working budget, a first income plan, and AI workflows they can actually use.</p>
+      <div class="thirty-grid">
+        <article class="week-card">
+          <small>Week 01</small>
+          <h3>Audit your real life.</h3>
+          <p>Run the money audit, list every bill, identify leaks, and get honest about where the pressure is coming from.</p>
+          <div class="deliverable"><strong>Deliverable</strong>Your true monthly number and leak list.</div>
+        </article>
+        <article class="week-card">
+          <small>Week 02</small>
+          <h3>Build the budget rhythm.</h3>
+          <p>Set up the monthly budget, create categories, build a weekly check-in, and stop guessing where money went.</p>
+          <div class="deliverable"><strong>Deliverable</strong>A live budget you can run every week.</div>
+        </article>
+        <article class="week-card">
+          <small>Week 03</small>
+          <h3>Pick your income move.</h3>
+          <p>Choose one income track based on your skills, schedule, and resources, then map the first $500/month attempt.</p>
+          <div class="deliverable"><strong>Deliverable</strong>A first offer, outreach plan, or raise plan.</div>
+        </article>
+        <article class="week-card">
+          <small>Week 04</small>
+          <h3>Install AI into the system.</h3>
+          <p>Use AI to plan your week, write messages, research offers, organize tasks, and reduce friction in execution.</p>
+          <div class="deliverable"><strong>Deliverable</strong>Your first AI workflow and weekly action plan.</div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="spreadsheets" hidden>
+    <div class="wrap">
+      <div style="margin-bottom:46px">
+        <div class="section-eyebrow">Prebuilt Spreadsheets</div>
+        <h2 class="section-title">A toolkit, not <em>homework.</em></h2>
+        <p class="section-lede">Most budgets fail because they start as a blank page. These templates are already structured, already formulated, and built to help members see what is actually happening.</p>
+      </div>
+
+      <div class="sheets-wrap">
+        <div class="sheets-grid">
+          <div class="sheets-stack" aria-label="Spreadsheet template previews">
+            <div class="sheet-card sheet-1">
+              <div class="sheet-card-head"><div class="sheet-card-dot"></div><div class="sheet-card-title">Net Worth Tracker</div></div>
+              <div class="sheet-mini-row"><span>Cash and savings</span><strong>$18,420</strong></div>
+              <div class="sheet-mini-row"><span>Investments</span><strong>$42,800</strong></div>
+              <div class="sheet-mini-row"><span>Real estate equity</span><strong>$89,000</strong></div>
+              <div class="sheet-mini-row"><span>Liabilities</span><strong>-$24,200</strong></div>
+              <div class="sheet-mini-row"><span style="color:var(--gold-bright)">Net worth</span><strong style="color:var(--gold-bright)">$126,020</strong></div>
+            </div>
+            <div class="sheet-card sheet-2">
+              <div class="sheet-card-head"><div class="sheet-card-dot"></div><div class="sheet-card-title">Debt Snowball</div></div>
+              <div class="sheet-mini-row"><span>Card - Visa</span><strong>$1,840</strong></div>
+              <div class="sheet-mini-row"><span>Car loan</span><strong>$6,320</strong></div>
+              <div class="sheet-mini-row"><span>Student loan</span><strong>$14,800</strong></div>
+              <div class="sheet-mini-row"><span style="color:var(--gold-bright)">Payoff date</span><strong style="color:var(--gold-bright)">Jul 2027</strong></div>
+            </div>
+            <div class="sheet-card sheet-3">
+              <div class="sheet-card-head"><div class="sheet-card-dot"></div><div class="sheet-card-title">Side Income Log</div></div>
+              <div class="sheet-mini-row"><span>Freelance - April</span><strong>$1,420</strong></div>
+              <div class="sheet-mini-row"><span>Resale flips</span><strong>$680</strong></div>
+              <div class="sheet-mini-row"><span>Tutoring</span><strong>$320</strong></div>
+              <div class="sheet-mini-row"><span style="color:var(--gold-bright)">Month total</span><strong style="color:var(--gold-bright)">$2,420</strong></div>
+            </div>
+          </div>
+
+          <div>
+            <h3 style="font-family:var(--serif);font-weight:500;font-size:28px;letter-spacing:-.01em;margin-bottom:12px">12+ templates. All included.</h3>
+            <p style="color:var(--ink-dim);font-size:15px;line-height:1.6;margin-bottom:8px">Built for Google Sheets and Excel-compatible. Plug in your numbers, follow the prompts, and let the formulas show the next move.</p>
+            <ul class="sheets-list">
+              <li><span class="sheet-num">01</span><div class="sheet-info"><strong>Monthly Budget</strong><span>Zero-based with category alerts</span></div></li>
+              <li><span class="sheet-num">02</span><div class="sheet-info"><strong>Debt Snowball and Avalanche</strong><span>Side-by-side payoff calculators</span></div></li>
+              <li><span class="sheet-num">03</span><div class="sheet-info"><strong>Net Worth Tracker</strong><span>Auto-charts your trajectory over time</span></div></li>
+              <li><span class="sheet-num">04</span><div class="sheet-info"><strong>Sinking Funds Planner</strong><span>For irregular expenses that wreck budgets</span></div></li>
+              <li><span class="sheet-num">05</span><div class="sheet-info"><strong>Side Income Tracker</strong><span>By gig, hour, and effective rate</span></div></li>
+              <li><span class="sheet-num">06</span><div class="sheet-info"><strong>Emergency Fund Builder</strong><span>1-6 month runway with smart targets</span></div></li>
+              <li><span class="sheet-num">+</span><div class="sheet-info"><strong>Plus 6 more</strong><span>Savings goals, expense audit, salary calculator, and more</span></div></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="comparison" hidden>
+    <div class="wrap">
+      <div class="section-eyebrow">Why Surplus</div>
+      <h2 class="section-title">Not another guru course.</h2>
+      <p class="section-lede">People have seen the rented cars, the vague advice, and the overpriced courses. Surplus needs to feel different the second they understand it.</p>
+      <div class="compare-wrap">
+        <div class="compare-grid">
+          <div class="compare-col">
+            <h3>Typical online courses</h3>
+            <ul class="compare-list">
+              <li>Expensive upfront pricing before trust is built.</li>
+              <li>Advice from people too far removed from the beginning.</li>
+              <li>Polished lifestyle content with unclear next steps.</li>
+              <li>One-way videos with no real community or feedback.</li>
+              <li>Generic motivation that fades after a week.</li>
+            </ul>
+          </div>
+          <div class="compare-col">
+            <h3>Surplus by Rosario</h3>
+            <ul class="compare-list">
+              <li>$50/month so people can start without a huge gamble.</li>
+              <li>Real-time lessons from someone still building the climb.</li>
+              <li>Budget sheets, AI prompts, income plays, and weekly actions.</li>
+              <li>Discord community for questions, accountability, and networking.</li>
+              <li>Built around execution, not pretending success is effortless.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="ladder">
+    <div class="wrap">
+      <div class="section-eyebrow">The Ladder</div>
+      <h2 class="section-title">Seven steps from survival mode to surplus.</h2>
+      <p class="section-lede">The order matters. You do not start with investing before you know your number. You do not chase big plays before you have a cash buffer. Surplus gives members the next right step.</p>
+      <div class="ladder">
+        <article class="rung">
+          <div class="rung-num">1</div>
+          <div><small>Rock Bottom</small><h3>Know your true number.</h3><p>Audit income, bills, debts, subscriptions, spending leaks, and cash flow so the problem becomes visible.</p></div>
+          <aside><strong>Outcome</strong>Clarity. No more guessing where the money went.</aside>
+        </article>
+        <article class="rung">
+          <div class="rung-num">2</div>
+          <div><small>Stability</small><h3>Build the first buffer.</h3><p>Create a starter emergency fund that stops one bad week from turning into another credit card balance.</p></div>
+          <aside><strong>Outcome</strong>Less panic. More room to make better decisions.</aside>
+        </article>
+        <article class="rung">
+          <div class="rung-num">3</div>
+          <div><small>Discipline</small><h3>Install the budget rhythm.</h3><p>Run the monthly sheet, review weekly, and make spending intentional instead of accidental.</p></div>
+          <aside><strong>Outcome</strong>A system you can repeat every month.</aside>
+        </article>
+        <article class="rung">
+          <div class="rung-num">4</div>
+          <div><small>Offense</small><h3>Add your first income stream.</h3><p>Pick one income track, start small, and prove you can create money outside your normal paycheck.</p></div>
+          <aside><strong>Outcome</strong>New confidence and a wider gap.</aside>
+        </article>
+        <article class="rung">
+          <div class="rung-num">5</div>
+          <div><small>Cleanup</small><h3>Attack high-interest debt.</h3><p>Use the snowball or avalanche calculator and send the new surplus toward balances that are holding you back.</p></div>
+          <aside><strong>Outcome</strong>Payments disappear and cash flow opens up.</aside>
+        </article>
+        <article class="rung">
+          <div class="rung-num">6</div>
+          <div><small>Acceleration</small><h3>Raise your floor.</h3><p>Negotiate, add skills, increase rates, and stack a second income source without inflating lifestyle.</p></div>
+          <aside><strong>Outcome</strong>A monthly surplus large enough to matter.</aside>
+        </article>
+        <article class="rung">
+          <div class="rung-num">7</div>
+          <div><small>Surplus</small><h3>Put money to work.</h3><p>Build runway, invest with discipline, and make bigger moves from strength instead of desperation.</p></div>
+          <aside><strong>Outcome</strong>You are no longer chasing the month. You are compounding.</aside>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing">
+    <div class="wrap">
+      <div class="section-eyebrow">Membership</div>
+      <h2 class="section-title">One price. Everything included.</h2>
+      <div class="pricing-card">
+        <div>
+          <div class="price-note">Founding member rate</div>
+          <div class="price">$50 <span>/ month</span></div>
+          <p class="section-lede" style="margin-bottom:28px">No contracts. Cancel anytime. Lock the rate while the membership is still early.</p>
+          <a class="btn btn-primary" href="#signup" data-scroll="#signup">Start the climb <span aria-hidden="true">&rarr;</span></a>
+        </div>
+        <ul class="included">
+          <li>Full budget system and setup guide</li>
+          <li>12+ prebuilt spreadsheet templates</li>
+          <li>Video modules unlocked on the website</li>
+          <li>Income playbook with practical tracks</li>
+          <li>AI lessons for life, business, and productivity</li>
+          <li>Private Discord community for questions and networking</li>
+          <li>Monthly live Q&A workshop with Rosario</li>
+          <li>New lessons, tools, and prompts added monthly</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="signup">
+    <div class="wrap signup-grid">
+      <div>
+        <div class="section-eyebrow">Join Surplus</div>
+        <h2 class="section-title">Make the next click the start of a better month.</h2>
+        <p class="section-lede">Get the modules, Discord community, spreadsheets, AI playbooks, and real-time guidance for $50/month. This is financial education and personal growth structure, not personalized financial advice.</p>
+      </div>
+      <form class="signup-card" id="signupForm">
+        <label for="name">Name</label>
+        <input id="name" name="name" autocomplete="name" required placeholder="Your name" />
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@example.com" />
+        <label for="message">Where are you starting from?</label>
+        <textarea id="message" name="message" placeholder="Debt, budgeting, earning more, getting organized..."></textarea>
+        <button class="btn btn-primary" type="submit" style="width:100%">Request access to Surplus <span aria-hidden="true">&rarr;</span></button>
+        <p class="form-note">This does not charge anyone yet. It captures interest and opens an email to Rosario until the checkout link is connected.</p>
+        <div class="success" id="formSuccess" role="status">Your request is ready. If your email app did not open, email hello@surplusbyrosario.com with the subject "Join Surplus".</div>
+      </form>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <div class="section-eyebrow">Honest Answers</div>
+      <h2 class="section-title">Questions before you commit.</h2>
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-button" type="button">Is this for me if I am broke or in debt?<span class="faq-plus">+</span></button>
+          <div class="faq-answer">Yes. The Ladder starts at the bottom on purpose. The first moves are clarity, a cash buffer, and a budget rhythm before anything more advanced.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-button" type="button">Do the spreadsheets work in Excel and Google Sheets?<span class="faq-plus">+</span></button>
+          <div class="faq-answer">Yes. The templates are built to be Google Sheets friendly and Excel compatible, with formulas documented so members can customize them.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-button" type="button">Is this financial advice?<span class="faq-plus">+</span></button>
+          <div class="faq-answer">No. Surplus is financial education, frameworks, and tools based on lived experience. Members should consult a licensed professional for personalized financial advice.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="final">
+    <div class="wrap">
+      <h2>Your next ten years.<br><em>Decided this month.</em></h2>
+      <p>Budgeting alone will not get you there. Earning more alone will not either. Combine them inside a system you actually run every month, and the math starts changing fast.</p>
+      <a class="btn btn-primary" href="#signup" data-scroll="#signup">Start the climb for $50/mo <span aria-hidden="true">&rarr;</span></a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap footer-inner">
+    <div class="logo" aria-label="Surplus by Rosario">
+      <span class="logo-mark" style="width:28px;height:28px;border-radius:8px;font-size:16px">S</span>
+      <span>&copy; 2026 Surplus by Rosario. All rights reserved.</span>
+    </div>
+    <div class="footer-links">
+      <a href="/terms.html">Terms</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="mailto:hello@surplusbyrosario.com?subject=Surplus%20Question">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  const CHECKOUT_URL = "";
+  const CONTACT_EMAIL = "hello@surplusbyrosario.com";
+  const VIDEO_URL = "https://www.youtube.com/embed/aOQndPlfNhU?autoplay=1&rel=0&enablejsapi=1";
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const PAGE_TRANSITION_MS = 720;
+  const TRANSITION_QUOTES = [
+    "Know your number. Widen the gap.",
+    "Nobody is coming to save you.",
+    "Budget smarter. Earn more.",
+    "Turn pressure into a plan.",
+    "The climb starts with clarity.",
+    "Use AI. Save hours. Move faster."
+  ];
+  const updateTransitionQuote = () => {
+    const quote = document.querySelector(".transition-quote");
+    if (!quote) return;
+    quote.textContent = TRANSITION_QUOTES[Math.floor(Math.random() * TRANSITION_QUOTES.length)];
+  };
+  updateTransitionQuote();
+
+  const toast = document.getElementById("toast");
+  const shouldPlayEntryTransition = sessionStorage.getItem("surplusIrisTransition") === "1";
+  sessionStorage.removeItem("surplusIrisTransition");
+  if (shouldPlayEntryTransition && !reducedMotion) {
+    document.body.classList.add("page-entering");
+    setTimeout(() => document.body.classList.remove("page-entering"), PAGE_TRANSITION_MS);
+  }
+  document.body.classList.add("page-ready");
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => document.documentElement.classList.remove("preload-transition"));
+  });
+  const showToast = (message) => {
+    toast.textContent = message;
+    toast.classList.add("is-visible");
+    clearTimeout(window.toastTimer);
+    window.toastTimer = setTimeout(() => toast.classList.remove("is-visible"), 3200);
+  };
+
+  if (!reducedMotion) {
+    const revealSelectors = [
+      ".section-eyebrow",
+      ".section-title",
+      ".section-lede",
+      ".story-grid > *",
+      ".feature",
+      ".story-card",
+      ".proof-stat",
+      ".audience-item",
+      ".not-box",
+      ".course-preview > *",
+      ".preview-item",
+      ".rung",
+      ".pricing-card > *",
+      ".signup-grid > *",
+      ".faq-item",
+      ".final .wrap"
+    ];
+    const revealItems = document.querySelectorAll(revealSelectors.join(","));
+    revealItems.forEach((item, index) => {
+      item.classList.add("scroll-reveal");
+      item.style.setProperty("--reveal-delay", `${Math.min(index % 6, 5) * 70}ms`);
+      if (item.matches(".story-grid > :first-child,.course-preview > :first-child,.pricing-card > :first-child,.signup-grid > :first-child")) item.dataset.reveal = "left";
+      if (item.matches(".story-grid > :last-child,.course-preview > :last-child,.pricing-card > :last-child,.signup-grid > :last-child")) item.dataset.reveal = "right";
+    });
+    document.body.classList.add("motion-ready");
+
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("is-visible");
+        revealObserver.unobserve(entry.target);
+      });
+    }, { rootMargin: "0px 0px -12% 0px", threshold: .12 });
+    revealItems.forEach((item) => revealObserver.observe(item));
+  }
+
+  const root = document.documentElement;
+  const hero = document.querySelector(".hero");
+  let ticking = false;
+  const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+  const updateScrollMotion = () => {
+    const maxScroll = root.scrollHeight - window.innerHeight;
+    const progress = maxScroll > 0 ? window.scrollY / maxScroll : 0;
+    root.style.setProperty("--page-progress", progress.toFixed(4));
+    document.body.classList.toggle("nav-scrolled", window.scrollY > 18);
+    if (hero && !reducedMotion) {
+      const heroProgress = clamp(window.scrollY / Math.max(hero.offsetHeight, 1), 0, 1);
+      hero.style.setProperty("--hero-progress", heroProgress.toFixed(3));
+    }
+    ticking = false;
+  };
+  const requestScrollMotion = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(updateScrollMotion);
+  };
+  updateScrollMotion();
+  window.addEventListener("scroll", requestScrollMotion, { passive: true });
+  window.addEventListener("resize", requestScrollMotion);
+
+  const sectionLinks = Array.from(document.querySelectorAll(".nav-links a[data-scroll]"))
+    .map((link) => ({ link, section: document.querySelector(link.getAttribute("data-scroll")) }))
+    .filter((item) => item.section);
+  const updateActiveNav = () => {
+    const marker = window.scrollY + window.innerHeight * .38;
+    let current = sectionLinks[0]?.section;
+    sectionLinks.forEach(({ section }) => {
+      if (section.offsetTop <= marker) current = section;
+    });
+    sectionLinks.forEach(({ link, section }) => {
+      link.classList.toggle("is-active", section === current);
+    });
+  };
+  updateActiveNav();
+  window.addEventListener("scroll", () => requestAnimationFrame(updateActiveNav), { passive: true });
+  const activeObserver = new IntersectionObserver((entries) => {
+    const visible = entries
+      .filter((entry) => entry.isIntersecting)
+      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    if (!visible) return;
+    sectionLinks.forEach(({ link, section }) => {
+      link.classList.toggle("is-active", section === visible.target);
+    });
+  }, { rootMargin: "-34% 0px -54% 0px", threshold: [.12, .28, .45] });
+  sectionLinks.forEach(({ section }) => activeObserver.observe(section));
+
+  document.querySelectorAll("[data-scroll]").forEach((item) => {
+    item.addEventListener("click", (event) => {
+      const selector = item.getAttribute("data-scroll");
+      const target = selector ? document.querySelector(selector) : null;
+      if (!target) return;
+      event.preventDefault();
+      document.body.classList.remove("nav-open");
+      document.querySelector(".nav-menu-toggle")?.setAttribute("aria-expanded", "false");
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+
+  const menuToggle = document.querySelector(".nav-menu-toggle");
+  menuToggle?.addEventListener("click", () => {
+    const isOpen = document.body.classList.toggle("nav-open");
+    menuToggle.setAttribute("aria-expanded", String(isOpen));
+  });
+
+  document.querySelectorAll('a[href]').forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const href = link.getAttribute("href");
+      if (!href || href.startsWith("#") || href.startsWith("mailto:") || link.target === "_blank" || link.hasAttribute("download")) return;
+      const next = new URL(href, window.location.href);
+      if (next.origin !== window.location.origin) return;
+      if (next.pathname === window.location.pathname && next.hash) return;
+      event.preventDefault();
+      document.body.classList.remove("nav-open");
+      if (reducedMotion) {
+        window.location.href = next.href;
+        return;
+      }
+      updateTransitionQuote();
+      sessionStorage.setItem("surplusIrisTransition", "1");
+      document.body.classList.add("page-leaving");
+      setTimeout(() => { window.location.href = next.href; }, PAGE_TRANSITION_MS);
+    });
+  });
+
+  document.querySelectorAll('a[href="#signup"]').forEach((item) => {
+    item.addEventListener("click", (event) => {
+      if (!CHECKOUT_URL) return;
+      event.preventDefault();
+      window.location.href = CHECKOUT_URL;
+    });
+  });
+
+  document.querySelectorAll(".faq-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      button.closest(".faq-item").classList.toggle("is-open");
+    });
+  });
+
+  const video = document.getElementById("storyVideo");
+  const source = document.getElementById("storyVideoSource");
+  const poster = document.getElementById("videoPoster");
+  let storyPlayer = null;
+  let youtubeApiPromise = null;
+  const getStoryEmbedUrl = () => {
+    const next = new URL(video.dataset.src || VIDEO_URL);
+    next.searchParams.set("origin", window.location.origin);
+    return next.href;
+  };
+  const loadYouTubeApi = () => {
+    if (window.YT?.Player) return Promise.resolve();
+    if (youtubeApiPromise) return youtubeApiPromise;
+    youtubeApiPromise = new Promise((resolve) => {
+      const previousReady = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => {
+        if (typeof previousReady === "function") previousReady();
+        resolve();
+      };
+      const script = document.createElement("script");
+      script.src = "https://www.youtube.com/iframe_api";
+      script.async = true;
+      document.head.appendChild(script);
+    });
+    return youtubeApiPromise;
+  };
+  const resetStoryThumbnail = () => {
+    poster.classList.remove("is-hidden");
+    if (video.tagName === "IFRAME") {
+      try { storyPlayer?.stopVideo?.(); } catch {}
+      storyPlayer = null;
+      video.src = "";
+      return;
+    }
+    video.pause?.();
+    video.currentTime = 0;
+  };
+  const attachStoryPlayer = async () => {
+    if (video.tagName !== "IFRAME" || storyPlayer || !video.src) return;
+    await loadYouTubeApi();
+    storyPlayer = new YT.Player(video, {
+      events: {
+        onStateChange(event) {
+          if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
+            resetStoryThumbnail();
+          }
+        }
+      }
+    });
+  };
+  if (VIDEO_URL && source) {
+    source.src = VIDEO_URL;
+    video.load();
+  }
+  poster.addEventListener("click", () => {
+    if (!VIDEO_URL) {
+      showToast("Add your video URL in VIDEO_URL to enable playback.");
+      return;
+    }
+    poster.classList.add("is-hidden");
+    if (video.tagName === "IFRAME") {
+      video.src = getStoryEmbedUrl();
+      attachStoryPlayer();
+      return;
+    }
+    video.play().catch(() => showToast("Press play in the video controls to start."));
+  });
+  const videoShell = document.querySelector(".video-shell");
+  if (videoShell) {
+    const videoVisibility = new IntersectionObserver(([entry]) => {
+      if (!poster.classList.contains("is-hidden")) return;
+      if (!entry.isIntersecting || entry.intersectionRatio < .35) resetStoryThumbnail();
+    }, { threshold: [0, .35, .7] });
+    videoVisibility.observe(videoShell);
+  }
+  video?.addEventListener?.("pause", () => {
+    if (video.tagName !== "IFRAME") resetStoryThumbnail();
+  });
+  window.addEventListener("pagehide", resetStoryThumbnail);
+
+  document.getElementById("signupForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const name = form.name.value.trim();
+    const email = form.email.value.trim();
+    const message = form.message.value.trim();
+    if (!name || !email) {
+      showToast("Add your name and email first.");
+      return;
+    }
+    if (CHECKOUT_URL) {
+      window.location.href = CHECKOUT_URL;
+      return;
+    }
+    const subject = encodeURIComponent("Join Surplus");
+    const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nStarting point:\n${message || "Not provided"}`);
+    document.getElementById("formSuccess").classList.add("is-visible");
+    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
+  });
+</script>
+</body>
+</html>
