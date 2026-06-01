@@ -720,6 +720,7 @@
     .split,.timeline,.template-grid,.compare-grid,.script-grid{grid-template-columns:1fr}
     .compare{border-right:0;border-bottom:1px solid var(--line)}
     .compare:last-child{border-bottom:0}
+    body.nav-open{overflow:hidden}
     .nav-menu-toggle{display:grid;place-items:center}
     .nav-links{
       position:absolute;
@@ -734,6 +735,8 @@
       background:rgba(10,10,12,.94);
       box-shadow:0 24px 70px rgba(0,0,0,.42);
       backdrop-filter:blur(20px);
+      max-height:calc(100dvh - 96px);
+      overflow:auto;
       opacity:0;
       transform:translateY(-10px);
       pointer-events:none;
@@ -747,10 +750,27 @@
   @media(max-width:640px){
     nav{padding:14px 18px}
     .wrap{padding:0 20px}
-    section{padding:78px 0}
-    .hero{padding-top:120px}
-    h1{font-size:48px}
+    section{padding:76px 0}
+    .hero{padding:116px 0 76px}
+    h1{font-size:clamp(40px,12vw,52px);line-height:1.03}
+    .lede{font-size:18px;line-height:1.58}
+    .btn-row{display:grid;grid-template-columns:1fr;gap:12px}
+    .btn{width:100%;min-height:54px}
+    .section-title{font-size:clamp(34px,10vw,46px);line-height:1.08}
+    .section-lede{font-size:17px}
+    .panel{border-radius:24px}
     .panel-pad,.module,.week,.template,.compare{padding:22px}
+    .module h3,.week h3,.compare h3,.template h3,.script-card h3{font-size:24px}
+    .script-lines div{font-size:14px;padding:15px}
+    .cta-panel{padding:48px 22px}
+    .footer-inner{align-items:flex-start;flex-direction:column}
+  }
+  @media(max-width:390px){
+    .wrap{padding:0 16px}
+    nav{padding:12px 14px}
+    .logo-name{font-size:20px}
+    .logo-mark{width:34px;height:34px}
+    h1{font-size:clamp(37px,11.5vw,46px)}
   }
 </style>
 </head>
