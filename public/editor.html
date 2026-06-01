@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#0a0a0c" />
+<title>Surplus Preview Editor</title>
+<style>
+  :root{
+    --bg:#0a0a0c;
+    --panel:#111114;
+    --panel-2:#17171b;
+    --ink:#f4efe2;
+    --muted:#aaa398;
+    --faint:#6f695f;
+    --gold:#b99a55;
+    --gold-bright:#d8bb70;
+    --gold-deep:#806936;
+    --line:rgba(185,154,85,.22);
+    --shadow:0 24px 80px rgba(0,0,0,.42);
+    --sans:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{min-height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans)}
+  body{
+    overflow:hidden;
+    background:
+      radial-gradient(ellipse 54% 42% at 18% 8%,rgba(185,154,85,.17),transparent 62%),
+      radial-gradient(ellipse 50% 42% at 86% 20%,rgba(216,187,112,.09),transparent 64%),
+      #0a0a0c;
+  }
+  .editor{
+    min-height:100dvh;
+    display:grid;
+    grid-template-rows:auto 1fr;
+  }
+  .toolbar{
+    position:relative;
+    z-index:5;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:18px;
+    padding:14px 18px;
+    border-bottom:1px solid var(--line);
+    background:rgba(10,10,12,.82);
+    backdrop-filter:blur(20px);
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    min-width:220px;
+  }
+  .mark{
+    width:38px;
+    height:38px;
+    border-radius:12px;
+    display:grid;
+    place-items:center;
+    background:linear-gradient(135deg,var(--gold-bright),var(--gold-deep));
+    color:#0a0a0c;
+    font-family:Georgia,serif;
+    font-style:italic;
+    font-weight:700;
+    font-size:22px;
+    box-shadow:0 0 24px rgba(185,154,85,.28),inset 0 1px 0 rgba(255,255,255,.32);
+  }
+  .brand strong{display:block;font-family:Georgia,serif;font-size:21px;font-weight:500;line-height:1}
+  .brand span{display:block;color:var(--faint);font-size:10px;letter-spacing:.2em;text-transform:uppercase;margin-top:3px}
+  .controls{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .group{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:6px;
+    border:1px solid var(--line);
+    border-radius:999px;
+    background:rgba(255,255,255,.035);
+  }
+  button,select,a{
+    min-height:38px;
+    border:1px solid transparent;
+    border-radius:999px;
+    padding:0 14px;
+    color:var(--ink);
+    background:transparent;
+    font:700 13px/1 var(--sans);
+    text-decoration:none;
+    cursor:pointer;
+    transition:.2s background,.2s border-color,.2s color,.2s transform;
+  }
+  button:hover,a:hover,select:hover{background:rgba(185,154,85,.09);border-color:rgba(185,154,85,.28)}
+  button.active{
+    color:#0a0a0c;
+    background:linear-gradient(135deg,var(--gold-bright),var(--gold) 58%,var(--gold-deep));
+    box-shadow:0 10px 24px rgba(185,154,85,.18);
+  }
+  select{
+    appearance:none;
+    padding-right:34px;
+    border-color:var(--line);
+    background:
+      linear-gradient(45deg,transparent 50%,var(--gold-bright) 50%) right 17px center/6px 6px no-repeat,
+      linear-gradient(135deg,rgba(255,255,255,.055),rgba(255,255,255,.018));
+  }
+  .meta{
+    min-width:220px;
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    gap:10px;
+    color:var(--muted);
+    font-size:12px;
+  }
+  .size-pill{
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:8px 11px;
+    background:rgba(255,255,255,.035);
+    white-space:nowrap;
+  }
+  .stage{
+    min-height:0;
+    position:relative;
+    display:grid;
+    place-items:center;
+    padding:28px;
+    overflow:auto;
+  }
+  .device-shell{
+    width:min(var(--device-w),100%);
+    height:min(var(--device-h),calc(100dvh - 126px));
+    min-height:420px;
+    border:1px solid rgba(216,187,112,.24);
+    border-radius:var(--device-r);
+    background:#08080a;
+    box-shadow:var(--shadow),0 0 0 8px rgba(255,255,255,.025);
+    overflow:hidden;
+    transition:width .34s cubic-bezier(.2,.8,.2,1),height .34s cubic-bezier(.2,.8,.2,1),border-radius .34s cubic-bezier(.2,.8,.2,1);
+  }
+  iframe{
+    width:100%;
+    height:100%;
+    border:0;
+    display:block;
+    background:#0a0a0c;
+  }
+  .hint{
+    position:absolute;
+    left:28px;
+    bottom:22px;
+    color:var(--faint);
+    font-size:12px;
+  }
+  body[data-device="mobile"]{--device-w:390px;--device-h:844px;--device-r:34px}
+  body[data-device="tablet"]{--device-w:820px;--device-h:920px;--device-r:28px}
+  body[data-device="desktop"]{--device-w:1280px;--device-h:820px;--device-r:20px}
+  body[data-device="wide"]{--device-w:1440px;--device-h:860px;--device-r:18px}
+  body.landscape[data-device="mobile"]{--device-w:844px;--device-h:390px;--device-r:28px}
+  body.landscape[data-device="tablet"]{--device-w:1024px;--device-h:768px;--device-r:26px}
+  @media(max-width:900px){
+    body{overflow:auto}
+    .editor{min-height:100vh}
+    .toolbar{align-items:flex-start;flex-direction:column}
+    .brand,.meta{min-width:0;width:100%;justify-content:space-between}
+    .controls{width:100%;justify-content:flex-start}
+    .group{max-width:100%;overflow-x:auto;border-radius:18px}
+    .stage{padding:18px}
+    .device-shell{height:calc(100dvh - 230px);min-height:520px}
+    .hint{display:none}
+  }
+</style>
+</head>
+<body data-device="desktop">
+<main class="editor">
+  <header class="toolbar">
+    <div class="brand" aria-label="Surplus editor">
+      <div class="mark">S</div>
+      <div>
+        <strong>Surplus</strong>
+        <span>Preview editor</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <select id="pageSelect" aria-label="Choose page">
+        <option value="/surplus.html">Home</option>
+        <option value="/surplus-course.html">Course</option>
+        <option value="/surplus-member.html">Member Portal</option>
+      </select>
+      <div class="group" aria-label="Device layout">
+        <button type="button" data-device="mobile">Mobile</button>
+        <button type="button" data-device="tablet">Tablet</button>
+        <button type="button" data-device="desktop" class="active">Desktop</button>
+        <button type="button" data-device="wide">Wide</button>
+      </div>
+      <div class="group" aria-label="Device actions">
+        <button type="button" id="rotateBtn">Rotate</button>
+        <button type="button" id="reloadBtn">Reload</button>
+      </div>
+    </div>
+
+    <div class="meta">
+      <span class="size-pill" id="sizeLabel">1280 x 820</span>
+      <a id="openLink" href="/surplus.html" target="_blank" rel="noreferrer">Open page</a>
+    </div>
+  </header>
+
+  <section class="stage" aria-label="Website preview stage">
+    <div class="device-shell">
+      <iframe id="previewFrame" title="Surplus page preview" src="/surplus.html"></iframe>
+    </div>
+    <div class="hint">Use the device buttons to check layout before publishing.</div>
+  </section>
+</main>
+
+<script>
+  const devices = {
+    mobile:{label:"390 x 844", landscape:"844 x 390"},
+    tablet:{label:"820 x 920", landscape:"1024 x 768"},
+    desktop:{label:"1280 x 820", landscape:"1280 x 820"},
+    wide:{label:"1440 x 860", landscape:"1440 x 860"}
+  };
+  const frame = document.getElementById("previewFrame");
+  const pageSelect = document.getElementById("pageSelect");
+  const sizeLabel = document.getElementById("sizeLabel");
+  const openLink = document.getElementById("openLink");
+  const rotateBtn = document.getElementById("rotateBtn");
+  const reloadBtn = document.getElementById("reloadBtn");
+  const deviceButtons = document.querySelectorAll("button[data-device]");
+
+  function setPage(path){
+    const next = `${path}?preview=${Date.now()}`;
+    frame.src = next;
+    openLink.href = path;
+  }
+
+  function setDevice(device){
+    document.body.dataset.device = device;
+    if (device === "desktop" || device === "wide") document.body.classList.remove("landscape");
+    deviceButtons.forEach((button)=>button.classList.toggle("active",button.dataset.device === device));
+    updateLabel();
+  }
+
+  function updateLabel(){
+    const device = document.body.dataset.device;
+    const isLandscape = document.body.classList.contains("landscape");
+    sizeLabel.textContent = isLandscape ? devices[device].landscape : devices[device].label;
+  }
+
+  pageSelect.addEventListener("change",()=>setPage(pageSelect.value));
+  deviceButtons.forEach((button)=>button.addEventListener("click",()=>setDevice(button.dataset.device)));
+  rotateBtn.addEventListener("click",()=>{
+    const device = document.body.dataset.device;
+    if (device === "desktop" || device === "wide") return;
+    document.body.classList.toggle("landscape");
+    updateLabel();
+  });
+  reloadBtn.addEventListener("click",()=>setPage(pageSelect.value));
+  setDevice("desktop");
+</script>
+</body>
+</html>

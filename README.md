@@ -7,6 +7,7 @@ Standalone website project for Surplus by Rosario.
 - `/surplus.html` - main landing page
 - `/surplus-course.html` - course/modules page
 - `/surplus-member.html` - member portal preview
+- `/editor.html` - local preview editor for mobile, tablet, desktop, and wide layouts
 
 ## Run Locally
 
