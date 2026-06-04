@@ -168,60 +168,120 @@
     min-height:560px;
     border:1px solid rgba(185,154,85,.24);
     border-radius:34px;
-    padding:18px;
-    background:linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.018));
+    padding:22px;
+    background:
+      radial-gradient(circle at 18% 0%,rgba(216,187,112,.18),transparent 42%),
+      linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.018));
     box-shadow:0 46px 120px rgba(0,0,0,.52),0 0 80px rgba(185,154,85,.08);
     transform:perspective(1100px) rotateY(calc(var(--wheel-boost) * -1.3deg)) translate3d(0,calc(var(--page-progress) * -18px),0);
     transition:transform .16s ease-out;
+    overflow:visible;
   }
-  .device-top{display:flex;align-items:center;justify-content:space-between;padding:8px 8px 18px;color:var(--ink-faint);font-size:12px}
-  .device-dots{display:flex;gap:7px}
-  .device-dots span{width:8px;height:8px;border-radius:50%;background:rgba(244,239,226,.24)}
-  .device-screen{
-    min-height:492px;
+  .daily-card{
+    position:relative;
+    min-height:516px;
     border:1px solid rgba(185,154,85,.18);
     border-radius:26px;
-    padding:24px;
+    padding:26px;
     background:
-      radial-gradient(circle at 12% 10%,rgba(216,187,112,.16),transparent 34%),
+      radial-gradient(circle at 82% 0%,rgba(157,185,255,.11),transparent 34%),
+      radial-gradient(circle at 16% 10%,rgba(216,187,112,.15),transparent 36%),
       linear-gradient(160deg,rgba(12,12,15,.94),rgba(6,6,8,.98));
     overflow:hidden;
   }
-  .screen-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;border-bottom:1px solid rgba(185,154,85,.16);padding-bottom:18px;margin-bottom:20px}
-  .screen-head h2{font-family:var(--serif);font-weight:500;font-size:30px;line-height:1.05}
-  .screen-head span{display:inline-flex;border:1px solid rgba(131,214,160,.28);border-radius:999px;padding:7px 10px;color:var(--green);background:rgba(131,214,160,.08);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.13em;white-space:nowrap}
-  .lesson-now{display:grid;gap:16px}
-  .lesson-hero{
-    border:1px solid rgba(185,154,85,.18);
-    border-radius:20px;
-    padding:20px;
-    background:rgba(255,255,255,.035);
+  .daily-card::before{
+    content:"";
+    position:absolute;
+    right:-70px;
+    top:-70px;
+    width:190px;
+    height:190px;
+    border-radius:50%;
+    border:1px solid rgba(216,187,112,.18);
+    background:radial-gradient(circle,rgba(216,187,112,.12),transparent 62%);
+    pointer-events:none;
   }
-  .lesson-hero small{color:var(--gold-bright);letter-spacing:.16em;text-transform:uppercase;font-weight:800}
-  .lesson-hero h3{font-family:var(--serif);font-size:28px;font-weight:500;line-height:1.1;margin:12px 0 8px}
-  .lesson-hero p{color:var(--ink-dim);font-size:14px;line-height:1.55}
-  .progress-track{height:7px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:18px}
-  .progress-track span{display:block;width:43%;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--gold-bright),var(--gold-deep));box-shadow:0 0 18px rgba(216,187,112,.32)}
-  .mini-lessons{display:grid;gap:10px}
-  .mini-lesson{
+  .daily-head{
+    position:relative;
     display:grid;
-    grid-template-columns:38px 1fr auto;
-    gap:13px;
+    grid-template-columns:1fr auto;
+    gap:20px;
+    align-items:center;
+    padding-bottom:22px;
+    border-bottom:1px solid rgba(185,154,85,.16);
+    margin-bottom:20px;
+  }
+  .daily-date{color:var(--gold-bright);font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:800;margin-bottom:9px}
+  .daily-head h2{font-family:var(--serif);font-size:34px;font-weight:500;line-height:1.02}
+  .daily-head p{color:var(--ink-dim);font-size:14px;line-height:1.5;margin-top:9px;max-width:320px}
+  .daily-ring{
+    width:94px;
+    height:94px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    background:
+      conic-gradient(var(--gold-bright) 0 68%,rgba(255,255,255,.08) 68% 100%);
+    box-shadow:0 0 34px rgba(216,187,112,.14);
+  }
+  .daily-ring span{
+    width:72px;
+    height:72px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    background:#0b0b0d;
+    border:1px solid rgba(185,154,85,.16);
+    color:var(--ink);
+    font-family:var(--serif);
+    font-size:24px;
+  }
+  .daily-actions{position:relative;display:grid;gap:12px}
+  .daily-action{
+    display:grid;
+    grid-template-columns:48px 1fr auto;
+    gap:14px;
     align-items:center;
     border:1px solid rgba(185,154,85,.14);
-    border-radius:16px;
-    padding:12px;
-    background:rgba(255,255,255,.025);
+    border-radius:18px;
+    padding:14px;
+    background:rgba(255,255,255,.028);
   }
-  .mini-num{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:rgba(185,154,85,.13);color:var(--gold-bright);font-family:var(--serif)}
-  .mini-lesson strong{display:block;font-size:14px}
-  .mini-lesson span{display:block;color:var(--ink-faint);font-size:12px;margin-top:2px}
-  .mini-time{color:var(--ink-dim);font-size:12px}
-  .float-chip{
+  .action-icon{
+    width:48px;
+    height:48px;
+    border-radius:16px;
+    display:grid;
+    place-items:center;
+    background:rgba(185,154,85,.12);
+    color:var(--gold-bright);
+    font-family:var(--serif);
+    font-size:18px;
+  }
+  .daily-action strong{display:block;color:var(--ink);font-size:15px;margin-bottom:3px}
+  .daily-action span{display:block;color:var(--ink-faint);font-size:12px;line-height:1.38}
+  .action-time{color:var(--ink-dim);font-size:12px;white-space:nowrap}
+  .daily-workshop{
+    position:relative;
+    margin-top:14px;
+    border:1px solid rgba(131,214,160,.2);
+    border-radius:18px;
+    padding:16px 18px;
+    background:rgba(131,214,160,.055);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+  }
+  .daily-workshop small{display:block;color:var(--green);font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;margin-bottom:4px}
+  .daily-workshop strong{display:block;font-size:15px}
+  .daily-workshop span{display:block;color:var(--ink-dim);font-size:12px;margin-top:2px}
+  .workshop-dot{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 16px rgba(131,214,160,.7);flex:0 0 auto}
+  .income-chip{
     position:absolute;
-    right:-16px;
-    bottom:80px;
-    width:190px;
+    right:-18px;
+    bottom:48px;
+    width:202px;
     border:1px solid var(--line);
     border-radius:20px;
     padding:16px;
@@ -229,9 +289,10 @@
     box-shadow:0 24px 62px rgba(0,0,0,.42);
     color:var(--ink-dim);
     font-size:12px;
+    line-height:1.45;
     transform:translate3d(0,calc(var(--wheel-boost) * -8px),0);
   }
-  .float-chip strong{display:block;color:var(--gold-bright);font-family:var(--serif);font-size:28px;line-height:1;margin-bottom:6px}
+  .income-chip strong{display:block;color:var(--gold-bright);font-family:var(--serif);font-size:28px;line-height:1;margin-bottom:6px}
   .section-head{margin-bottom:44px}
   .section-title{font-size:clamp(36px,5vw,64px);max-width:880px;margin-bottom:18px}
   .section-lede{max-width:730px;color:var(--ink-dim);font-size:18px;line-height:1.65}
@@ -411,9 +472,15 @@
     .section-title{font-size:clamp(34px,10vw,46px);line-height:1.08}
     .section-lede{font-size:17px}
     .course-device{min-height:auto;padding:12px;border-radius:26px}
-    .device-screen{min-height:auto;padding:18px;border-radius:20px}
-    .float-chip{position:relative;right:auto;bottom:auto;width:auto;margin-top:14px}
-    .screen-head,.module-head{grid-template-columns:1fr}
+    .daily-card{min-height:auto;padding:18px;border-radius:20px}
+    .daily-head,.module-head{grid-template-columns:1fr}
+    .daily-ring{width:82px;height:82px}
+    .daily-ring span{width:62px;height:62px;font-size:21px}
+    .daily-action{grid-template-columns:42px 1fr;align-items:start}
+    .action-icon{width:42px;height:42px;border-radius:14px}
+    .action-time{grid-column:2;color:var(--gold-bright)}
+    .daily-workshop{align-items:flex-start}
+    .income-chip{position:relative;right:auto;bottom:auto;width:auto;margin-top:14px}
     .lesson-grid,.timeline,.template-grid,.rail-list{grid-template-columns:1fr}
     .recording-card,.module,.week,.template,.compare{padding:22px}
     .module h3,.week h3,.compare h3,.template h3,.script-card h3{font-size:24px}
@@ -474,32 +541,44 @@
       </div>
 
       <div class="course-device wheel-reactive scroll-reveal" data-depth="22">
-        <div class="device-top">
-          <div class="device-dots" aria-hidden="true"><span></span><span></span><span></span></div>
-          <span>Surplus member dashboard</span>
-        </div>
-        <div class="device-screen">
-          <div class="screen-head">
-            <h2>Today inside Surplus</h2>
-            <span>On track</span>
-          </div>
-          <div class="lesson-now">
-            <div class="lesson-hero">
-              <small>Current lesson</small>
-              <h3>Install the monthly budget system</h3>
-              <p>Run the first audit, name the leaks, and set up the weekly check-in rhythm that keeps the month from getting away from you.</p>
-              <div class="progress-track" aria-hidden="true"><span></span></div>
+        <div class="daily-card">
+          <div class="daily-head">
+            <div>
+              <div class="daily-date">Today in Surplus</div>
+              <h2>One focused move, then momentum.</h2>
+              <p>A simple daily briefing so members know what to watch, what to do, and where to ask for help.</p>
             </div>
-            <div class="mini-lessons">
-              <div class="mini-lesson"><div class="mini-num">1</div><div><strong>Know your number</strong><span>Cash flow, debt, bills, pressure.</span></div><div class="mini-time">18m</div></div>
-              <div class="mini-lesson"><div class="mini-num">2</div><div><strong>Find the leak</strong><span>Subscriptions, habits, impulse spend.</span></div><div class="mini-time">14m</div></div>
-              <div class="mini-lesson"><div class="mini-num">3</div><div><strong>Pick the first income move</strong><span>One play, one offer, one week.</span></div><div class="mini-time">22m</div></div>
+            <div class="daily-ring" aria-label="68 percent complete"><span>68%</span></div>
+          </div>
+          <div class="daily-actions">
+            <div class="daily-action">
+              <div class="action-icon">W</div>
+              <div><strong>Watch the budget install</strong><span>Set up the weekly money rhythm without overthinking it.</span></div>
+              <div class="action-time">18m</div>
+            </div>
+            <div class="daily-action">
+              <div class="action-icon">D</div>
+              <div><strong>Do the leak audit</strong><span>Find three expenses to cut, pause, or renegotiate today.</span></div>
+              <div class="action-time">12m</div>
+            </div>
+            <div class="daily-action">
+              <div class="action-icon">A</div>
+              <div><strong>Ask for feedback</strong><span>Post your first income move in the community channel.</span></div>
+              <div class="action-time">5m</div>
             </div>
           </div>
+          <div class="daily-workshop">
+            <div>
+              <small>Live this week</small>
+              <strong>Killing high-interest debt</strong>
+              <span>Thursday · 7:00 PM PT</span>
+            </div>
+            <div class="workshop-dot" aria-hidden="true"></div>
+          </div>
         </div>
-        <div class="float-chip">
+        <div class="income-chip">
           <strong>+$500</strong>
-          first side-income target after the budget system is installed
+          first side-income target once the budget rhythm is installed
         </div>
       </div>
     </div>
