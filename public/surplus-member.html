@@ -128,10 +128,12 @@
   body.preview-mode .demo-toggle,
   body.preview-mode .mobile-nav,
   body.preview-mode .topbar-search,
+  body.preview-mode .topbar,
   body.preview-mode .notif-wrap,
   body.preview-mode .notif-panel,
   body.preview-mode .topbar-icon-btn,
-  body.preview-mode .topbar-link:not(.primary){
+  body.preview-mode .topbar-link,
+  body.preview-mode .account-links{
     display:none !important;
   }
   body.preview-mode .sidebar{width:250px}
@@ -955,8 +957,9 @@
       transform:none;
       justify-content:space-between;
       border-radius:18px;
+      flex-wrap:wrap;
     }
-    .preview-banner span{display:none}
+    .preview-banner span{display:inline}
   }
 
   /* ---------- ONBOARDING WIZARD ---------- */

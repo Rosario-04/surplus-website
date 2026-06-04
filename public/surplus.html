@@ -1169,6 +1169,44 @@
   .proof-stat strong{display:block;font-family:var(--serif);font-size:30px;font-weight:500;line-height:1;color:var(--gold-bright);margin-bottom:8px}
   .proof-stat span{display:block;color:var(--ink-dim);font-size:13px;line-height:1.45}
 
+  .outcomes-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:16px;
+  }
+  .outcome-card{
+    position:relative;
+    min-height:220px;
+    border:1px solid var(--line);
+    border-radius:22px;
+    padding:24px;
+    background:linear-gradient(145deg,rgba(255,255,255,.06),rgba(255,255,255,.014));
+    overflow:hidden;
+  }
+  .outcome-card::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:radial-gradient(circle at 18% 0,rgba(216,187,112,.13),transparent 45%);
+    pointer-events:none;
+  }
+  .outcome-num{
+    position:relative;
+    width:42px;
+    height:42px;
+    border-radius:14px;
+    display:grid;
+    place-items:center;
+    border:1px solid rgba(185,154,85,.2);
+    background:rgba(185,154,85,.1);
+    color:var(--gold-bright);
+    font-family:var(--serif);
+    font-size:20px;
+    margin-bottom:22px;
+  }
+  .outcome-card h3{position:relative;font-family:var(--serif);font-size:25px;font-weight:500;line-height:1.12;margin-bottom:10px}
+  .outcome-card p{position:relative;color:var(--ink-dim);font-size:15px;line-height:1.58}
+
   .wins-grid{
     display:grid;
     grid-template-columns:repeat(3,1fr);
@@ -1567,6 +1605,24 @@
   textarea{resize:vertical;min-height:112px}
   input:focus,textarea:focus{border-color:rgba(216,187,112,.62);box-shadow:0 0 0 3px rgba(185,154,85,.12)}
   .form-note{margin-top:14px;color:var(--ink-dim);font-size:13px;line-height:1.5}
+  .waitlist-perks{display:grid;gap:10px;margin:0 0 18px;list-style:none}
+  .waitlist-perks li{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:var(--ink-dim);
+    font-size:14px;
+    line-height:1.45;
+  }
+  .waitlist-perks li::before{
+    content:"";
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:var(--gold-bright);
+    box-shadow:0 0 14px rgba(216,187,112,.45);
+    flex:0 0 auto;
+  }
   .success{
     display:none;
     margin-top:16px;
@@ -1634,6 +1690,7 @@
     .insight-left{display:none}
     .video-shell{position:relative;top:0;max-width:none}
     .features-grid{grid-template-columns:repeat(2,1fr)}
+    .outcomes-grid{grid-template-columns:repeat(2,1fr)}
     .proof-stats{grid-template-columns:repeat(2,1fr)}
     .wins-grid{grid-template-columns:repeat(2,1fr)}
     .modules-grid{grid-template-columns:1fr 1fr}
@@ -1677,7 +1734,7 @@
     .story-grid{gap:30px}
     .story-quote{font-size:clamp(25px,8vw,34px)}
     .story-card h3{font-size:22px}
-    .features-grid,.proof-grid,.proof-stats,.modules-grid,.thirty-grid,.preview-grid,.wins-grid{grid-template-columns:1fr}
+    .features-grid,.proof-grid,.proof-stats,.modules-grid,.thirty-grid,.preview-grid,.wins-grid,.outcomes-grid{grid-template-columns:1fr}
     .video-caption{align-items:flex-start;flex-direction:column}
     .video-caption .btn{width:auto;min-width:180px}
     .video-poster-content{align-items:center;flex-direction:column}
@@ -1738,7 +1795,7 @@
       <a href="/surplus-member.html?limited=1">Portal Preview</a>
       <a href="#ladder" data-scroll="#ladder">The Ladder</a>
       <a href="#pricing" data-scroll="#pricing">Pricing</a>
-      <a class="nav-cta nav-cta-link" href="#signup" data-scroll="#signup">Join Surplus</a>
+      <a class="nav-cta nav-cta-link" href="#signup" data-scroll="#signup">Join Waitlist</a>
     </div>
   </div>
 </nav>
@@ -1755,7 +1812,7 @@
         <h1>Take control. Build <em>income.</em> Create surplus.</h1>
         <p class="lede">A $50/month financial education community for people who want the real climb, not guru theory. Learn budgeting, income growth, AI, business, and wealth basics from someone still building in real time.</p>
         <div class="btn-row">
-          <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join Surplus for $50/mo <span aria-hidden="true">&rarr;</span></a>
+          <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the waitlist <span aria-hidden="true">&rarr;</span></a>
           <a class="btn btn-ghost" href="/surplus-member.html?limited=1">Preview member dashboard</a>
         </div>
         <div class="hero-meta" aria-label="Membership highlights">
@@ -1822,6 +1879,36 @@
         <span class="marquee-item">Service Business Basics</span>
         <span class="marquee-item">Expense Auditing</span>
         <span class="marquee-item">Community Accountability</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="outcomes">
+    <div class="wrap">
+      <div class="section-eyebrow">What You Walk Away With</div>
+      <h2 class="section-title">The first win is control. The next win is momentum.</h2>
+      <p class="section-lede">Surplus is built to move members from scattered and reactive to clear, organized, and executing every week.</p>
+      <div class="outcomes-grid">
+        <article class="outcome-card">
+          <div class="outcome-num">1</div>
+          <h3>A working money system.</h3>
+          <p>Know what comes in, what goes out, what leaks, and what needs to happen before the next month starts.</p>
+        </article>
+        <article class="outcome-card">
+          <div class="outcome-num">2</div>
+          <h3>A first income move.</h3>
+          <p>Pick one realistic track, build the offer, and start chasing the first extra $500/month with structure.</p>
+        </article>
+        <article class="outcome-card">
+          <div class="outcome-num">3</div>
+          <h3>AI workflows that save time.</h3>
+          <p>Use prompts for planning, content, business tasks, research, and decision-making without getting lost.</p>
+        </article>
+        <article class="outcome-card">
+          <div class="outcome-num">4</div>
+          <h3>People around the climb.</h3>
+          <p>Discord accountability, questions, wins, networking, and proof that other people are taking action too.</p>
+        </article>
       </div>
     </div>
   </section>
@@ -2279,7 +2366,7 @@
           <div class="price">$50 <span>/ month</span></div>
           <p class="section-lede" style="margin-bottom:28px">No contracts. Cancel anytime. Lock the rate while the membership is still early.</p>
           <p class="price-close">Less than one dinner out. One month can change how you handle money.</p>
-          <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join Surplus <span aria-hidden="true">&rarr;</span></a>
+          <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the waitlist <span aria-hidden="true">&rarr;</span></a>
         </div>
         <ul class="included">
           <li>Full budget system and setup guide</li>
@@ -2298,20 +2385,25 @@
   <section id="signup">
     <div class="wrap signup-grid">
       <div>
-        <div class="section-eyebrow">Join Surplus</div>
-        <h2 class="section-title">Make the next click the start of a better month.</h2>
-        <p class="section-lede">Get the modules, Discord community, spreadsheets, AI playbooks, and real-time guidance for $50/month. This is financial education and personal growth structure, not personalized financial advice.</p>
+        <div class="section-eyebrow">Surplus Waitlist</div>
+        <h2 class="section-title">Get early access before the first member wave opens.</h2>
+        <p class="section-lede">Join the waitlist for the $50/month founding-member rate. You will get launch updates, early access details, and the first invite when the course, dashboard, Discord, templates, and AI prompt library open.</p>
       </div>
       <form class="signup-card" id="signupForm">
+        <ul class="waitlist-perks" aria-label="Waitlist benefits">
+          <li>Founding-member invite before public launch.</li>
+          <li>Early access to modules, spreadsheets, Discord, and AI prompts.</li>
+          <li>No charge today. This only captures your interest.</li>
+        </ul>
         <label for="name">Name</label>
         <input id="name" name="name" autocomplete="name" required placeholder="Your name" />
         <label for="email">Email</label>
         <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@example.com" />
-        <label for="message">Where are you starting from?</label>
-        <textarea id="message" name="message" placeholder="Debt, budgeting, earning more, getting organized..."></textarea>
-        <button class="btn btn-primary" type="submit" style="width:100%">Request access to Surplus <span aria-hidden="true">&rarr;</span></button>
-        <p class="form-note">This does not charge anyone yet. It captures interest and opens an email to Rosario until the checkout link is connected.</p>
-        <div class="success" id="formSuccess" role="status">Your request is ready. If your email app did not open, email hello@surplusbyrosario.com with the subject "Join Surplus".</div>
+        <label for="message">What do you want Surplus to help you with first?</label>
+        <textarea id="message" name="message" placeholder="Budgeting, debt, earning more, AI, starting a business, getting organized..."></textarea>
+        <button class="btn btn-primary" type="submit" style="width:100%">Join the waitlist <span aria-hidden="true">&rarr;</span></button>
+        <p class="form-note">No charge today. Until checkout is connected, this opens an email to Rosario so your waitlist request can be tracked.</p>
+        <div class="success" id="formSuccess" role="status">Your waitlist request is ready. If your email app did not open, email hello@surplusbyrosario.com with the subject "Surplus Waitlist".</div>
       </form>
     </div>
   </section>
@@ -2341,7 +2433,7 @@
     <div class="wrap">
       <h2>Your next ten years.<br><em>Decided this month.</em></h2>
       <p>Budgeting alone will not get you there. Earning more alone will not either. Combine them inside a system you actually run every month, and the math starts changing fast.</p>
-      <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join Surplus for $50/mo <span aria-hidden="true">&rarr;</span></a>
+      <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the waitlist <span aria-hidden="true">&rarr;</span></a>
     </div>
   </section>
 </main>
@@ -2391,6 +2483,7 @@
       ".feature",
       ".story-card",
       ".proof-stat",
+      ".outcome-card",
       ".win-card",
       ".audience-item",
       ".not-box",
@@ -2629,8 +2722,8 @@
       window.location.href = CHECKOUT_URL;
       return;
     }
-    const subject = encodeURIComponent("Join Surplus");
-    const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nStarting point:\n${message || "Not provided"}`);
+    const subject = encodeURIComponent("Surplus Waitlist");
+    const body = encodeURIComponent(`Waitlist request\n\nName: ${name}\nEmail: ${email}\n\nFirst area they want help with:\n${message || "Not provided"}`);
     document.getElementById("formSuccess").classList.add("is-visible");
     window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
   });
