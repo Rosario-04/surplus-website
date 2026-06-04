@@ -124,6 +124,21 @@
     font-size:13px;
   }
   body.preview-mode .preview-banner{display:flex}
+  body.preview-mode .nav-section-label,
+  body.preview-mode .nav-item:not([data-section="home"]),
+  body.preview-mode .demo-toggle,
+  body.preview-mode .mobile-nav,
+  body.preview-mode .topbar-search,
+  body.preview-mode .notif-wrap,
+  body.preview-mode .notif-panel,
+  body.preview-mode .topbar-icon-btn,
+  body.preview-mode .topbar-link:not(.primary){
+    display:none !important;
+  }
+  body.preview-mode .sidebar{width:250px}
+  body.preview-mode .main{padding-bottom:112px}
+  body.preview-mode .topbar{justify-content:flex-end}
+  body.preview-mode #section-home .page-head .btn-primary{display:none !important}
   .preview-banner strong{color:var(--gold-bright); font-family:var(--serif); font-weight:500; white-space:nowrap}
   .preview-banner span{white-space:nowrap}
   .preview-banner a{
@@ -255,6 +270,7 @@
     .nav-item{justify-content:center; padding:11px}
     .user-card{justify-content:center; padding:8px}
     .main{padding:24px 20px 60px}
+    body.preview-mode .sidebar{width:72px}
   }
 
   /* Page header */
@@ -1245,7 +1261,7 @@
 
     <div class="field">
       <label for="email">Email</label>
-      <input type="email" id="email" value="member@surplus.com" autocomplete="email">
+      <input type="email" id="email" value="jordan@surplusdemo.com" autocomplete="email">
     </div>
     <div class="field">
       <label for="password">Password</label>
@@ -1266,9 +1282,9 @@
 <!-- ============ APP ============ -->
 <div class="app">
   <div class="preview-banner" id="previewBanner">
-    <strong>Dashboard preview</strong>
-    <span>Explore the member experience. Sign-up is not required for this demo.</span>
-    <a href="/surplus.html#signup">Join Surplus</a>
+    <strong>Limited access</strong>
+    <span>You are viewing the dashboard home page only.</span>
+    <a href="/surplus.html">Return to website</a>
   </div>
 
   <!-- SIDEBAR -->
@@ -1335,9 +1351,9 @@
 
     <div class="sidebar-foot">
       <div class="user-card" onclick="navigateTo('settings')">
-        <div class="user-avatar" id="userAvatar">A</div>
+        <div class="user-avatar" id="userAvatar">J</div>
         <div class="user-info">
-          <div class="user-name" id="userName">Alex Reyes</div>
+          <div class="user-name" id="userName">Jordan Morales</div>
           <div class="user-status">
             <span class="status-dot" id="statusDot"></span>
             <span id="statusText">Active</span>
@@ -1346,7 +1362,7 @@
       </div>
 
       <div class="demo-toggle">
-        <strong>Preview state</strong>
+        <strong>Member state</strong>
         <div class="demo-buttons">
           <button class="demo-btn active" id="btnActive" onclick="setState('active')">Active</button>
           <button class="demo-btn" id="btnExpired" onclick="setState('expired')">Expired</button>
@@ -1370,7 +1386,7 @@
         <span class="topbar-search-kbd"><kbd>⌘</kbd><kbd>K</kbd></span>
       </div>
       <div class="topbar-spacer"></div>
-      <a class="topbar-link primary" href="/surplus.html">Website</a>
+      <a class="topbar-link primary" href="/surplus.html">Return to website</a>
       <button class="topbar-link" type="button" onclick="logOut()">Log out</button>
       <button class="topbar-icon-btn" onclick="toggleTheme()" title="Toggle theme">
         <svg class="ico" id="themeIconDark" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -1397,8 +1413,8 @@
       <div class="page-head">
         <div>
           <div class="page-eyebrow" id="homeEyebrow">Wednesday, April 23</div>
-          <h1 class="greet">Welcome back, <em>Alex.</em></h1>
-          <p class="greet-sub">You're building. Keep showing up. Nobody is coming to save you — and that's exactly why this is going to work.</p>
+          <h1 class="greet">Welcome back, <em>Jordan.</em></h1>
+          <p class="greet-sub">Example member: 22, Phoenix, maintenance supervisor, building the first $500/month side-income stream while getting the budget system under control.</p>
         </div>
         <button class="btn btn-primary" onclick="navigateTo('modules')">Continue learning →</button>
       </div>
@@ -2177,11 +2193,11 @@
 
       <div class="profile-hero">
         <div class="profile-grid">
-          <div class="profile-avatar-lg">A</div>
+          <div class="profile-avatar-lg">J</div>
           <div>
-            <div class="profile-name">Alex Reyes</div>
-            <div class="profile-handle">@alex-r3y3s · Phoenix, AZ</div>
-            <p class="profile-bio">Software engineer building wealth on the side. Working through The Ladder, learning real estate, planning my first house hack this year. Started Dec 2025.</p>
+            <div class="profile-name">Jordan Morales</div>
+            <div class="profile-handle">@jordan-builds · Phoenix, AZ</div>
+            <p class="profile-bio">Maintenance supervisor building a first side-income stream while cleaning up the monthly budget. Current target: save the first $1,000 buffer and earn $500/month outside the 9-to-5.</p>
             <div class="profile-badges">
               <span class="profile-badge">🏠 Real Estate</span>
               <span class="profile-badge">🤖 AI Builder</span>
@@ -2279,14 +2295,14 @@
           <div class="setting-row">
             <div>
               <div class="setting-label">Display name</div>
-              <div class="setting-value"><strong id="settingsName">Alex Reyes</strong></div>
+              <div class="setting-value"><strong id="settingsName">Jordan Morales</strong></div>
             </div>
             <button class="btn btn-ghost btn-sm">Edit</button>
           </div>
           <div class="setting-row">
             <div>
               <div class="setting-label">Email</div>
-              <div class="setting-value"><strong>alex@example.com</strong></div>
+              <div class="setting-value"><strong>jordan@surplusdemo.com</strong></div>
             </div>
             <button class="btn btn-ghost btn-sm">Change</button>
           </div>
@@ -2618,7 +2634,7 @@ const WIZARD_STAGES = [
 
 // ---------- STATE ----------
 const MEMBER_QUERY = new URLSearchParams(window.location.search);
-const IS_PREVIEW_MODE = MEMBER_QUERY.has('preview') || MEMBER_QUERY.has('demo');
+const IS_PREVIEW_MODE = MEMBER_QUERY.has('limited') || MEMBER_QUERY.has('preview') || MEMBER_QUERY.has('demo');
 let CURRENT_STATE = 'active';
 
 // ---------- AUTH ----------
@@ -2640,6 +2656,15 @@ function logOut(){
 
 // ---------- NAVIGATION ----------
 function navigateTo(id){
+  if (IS_PREVIEW_MODE && id !== 'home') {
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.section === 'home'));
+    document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.toggle('active', el.dataset.section === 'home'));
+    document.querySelectorAll('.section').forEach(el => el.classList.toggle('active', el.id === 'section-home'));
+    window.scrollTo({top:0, behavior:'smooth'});
+    showToast('Limited access view. Return to the website to join Surplus.');
+    closePalette();
+    return;
+  }
   document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.section === id));
   document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.toggle('active', el.dataset.section === id));
   document.querySelectorAll('.section').forEach(el => el.classList.toggle('active', el.id === `section-${id}`));
@@ -3203,6 +3228,19 @@ if (IS_PREVIEW_MODE) {
   document.body.classList.add('preview-mode');
   document.getElementById('signin')?.classList.add('hidden');
   document.getElementById('wizard')?.classList.remove('open');
+  document.getElementById('statusText').textContent = 'Limited access';
+  document.getElementById('settingsName').textContent = 'Jordan Morales';
+  const homeCta = document.querySelector('#section-home .page-head .btn-primary');
+  if (homeCta) {
+    homeCta.textContent = 'Return to website';
+    homeCta.onclick = () => { window.location.href = '/surplus.html'; };
+  }
+  const profileButtons = document.querySelectorAll('.profile-cta button, #section-settings button');
+  profileButtons.forEach((button) => {
+    button.disabled = true;
+    button.style.opacity = '.55';
+    button.style.cursor = 'not-allowed';
+  });
 }
 
 // After module cards render, wire them to open the detail view
