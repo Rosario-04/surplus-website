@@ -125,7 +125,6 @@
   }
   body.preview-mode .preview-banner{display:flex}
   body.preview-mode .nav-section-label,
-  body.preview-mode .nav-item:not([data-section="home"]),
   body.preview-mode .demo-toggle,
   body.preview-mode .mobile-nav,
   body.preview-mode .topbar-search,
@@ -139,6 +138,23 @@
   body.preview-mode .main{padding-bottom:112px}
   body.preview-mode .topbar{justify-content:flex-end}
   body.preview-mode #section-home .page-head .btn-primary{display:none !important}
+  body.preview-mode .nav-item:not([data-section="home"]){
+    opacity:.58;
+    cursor:not-allowed;
+  }
+  body.preview-mode .nav-item:not([data-section="home"]):hover{
+    background:transparent;
+    color:var(--ink-dim);
+    border-color:transparent;
+  }
+  .nav-lock{
+    margin-left:auto;
+    color:var(--gold-bright);
+    font-size:13px;
+    line-height:1;
+    opacity:.9;
+  }
+  body:not(.preview-mode) .nav-lock{display:none}
   .preview-banner strong{color:var(--gold-bright); font-family:var(--serif); font-weight:500; white-space:nowrap}
   .preview-banner span{white-space:nowrap}
   .preview-banner a{
@@ -267,6 +283,7 @@
     .sidebar{width:72px; padding:18px 10px}
     .sidebar-brand{justify-content:center; padding-bottom:18px}
     .sidebar-name, .nav-section-label, .user-info, .demo-toggle, .nav-badge, .account-links, .nav-item span:not(.nav-icon-wrap){display:none}
+    body.preview-mode .nav-lock{display:block !important; position:absolute; right:4px; top:4px; font-size:10px}
     .nav-item{justify-content:center; padding:11px}
     .user-card{justify-content:center; padding:8px}
     .main{padding:24px 20px 60px}
@@ -1303,50 +1320,61 @@
       <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M9 4v16"/></svg>
       <span>Modules</span>
       <span class="nav-badge">2</span>
+      <span class="nav-lock" aria-label="Locked">🔒</span>
     </a>
     <a class="nav-item" data-section="spreadsheets">
       <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
       <span>Spreadsheets</span>
+      <span class="nav-lock" aria-label="Locked">🔒</span>
     </a>
     <a class="nav-item" data-section="ladder">
       <svg class="ico" viewBox="0 0 24 24"><path d="M7 3v18"/><path d="M17 3v18"/><path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h10"/></svg>
       <span>The Ladder</span>
+      <span class="nav-lock" aria-label="Locked">🔒</span>
     </a>
     <a class="nav-item" data-section="goals">
       <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
       <span>Goals &amp; Streak</span>
       <span class="nav-badge">🔥 12</span>
+      <span class="nav-lock" aria-label="Locked">🔒</span>
     </a>
     <a class="nav-item" data-section="resources">
       <svg class="ico" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
       <span>Resources</span>
+      <span class="nav-lock" aria-label="Locked">🔒</span>
     </a>
     <a class="nav-item" data-section="workshops">
       <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M8 3v4"/><path d="M16 3v4"/></svg>
       <span>Workshops</span>
+      <span class="nav-lock" aria-label="Locked">🔒</span>
     </a>
     <a class="nav-item" data-section="replays">
       <svg class="ico" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
       <span>Replays</span>
+      <span class="nav-lock" aria-label="Locked">🔒</span>
     </a>
     <a class="nav-item" data-section="community">
       <svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       <span>Community</span>
       <span class="nav-badge" style="background:#5865f2; color:#fff">Live</span>
+      <span class="nav-lock" aria-label="Locked">🔒</span>
     </a>
 
     <div class="nav-section-label">Account</div>
     <a class="nav-item" data-section="profile">
       <svg class="ico" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <span>Profile</span>
+      <span class="nav-lock" aria-label="Locked">🔒</span>
     </a>
     <a class="nav-item" data-section="refer">
       <svg class="ico" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
       <span>Refer &amp; Earn</span>
+      <span class="nav-lock" aria-label="Locked">🔒</span>
     </a>
     <a class="nav-item" data-section="settings">
       <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       <span>Settings &amp; Billing</span>
+      <span class="nav-lock" aria-label="Locked">🔒</span>
     </a>
 
     <div class="sidebar-foot">
