@@ -2178,7 +2178,7 @@
         <div>
           <div class="page-eyebrow">Refer &amp; Earn</div>
           <h1 class="page-title">Bring builders. <em>Get rewarded.</em></h1>
-          <p class="page-sub">For every member you bring into Surplus, you get a free month. They get $10 off their first month. Real momentum compounds when ambitious people are in the same room.</p>
+          <p class="page-sub">Every member gets an affiliate link. For every new member who joins through your link, you get one month free. The first 100 members also lock $30/month for life and earn a founding member badge.</p>
         </div>
       </div>
 
@@ -2187,7 +2187,7 @@
           <div>
             <div style="font-family:var(--serif); font-style:italic; color:var(--gold-bright); font-size:14px; margin-bottom:8px">Your referral link</div>
             <div style="font-family:var(--serif); font-weight:500; font-size:24px; letter-spacing:-.01em; margin-bottom:6px">Share Surplus, get rewarded.</div>
-            <div style="color:var(--ink-dim); font-size:14px; line-height:1.5">Every signup through your link gives you a free month. No cap. Stack months and stop paying entirely if you refer enough people.</div>
+            <div style="color:var(--ink-dim); font-size:14px; line-height:1.5">Every new member who joins through your affiliate link gives you one free month. No cap. Stack months and stop paying entirely if you refer enough people.</div>
             <div class="refer-link-box">
               <span class="refer-link" id="referLink">surplus.com/join/alex-r3y3s</span>
               <button class="btn btn-primary btn-sm" onclick="copyReferLink()">Copy</button>
@@ -2329,7 +2329,7 @@
         <div>
           <div class="billing-status-pill" id="billingStatusPill">Active</div>
           <div style="font-family:var(--serif); font-weight:500; font-size:22px; letter-spacing:-.01em; margin-bottom:4px" id="billingHeadline">
-            $50 / month · founding member rate
+            $30 / month · founding member for life
           </div>
           <div style="color:var(--ink-dim); font-size:13px" id="billingSubline">
             Next charge: May 23, 2026 · Visa ending 6411
@@ -2768,13 +2768,13 @@ function setState(state){
     sub.textContent = 'Resubscribe to restore full access. Your progress and content are preserved.';
     banner.style.background = 'linear-gradient(135deg,rgba(217,112,112,.10),rgba(217,112,112,.02))';
     banner.style.borderColor = 'rgba(217,112,112,.3)';
-    acts.innerHTML = `<button class="btn btn-primary btn-sm" onclick="resubscribe()">Resubscribe — $50/mo →</button>`;
+    acts.innerHTML = `<button class="btn btn-primary btn-sm" onclick="resubscribe()">Resubscribe — $30/mo →</button>`;
   } else {
     pill.textContent = 'Active';
     pill.style.background = '';
     pill.style.borderColor = '';
     pill.style.color = '';
-    head.textContent = '$50 / month · founding member rate';
+    head.textContent = '$30 / month · founding member for life';
     sub.textContent = 'Next charge: May 23, 2026 · Visa ending 6411';
     banner.style.background = '';
     banner.style.borderColor = '';

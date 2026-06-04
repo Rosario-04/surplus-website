@@ -236,12 +236,12 @@
     font-family:var(--serif);
     font-size:24px;
   }
-  .daily-actions{position:relative;display:grid;gap:10px}
+  .daily-actions{position:relative;display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
   .daily-action{
     display:grid;
-    grid-template-columns:48px 1fr auto;
-    gap:14px;
-    align-items:center;
+    grid-template-columns:42px 1fr;
+    gap:12px;
+    align-items:start;
     border:1px solid rgba(185,154,85,.14);
     border-radius:18px;
     padding:12px;
@@ -250,8 +250,8 @@
   }
   .daily-action:hover{border-color:rgba(216,187,112,.36);background:rgba(185,154,85,.06);transform:translateY(-2px)}
   .action-icon{
-    width:48px;
-    height:48px;
+    width:42px;
+    height:42px;
     border-radius:16px;
     display:grid;
     place-items:center;
@@ -263,6 +263,7 @@
   .daily-action strong{display:block;color:var(--ink);font-size:15px;margin-bottom:3px}
   .daily-action span{display:block;color:var(--ink-faint);font-size:12px;line-height:1.38}
   .action-time{
+    grid-column:2;
     color:var(--gold-bright);
     font-size:11px;
     font-weight:800;
@@ -286,23 +287,6 @@
   .daily-workshop strong{display:block;font-size:15px}
   .daily-workshop span{display:block;color:var(--ink-dim);font-size:12px;margin-top:2px}
   .workshop-dot{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 16px rgba(131,214,160,.7);flex:0 0 auto}
-  .value-strip{
-    position:relative;
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:8px;
-    margin-top:12px;
-  }
-  .value-strip span{
-    border:1px solid rgba(185,154,85,.14);
-    border-radius:14px;
-    padding:10px;
-    background:rgba(255,255,255,.025);
-    color:var(--ink-dim);
-    font-size:11px;
-    line-height:1.25;
-  }
-  .value-strip strong{display:block;color:var(--ink);font-family:var(--serif);font-size:18px;line-height:1;margin-bottom:4px}
   .income-chip{
     position:absolute;
     right:-18px;
@@ -502,11 +486,11 @@
     .daily-head,.module-head{grid-template-columns:1fr}
     .daily-ring{width:82px;height:82px}
     .daily-ring span{width:62px;height:62px;font-size:21px}
+    .daily-actions{grid-template-columns:1fr}
     .daily-action{grid-template-columns:42px 1fr;align-items:start}
     .action-icon{width:42px;height:42px;border-radius:14px}
     .action-time{grid-column:2;color:var(--gold-bright)}
     .daily-workshop{align-items:flex-start}
-    .value-strip{grid-template-columns:1fr}
     .income-chip{position:relative;right:auto;bottom:auto;width:auto;margin-top:14px}
     .lesson-grid,.timeline,.template-grid,.rail-list{grid-template-columns:1fr}
     .recording-card,.module,.week,.template,.compare{padding:22px}
@@ -553,7 +537,7 @@
   <section class="hero">
     <div class="wrap hero-grid">
       <div class="scroll-reveal">
-        <div class="eyebrow">Inside the $50/month membership</div>
+        <div class="eyebrow">First 100 lock $30/month for life</div>
         <h1>A course built like a <em>climb</em>, not a content dump.</h1>
         <p class="lede">Surplus gives members a clear path: fix the money leak, build discipline, grow income, use AI as leverage, and stay around people who are moving too.</p>
         <div class="btn-row">
@@ -573,9 +557,9 @@
             <div>
               <div class="daily-date">What you unlock</div>
               <h2>The Surplus value stack.</h2>
-              <p>Everything members need to learn, execute, ask questions, and stay consistent for $50/month.</p>
+              <p>Modules, Discord, AI prompts, spreadsheets, live calls, referral rewards, and a founding badge for early members.</p>
             </div>
-            <div class="daily-ring" aria-label="82 percent value stack"><span>$50</span></div>
+            <div class="daily-ring" aria-label="First 100 founding member rate"><span>$30</span></div>
           </div>
           <div class="daily-actions">
             <div class="daily-action">
@@ -593,24 +577,24 @@
               <div><strong>AI prompts and workflows</strong><span>Prompts for planning, business, content, research, and daily execution.</span></div>
               <div class="action-time">Tools</div>
             </div>
+            <div class="daily-action">
+              <div class="action-icon">F</div>
+              <div><strong>Founding badge and affiliate link</strong><span>First 100 get a badge. Every referred member earns you one free month.</span></div>
+              <div class="action-time">Perks</div>
+            </div>
           </div>
           <div class="daily-workshop">
             <div>
               <small>Included every month</small>
               <strong>Templates, live workshops, and new drops</strong>
-              <span>Spreadsheets, calculators, recordings, Q&amp;A, and updated playbooks.</span>
+              <span>Spreadsheets, calculators, recordings, Q&amp;A, updated playbooks, and no price increases for early members.</span>
             </div>
             <div class="workshop-dot" aria-hidden="true"></div>
           </div>
-          <div class="value-strip">
-            <span><strong>6</strong>core modules</span>
-            <span><strong>12+</strong>templates</span>
-            <span><strong>24/7</strong>Discord</span>
-          </div>
         </div>
         <div class="income-chip">
-          <strong>$50/mo</strong>
-          course, community, AI prompts, spreadsheets, and workshops included
+          <strong>1 free month</strong>
+          for every new member who joins with your affiliate link
         </div>
       </div>
     </div>
@@ -711,7 +695,7 @@
       <div class="compare-panel scroll-reveal">
         <div class="compare-grid">
           <div class="compare"><h3>Typical online courses</h3><ul><li>Expensive upfront pricing before trust is built.</li><li>Advice from people too far removed from the beginning.</li><li>Polished lifestyle content with unclear next steps.</li><li>One-way videos with no real community.</li><li>Generic motivation that fades after a week.</li></ul></div>
-          <div class="compare"><h3>Surplus by Rosario</h3><ul><li>$50/month so people can start without a huge gamble.</li><li>Real-time lessons from someone still building the climb.</li><li>Budget sheets, AI prompts, income plays, and weekly actions.</li><li>Discord community for questions and accountability.</li><li>Built around execution, not pretending success is effortless.</li></ul></div>
+          <div class="compare"><h3>Surplus by Rosario</h3><ul><li>First 100 members get $30/month for life with no price increases.</li><li>Real-time lessons from someone still building the climb.</li><li>Budget sheets, AI prompts, income plays, and weekly actions.</li><li>Discord community for questions and accountability.</li><li>Founding badge plus affiliate links that earn free months.</li></ul></div>
         </div>
       </div>
     </div>
@@ -735,7 +719,7 @@
   <section>
     <div class="wrap cta-panel scroll-reveal">
       <h2>Ready to start the climb?</h2>
-      <p>Join the waitlist for the $50/month founding rate and get first access to the course, Discord community, spreadsheets, AI playbooks, and live direction.</p>
+      <p>Join the waitlist for the first-100 founding rate: $30/month for life, no price increases, a founding badge, and referral links that earn free months.</p>
       <div class="btn-row" style="justify-content:center">
         <a class="btn btn-primary" href="/surplus.html#signup">Join the waitlist <span aria-hidden="true">&rarr;</span></a>
         <a class="btn" href="/surplus-member.html?limited=1">Preview the portal</a>
