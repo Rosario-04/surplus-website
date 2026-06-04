@@ -625,41 +625,48 @@
     to{transform:translate3d(calc(-50% + 185vmax),calc(-50% + 185vmax),0) rotate(45deg);opacity:.55}
   }
   .page-transition{
-    --transition-dur:720ms;
-    --transition-ease:cubic-bezier(.78,0,.22,1);
+    --transition-dur:460ms;
+    --transition-ease:cubic-bezier(.22,1,.36,1);
     background:transparent;
     clip-path:none !important;
     transform:translateZ(0);
+    overflow:hidden;
   }
   .page-transition::before{
-    inset:0;
-    width:auto;
-    height:auto;
-    min-width:0;
+    inset:-18%;
+    width:auto !important;
+    height:auto !important;
+    min-width:0 !important;
     background:
-      radial-gradient(circle at 18% 12%,rgba(216,187,112,.14),transparent 34%),
-      linear-gradient(135deg,rgba(10,10,12,.96),rgba(10,10,12,.995));
+      linear-gradient(135deg,
+        rgba(10,10,12,.985) 0 57%,
+        rgba(216,187,112,.62) 57% 58.5%,
+        rgba(10,10,12,.985) 58.5% 100%);
     box-shadow:none;
-    transform:none;
-    clip-path:polygon(0 0,0 0,0 0);
+    transform:translate3d(-112%,-112%,0);
+    clip-path:none !important;
+    will-change:transform;
   }
   .page-transition::after{
-    top:-12vmax;
-    left:-12vmax;
-    width:170vmax;
-    height:2px;
-    background:linear-gradient(90deg,transparent,rgba(216,187,112,.35),var(--gold-bright),rgba(244,239,226,.84),var(--gold-bright),rgba(216,187,112,.28),transparent);
-    box-shadow:0 0 22px rgba(216,187,112,.45);
-    transform:translate3d(-16vmax,-16vmax,0) rotate(45deg);
+    display:none !important;
   }
+  .transition-logo,.transition-icons,.transition-quote{display:none !important}
   body.page-leaving .page-transition,
   body.page-entering .page-transition{opacity:1;pointer-events:auto;backdrop-filter:none}
   body.page-leaving .page-transition{animation:none}
   body.page-entering .page-transition{animation:none}
-  body.page-leaving .page-transition::before{animation:cornerSwipeIn var(--transition-dur) var(--transition-ease) forwards !important}
-  body.page-entering .page-transition::before{clip-path:polygon(0 0,220% 0,0 220%);animation:cornerSwipeOut var(--transition-dur) var(--transition-ease) forwards !important}
-  body.page-leaving .page-transition::after{animation:cornerEdgeIn var(--transition-dur) var(--transition-ease) forwards}
-  body.page-entering .page-transition::after{animation:cornerEdgeOut var(--transition-dur) var(--transition-ease) forwards}
+  body.page-leaving .page-transition::before{animation:simpleDiagonalIn var(--transition-dur) var(--transition-ease) forwards !important}
+  body.page-entering .page-transition::before{animation:simpleDiagonalOut var(--transition-dur) var(--transition-ease) forwards !important}
+  body.page-leaving .page-transition::after,
+  body.page-entering .page-transition::after{animation:none !important}
+  @keyframes simpleDiagonalIn{
+    from{transform:translate3d(-112%,-112%,0)}
+    to{transform:translate3d(0,0,0)}
+  }
+  @keyframes simpleDiagonalOut{
+    from{transform:translate3d(0,0,0)}
+    to{transform:translate3d(112%,112%,0)}
+  }
   @keyframes cornerSwipeIn{
     from{clip-path:polygon(0 0,0 0,0 0)}
     to{clip-path:polygon(0 0,220% 0,0 220%)}
@@ -1154,6 +1161,55 @@
   .proof-stat strong{display:block;font-family:var(--serif);font-size:30px;font-weight:500;line-height:1;color:var(--gold-bright);margin-bottom:8px}
   .proof-stat span{display:block;color:var(--ink-dim);font-size:13px;line-height:1.45}
 
+  .wins-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:16px;
+  }
+  .win-card{
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:24px;
+    background:linear-gradient(145deg,rgba(255,255,255,.058),rgba(255,255,255,.014));
+    min-height:170px;
+    position:relative;
+    overflow:hidden;
+  }
+  .win-card::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:radial-gradient(circle at 12% 0,rgba(216,187,112,.12),transparent 42%);
+    pointer-events:none;
+  }
+  .win-card small{
+    display:block;
+    position:relative;
+    color:var(--gold-bright);
+    font-size:11px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:14px;
+  }
+  .win-card strong{
+    display:block;
+    position:relative;
+    font-family:var(--serif);
+    font-size:34px;
+    font-weight:500;
+    line-height:1;
+    letter-spacing:-.02em;
+    margin-bottom:10px;
+  }
+  .win-card span{
+    display:block;
+    position:relative;
+    color:var(--ink-dim);
+    font-size:14px;
+    line-height:1.55;
+  }
+
   .features-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
   .feature{
     border:1px solid var(--line);
@@ -1410,6 +1466,15 @@
   .price-note{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:7px 11px;color:var(--gold-bright);font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;margin-bottom:16px}
   .price{font-family:var(--serif);font-size:88px;line-height:1;letter-spacing:-.04em;margin-bottom:8px}
   .price span{font-family:var(--sans);font-size:17px;color:var(--ink-dim);letter-spacing:0}
+  .price-close{
+    max-width:420px;
+    margin:-10px 0 24px;
+    color:var(--gold-bright);
+    font-family:var(--serif);
+    font-style:italic;
+    font-size:20px;
+    line-height:1.35;
+  }
   .included{list-style:none;display:grid;gap:13px}
   .included li{display:flex;gap:12px;align-items:start;color:var(--ink-dim);font-size:15px}
   .included li::before{
@@ -1553,6 +1618,7 @@
     .video-shell{position:relative;top:0;max-width:none}
     .features-grid{grid-template-columns:repeat(2,1fr)}
     .proof-stats{grid-template-columns:repeat(2,1fr)}
+    .wins-grid{grid-template-columns:repeat(2,1fr)}
     .modules-grid{grid-template-columns:1fr 1fr}
     .thirty-grid{grid-template-columns:repeat(2,1fr)}
     .not-box{position:relative;top:0}
@@ -1594,7 +1660,7 @@
     .story-grid{gap:30px}
     .story-quote{font-size:clamp(25px,8vw,34px)}
     .story-card h3{font-size:22px}
-    .features-grid,.proof-grid,.proof-stats,.modules-grid,.thirty-grid,.preview-grid{grid-template-columns:1fr}
+    .features-grid,.proof-grid,.proof-stats,.modules-grid,.thirty-grid,.preview-grid,.wins-grid{grid-template-columns:1fr}
     .video-caption{align-items:flex-start;flex-direction:column}
     .video-caption .btn{width:auto;min-width:180px}
     .video-poster-content{align-items:center;flex-direction:column}
@@ -1672,8 +1738,8 @@
         <h1>Take control. Build <em>income.</em> Create surplus.</h1>
         <p class="lede">A $50/month financial education community for people who want the real climb, not guru theory. Learn budgeting, income growth, AI, business, and wealth basics from someone still building in real time.</p>
         <div class="btn-row">
-          <a class="btn btn-primary" href="#signup" data-scroll="#signup">Start the climb for $50/mo <span aria-hidden="true">&rarr;</span></a>
-          <a class="btn btn-ghost" href="#story" data-scroll="#story">Watch my story</a>
+          <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join Surplus for $50/mo <span aria-hidden="true">&rarr;</span></a>
+          <a class="btn btn-ghost" href="/surplus-member.html">Preview member dashboard</a>
         </div>
         <div class="hero-meta" aria-label="Membership highlights">
           <span>Video modules</span>
@@ -1817,6 +1883,22 @@
     </div>
   </section>
 
+  <section id="wins">
+    <div class="wrap">
+      <div class="section-eyebrow">Member Wins</div>
+      <h2 class="section-title">The goal is not hype. It is practical progress you can repeat.</h2>
+      <p class="section-lede">Surplus is built around simple wins that compound: know your number, find leaks, create the first extra dollars, use AI to move faster, and stay around people who are climbing too.</p>
+      <div class="wins-grid">
+        <article class="win-card"><small>Money Clarity</small><strong>$300+</strong><span>Find leaks, subscriptions, and habits hiding inside a normal month.</span></article>
+        <article class="win-card"><small>First Target</small><strong>$500/mo</strong><span>Choose one income move and build the first realistic side-income plan.</span></article>
+        <article class="win-card"><small>Stability</small><strong>$1,000</strong><span>Create the starter buffer that keeps one bad week from becoming a crisis.</span></article>
+        <article class="win-card"><small>Rhythm</small><strong>1 budget</strong><span>Install a weekly money check-in that removes the guessing.</span></article>
+        <article class="win-card"><small>Execution</small><strong>30 days</strong><span>Follow a clear first-month path instead of wondering what to do next.</span></article>
+        <article class="win-card"><small>AI Leverage</small><strong>Hours back</strong><span>Use prompts and workflows for planning, decisions, content, and business tasks.</span></article>
+      </div>
+    </div>
+  </section>
+
   <section id="what">
     <div class="wrap">
       <div class="section-eyebrow">What You Get</div>
@@ -1903,16 +1985,16 @@
     <div class="wrap course-preview">
       <div>
         <div class="section-eyebrow">Inside Surplus</div>
-        <h2 class="section-title" style="margin-bottom:18px">The full course details now have their own page.</h2>
-        <p class="section-lede" style="margin-bottom:26px">To keep this page clean, the deep dive lives on a separate course page: modules, first 30 days, templates, AI training, comparison, and the recording plan.</p>
-        <a class="btn btn-primary" href="/surplus-course.html">Explore the course <span aria-hidden="true">&rarr;</span></a>
-        <a class="btn btn-ghost" href="/surplus-member.html" style="margin-left:10px">Preview portal</a>
+        <h2 class="section-title" style="margin-bottom:18px">This is not just a course. It is your operating system.</h2>
+        <p class="section-lede" style="margin-bottom:26px">Inside, members get a dashboard for lessons, spreadsheets, goals, Discord, workshops, and daily action. The point is not to watch content. The point is to know the next move.</p>
+        <a class="btn btn-primary" href="/surplus-member.html">Preview the dashboard <span aria-hidden="true">&rarr;</span></a>
+        <a class="btn btn-ghost" href="/surplus-course.html" style="margin-left:10px">Explore course</a>
       </div>
       <div class="preview-grid">
-        <div class="preview-item"><strong>6 modules</strong><span>Mindset, money control, income, AI, business, and wealth basics.</span></div>
-        <div class="preview-item"><strong>First 30 days</strong><span>A week-by-week path so new members know exactly what to do first.</span></div>
-        <div class="preview-item"><strong>12+ templates</strong><span>Budgeting, debt, net worth, sinking funds, and side-income tools.</span></div>
-        <div class="preview-item"><strong>Discord + AI</strong><span>Community accountability and practical workflows for life and business.</span></div>
+        <div class="preview-item"><strong>Dashboard path</strong><span>Know the next lesson, rung, and weekly action without digging around.</span></div>
+        <div class="preview-item"><strong>Member wins</strong><span>Track goals, streaks, and progress so the climb feels visible.</span></div>
+        <div class="preview-item"><strong>Tools library</strong><span>Budget sheets, prompts, templates, and calculators in one place.</span></div>
+        <div class="preview-item"><strong>Accountability</strong><span>Discord, workshops, questions, and people who are moving too.</span></div>
       </div>
     </div>
   </section>
@@ -2006,16 +2088,16 @@
     </div>
   </section>
 
-  <section id="first-30" hidden>
+  <section id="first-30">
     <div class="wrap">
       <div class="section-eyebrow">First 30 Days</div>
       <h2 class="section-title">What happens after someone joins.</h2>
-      <p class="section-lede">The first month should feel simple and action-based. Members should leave month one with clarity, a working budget, a first income plan, and AI workflows they can actually use.</p>
+      <p class="section-lede">The first month should feel simple and action-based. Members leave month one with clarity, a working budget, a first income plan, and one AI workflow they can actually use.</p>
       <div class="thirty-grid">
         <article class="week-card">
           <small>Week 01</small>
-          <h3>Audit your real life.</h3>
-          <p>Run the money audit, list every bill, identify leaks, and get honest about where the pressure is coming from.</p>
+          <h3>Start with the truth.</h3>
+          <p>Watch the intro, run the money audit, list every bill, and get honest about where the pressure is coming from.</p>
           <div class="deliverable"><strong>Deliverable</strong>Your true monthly number and leak list.</div>
         </article>
         <article class="week-card">
@@ -2027,14 +2109,14 @@
         <article class="week-card">
           <small>Week 03</small>
           <h3>Pick your income move.</h3>
-          <p>Choose one income track based on your skills, schedule, and resources, then map the first $500/month attempt.</p>
+          <p>Choose one income track based on your skills, schedule, and resources, then map your first $500/month attempt.</p>
           <div class="deliverable"><strong>Deliverable</strong>A first offer, outreach plan, or raise plan.</div>
         </article>
         <article class="week-card">
           <small>Week 04</small>
-          <h3>Install AI into the system.</h3>
-          <p>Use AI to plan your week, write messages, research offers, organize tasks, and reduce friction in execution.</p>
-          <div class="deliverable"><strong>Deliverable</strong>Your first AI workflow and weekly action plan.</div>
+          <h3>Post the goal and move.</h3>
+          <p>Join Discord, post your first goal, install one AI workflow, and turn the next week into clear execution.</p>
+          <div class="deliverable"><strong>Deliverable</strong>Your first accountability post and action plan.</div>
         </article>
       </div>
     </div>
@@ -2179,7 +2261,8 @@
           <div class="price-note">Founding member rate</div>
           <div class="price">$50 <span>/ month</span></div>
           <p class="section-lede" style="margin-bottom:28px">No contracts. Cancel anytime. Lock the rate while the membership is still early.</p>
-          <a class="btn btn-primary" href="#signup" data-scroll="#signup">Start the climb <span aria-hidden="true">&rarr;</span></a>
+          <p class="price-close">Less than one dinner out. One month can change how you handle money.</p>
+          <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join Surplus <span aria-hidden="true">&rarr;</span></a>
         </div>
         <ul class="included">
           <li>Full budget system and setup guide</li>
@@ -2241,7 +2324,7 @@
     <div class="wrap">
       <h2>Your next ten years.<br><em>Decided this month.</em></h2>
       <p>Budgeting alone will not get you there. Earning more alone will not either. Combine them inside a system you actually run every month, and the math starts changing fast.</p>
-      <a class="btn btn-primary" href="#signup" data-scroll="#signup">Start the climb for $50/mo <span aria-hidden="true">&rarr;</span></a>
+      <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join Surplus for $50/mo <span aria-hidden="true">&rarr;</span></a>
     </div>
   </section>
 </main>
@@ -2267,21 +2350,7 @@
   const CONTACT_EMAIL = "hello@surplusbyrosario.com";
   const VIDEO_URL = "https://www.youtube.com/embed/aOQndPlfNhU?autoplay=1&rel=0&enablejsapi=1";
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const PAGE_TRANSITION_MS = 720;
-  const TRANSITION_QUOTES = [
-    "Know your number. Widen the gap.",
-    "Nobody is coming to save you.",
-    "Budget smarter. Earn more.",
-    "Turn pressure into a plan.",
-    "The climb starts with clarity.",
-    "Use AI. Save hours. Move faster."
-  ];
-  const updateTransitionQuote = () => {
-    const quote = document.querySelector(".transition-quote");
-    if (!quote) return;
-    quote.textContent = TRANSITION_QUOTES[Math.floor(Math.random() * TRANSITION_QUOTES.length)];
-  };
-  updateTransitionQuote();
+  const PAGE_TRANSITION_MS = 460;
 
   const toast = document.getElementById("toast");
   const shouldPlayEntryTransition = sessionStorage.getItem("surplusIrisTransition") === "1";
@@ -2310,10 +2379,12 @@
       ".feature",
       ".story-card",
       ".proof-stat",
+      ".win-card",
       ".audience-item",
       ".not-box",
       ".course-preview > *",
       ".preview-item",
+      ".week-card",
       ".rung",
       ".pricing-card > *",
       ".signup-grid > *",
@@ -2420,7 +2491,6 @@
         window.location.href = next.href;
         return;
       }
-      updateTransitionQuote();
       sessionStorage.setItem("surplusIrisTransition", "1");
       document.body.classList.add("page-leaving");
       setTimeout(() => { window.location.href = next.href; }, PAGE_TRANSITION_MS);

@@ -560,41 +560,48 @@
     to{transform:translate3d(calc(-50% + 185vmax),calc(-50% + 185vmax),0) rotate(45deg);opacity:.55}
   }
   .page-transition{
-    --transition-dur:720ms;
-    --transition-ease:cubic-bezier(.78,0,.22,1);
+    --transition-dur:460ms;
+    --transition-ease:cubic-bezier(.22,1,.36,1);
     background:transparent;
     clip-path:none !important;
     transform:translateZ(0);
+    overflow:hidden;
   }
   .page-transition::before{
-    inset:0;
-    width:auto;
-    height:auto;
-    min-width:0;
+    inset:-18%;
+    width:auto !important;
+    height:auto !important;
+    min-width:0 !important;
     background:
-      radial-gradient(circle at 18% 12%,rgba(216,187,112,.14),transparent 34%),
-      linear-gradient(135deg,rgba(10,10,12,.96),rgba(10,10,12,.995));
+      linear-gradient(135deg,
+        rgba(10,10,12,.985) 0 57%,
+        rgba(216,187,112,.62) 57% 58.5%,
+        rgba(10,10,12,.985) 58.5% 100%);
     box-shadow:none;
-    transform:none;
-    clip-path:polygon(0 0,0 0,0 0);
+    transform:translate3d(-112%,-112%,0);
+    clip-path:none !important;
+    will-change:transform;
   }
   .page-transition::after{
-    top:-12vmax;
-    left:-12vmax;
-    width:170vmax;
-    height:2px;
-    background:linear-gradient(90deg,transparent,rgba(216,187,112,.35),var(--gold-bright),rgba(244,239,226,.84),var(--gold-bright),rgba(216,187,112,.28),transparent);
-    box-shadow:0 0 22px rgba(216,187,112,.45);
-    transform:translate3d(-16vmax,-16vmax,0) rotate(45deg);
+    display:none !important;
   }
+  .transition-logo,.transition-icons,.transition-quote{display:none !important}
   body.page-leaving .page-transition,
   body.page-entering .page-transition{opacity:1;pointer-events:auto;backdrop-filter:none}
   body.page-leaving .page-transition{animation:none}
   body.page-entering .page-transition{animation:none}
-  body.page-leaving .page-transition::before{animation:cornerSwipeIn var(--transition-dur) var(--transition-ease) forwards !important}
-  body.page-entering .page-transition::before{clip-path:polygon(0 0,220% 0,0 220%);animation:cornerSwipeOut var(--transition-dur) var(--transition-ease) forwards !important}
-  body.page-leaving .page-transition::after{animation:cornerEdgeIn var(--transition-dur) var(--transition-ease) forwards}
-  body.page-entering .page-transition::after{animation:cornerEdgeOut var(--transition-dur) var(--transition-ease) forwards}
+  body.page-leaving .page-transition::before{animation:simpleDiagonalIn var(--transition-dur) var(--transition-ease) forwards !important}
+  body.page-entering .page-transition::before{animation:simpleDiagonalOut var(--transition-dur) var(--transition-ease) forwards !important}
+  body.page-leaving .page-transition::after,
+  body.page-entering .page-transition::after{animation:none !important}
+  @keyframes simpleDiagonalIn{
+    from{transform:translate3d(-112%,-112%,0)}
+    to{transform:translate3d(0,0,0)}
+  }
+  @keyframes simpleDiagonalOut{
+    from{transform:translate3d(0,0,0)}
+    to{transform:translate3d(112%,112%,0)}
+  }
   @keyframes cornerSwipeIn{
     from{clip-path:polygon(0 0,0 0,0 0)}
     to{clip-path:polygon(0 0,220% 0,0 220%)}
@@ -919,21 +926,7 @@
 
 <script>
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const PAGE_TRANSITION_MS = 720;
-  const TRANSITION_QUOTES = [
-    "Know your number. Widen the gap.",
-    "Nobody is coming to save you.",
-    "Budget smarter. Earn more.",
-    "Turn pressure into a plan.",
-    "The climb starts with clarity.",
-    "Use AI. Save hours. Move faster."
-  ];
-  const updateTransitionQuote = () => {
-    const quote = document.querySelector(".transition-quote");
-    if (!quote) return;
-    quote.textContent = TRANSITION_QUOTES[Math.floor(Math.random() * TRANSITION_QUOTES.length)];
-  };
-  updateTransitionQuote();
+  const PAGE_TRANSITION_MS = 460;
   const shouldPlayEntryTransition = sessionStorage.getItem("surplusIrisTransition") === "1";
   sessionStorage.removeItem("surplusIrisTransition");
   if (shouldPlayEntryTransition && !reducedMotion) {
@@ -975,7 +968,6 @@
         window.location.href = next.href;
         return;
       }
-      updateTransitionQuote();
       sessionStorage.setItem("surplusIrisTransition", "1");
       document.body.classList.add("page-leaving");
       setTimeout(() => { window.location.href = next.href; }, PAGE_TRANSITION_MS);
