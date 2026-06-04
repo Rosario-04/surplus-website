@@ -780,7 +780,7 @@
     backdrop-filter:blur(22px);
     isolation:isolate;
     animation:heroCardFloat 7s ease-in-out infinite;
-    transform:translate3d(0,calc(var(--hero-progress,0) * 32px),0) rotateX(calc(var(--hero-progress,0) * 3deg)) rotateY(calc(var(--hero-progress,0) * -5deg));
+    transform:translate3d(0,calc((var(--hero-progress,0) * 32px) + (var(--wheel-boost,0) * -10px)),0) rotateX(calc((var(--hero-progress,0) * 3deg) + (var(--wheel-boost,0) * 1.5deg))) rotateY(calc((var(--hero-progress,0) * -5deg) + (var(--wheel-boost,0) * -2.2deg)));
     transform-style:preserve-3d;
   }
   .hero-card::before{
@@ -1182,7 +1182,10 @@
     min-height:170px;
     position:relative;
     overflow:hidden;
+    transition:transform .24s ease,border-color .24s ease,background .24s ease;
   }
+  .win-card.scroll-reactive.is-visible{transform:translate3d(0,calc(var(--reactive-shift,0) * 1px),0)}
+  .win-card:hover{transform:translateY(-4px);border-color:rgba(216,187,112,.42)}
   .win-card::before{
     content:"";
     position:absolute;
@@ -1225,7 +1228,10 @@
     padding:28px;
     background:var(--glass);
     min-height:260px;
+    transition:transform .24s ease,border-color .24s ease,background .24s ease;
   }
+  .feature.scroll-reactive.is-visible{transform:translate3d(0,calc(var(--reactive-shift,0) * 1px),0)}
+  .feature:hover{transform:translateY(-4px);border-color:rgba(216,187,112,.42);background:rgba(255,255,255,.055)}
   .feature-icon{
     width:46px;
     height:46px;
@@ -1531,7 +1537,10 @@
     border-radius:18px;
     padding:20px;
     background:rgba(10,10,12,.45);
+    transition:transform .24s ease,border-color .24s ease,background .24s ease;
   }
+  .preview-item.scroll-reactive.is-visible{transform:translate3d(0,calc(var(--reactive-shift,0) * 1px),0)}
+  .preview-item:hover{transform:translateY(-4px);border-color:rgba(216,187,112,.42);background:rgba(185,154,85,.07)}
   .preview-item strong{display:block;font-family:var(--serif);font-size:23px;font-weight:500;line-height:1.08;margin-bottom:8px}
   .preview-item span{display:block;color:var(--ink-dim);font-size:14px;line-height:1.5}
 
@@ -1756,7 +1765,7 @@
         </div>
       </div>
 
-      <div class="hero-card" aria-label="Surplus budget preview">
+      <div class="hero-card scroll-reactive" data-depth="18" aria-label="Surplus budget preview">
         <div class="hero-orbit" aria-hidden="true"></div>
         <div class="flow-line one" aria-hidden="true"></div>
         <div class="flow-line two" aria-hidden="true"></div>
@@ -1897,12 +1906,12 @@
       <h2 class="section-title">The goal is not hype. It is practical progress you can repeat.</h2>
       <p class="section-lede">Surplus is built around simple wins that compound: know your number, find leaks, create the first extra dollars, use AI to move faster, and stay around people who are climbing too.</p>
       <div class="wins-grid">
-        <article class="win-card"><small>Money Clarity</small><strong>$300+</strong><span>Find leaks, subscriptions, and habits hiding inside a normal month.</span></article>
-        <article class="win-card"><small>First Target</small><strong>$500/mo</strong><span>Choose one income move and build the first realistic side-income plan.</span></article>
-        <article class="win-card"><small>Stability</small><strong>$1,000</strong><span>Create the starter buffer that keeps one bad week from becoming a crisis.</span></article>
-        <article class="win-card"><small>Rhythm</small><strong>1 budget</strong><span>Install a weekly money check-in that removes the guessing.</span></article>
-        <article class="win-card"><small>Execution</small><strong>30 days</strong><span>Follow a clear first-month path instead of wondering what to do next.</span></article>
-        <article class="win-card"><small>AI Leverage</small><strong>Hours back</strong><span>Use prompts and workflows for planning, decisions, content, and business tasks.</span></article>
+        <article class="win-card scroll-reactive" data-depth="8"><small>Money Clarity</small><strong>$300+</strong><span>Find leaks, subscriptions, and habits hiding inside a normal month.</span></article>
+        <article class="win-card scroll-reactive" data-depth="9"><small>First Target</small><strong>$500/mo</strong><span>Choose one income move and build the first realistic side-income plan.</span></article>
+        <article class="win-card scroll-reactive" data-depth="10"><small>Stability</small><strong>$1,000</strong><span>Create the starter buffer that keeps one bad week from becoming a crisis.</span></article>
+        <article class="win-card scroll-reactive" data-depth="8"><small>Rhythm</small><strong>1 budget</strong><span>Install a weekly money check-in that removes the guessing.</span></article>
+        <article class="win-card scroll-reactive" data-depth="9"><small>Execution</small><strong>30 days</strong><span>Follow a clear first-month path instead of wondering what to do next.</span></article>
+        <article class="win-card scroll-reactive" data-depth="10"><small>AI Leverage</small><strong>Hours back</strong><span>Use prompts and workflows for planning, decisions, content, and business tasks.</span></article>
       </div>
     </div>
   </section>
@@ -1913,22 +1922,22 @@
       <h2 class="section-title">Part course. Part community. Part real-time climb.</h2>
       <p class="section-lede">Surplus is not just videos sitting in a dashboard. It is modules you can unlock, a Discord community to stay connected, practical AI training, spreadsheets, and weekly direction for people trying to actually move.</p>
       <div class="features-grid">
-        <article class="feature">
+        <article class="feature scroll-reactive" data-depth="8">
           <div class="feature-icon">B</div>
           <h3>The Budget System</h3>
           <p>A zero-based setup that makes every dollar visible and gives members a weekly rhythm they can actually maintain.</p>
         </article>
-        <article class="feature">
+        <article class="feature scroll-reactive" data-depth="9">
           <div class="feature-icon">$</div>
           <h3>The Income Playbook</h3>
           <p>Side-income tracks, pricing guidance, scripts, and practical ways to widen the gap between income and lifestyle.</p>
         </article>
-        <article class="feature">
+        <article class="feature scroll-reactive" data-depth="10">
           <div class="feature-icon">X</div>
           <h3>Prebuilt Spreadsheets</h3>
           <p>Budgeting, debt payoff, savings goals, net worth, sinking funds, side income, and calculators that do the math.</p>
         </article>
-        <article class="feature">
+        <article class="feature scroll-reactive" data-depth="8">
           <div class="feature-icon">AI</div>
           <h3>AI for Real Life</h3>
           <p>Learn how to use AI for personal productivity, business workflows, content ideas, planning, research, and getting more done with less wasted time.</p>
@@ -1999,10 +2008,10 @@
         <a class="btn btn-ghost" href="/surplus-course.html" style="margin-left:10px">Explore course</a>
       </div>
       <div class="preview-grid">
-        <div class="preview-item"><strong>Dashboard path</strong><span>Know the next lesson, rung, and weekly action without digging around.</span></div>
-        <div class="preview-item"><strong>Member wins</strong><span>Track goals, streaks, and progress so the climb feels visible.</span></div>
-        <div class="preview-item"><strong>Tools library</strong><span>Budget sheets, prompts, templates, and calculators in one place.</span></div>
-        <div class="preview-item"><strong>Accountability</strong><span>Discord, workshops, questions, and people who are moving too.</span></div>
+        <div class="preview-item scroll-reactive" data-depth="8"><strong>Dashboard path</strong><span>Know the next lesson, rung, and weekly action without digging around.</span></div>
+        <div class="preview-item scroll-reactive" data-depth="9"><strong>Member wins</strong><span>Track goals, streaks, and progress so the climb feels visible.</span></div>
+        <div class="preview-item scroll-reactive" data-depth="10"><strong>Tools library</strong><span>Budget sheets, prompts, templates, and calculators in one place.</span></div>
+        <div class="preview-item scroll-reactive" data-depth="8"><strong>Accountability</strong><span>Discord, workshops, questions, and people who are moving too.</span></div>
       </div>
     </div>
   </section>
@@ -2416,15 +2425,27 @@
   const root = document.documentElement;
   const hero = document.querySelector(".hero");
   let ticking = false;
+  let wheelBoost = 0;
+  let wheelTarget = 0;
   const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
   const updateScrollMotion = () => {
     const maxScroll = root.scrollHeight - window.innerHeight;
     const progress = maxScroll > 0 ? window.scrollY / maxScroll : 0;
     root.style.setProperty("--page-progress", progress.toFixed(4));
+    root.style.setProperty("--wheel-boost", wheelBoost.toFixed(3));
     document.body.classList.toggle("nav-scrolled", window.scrollY > 18);
     if (hero && !reducedMotion) {
       const heroProgress = clamp(window.scrollY / Math.max(hero.offsetHeight, 1), 0, 1);
       hero.style.setProperty("--hero-progress", heroProgress.toFixed(3));
+    }
+    if (!reducedMotion) {
+      document.querySelectorAll(".scroll-reactive").forEach((item) => {
+        const rect = item.getBoundingClientRect();
+        const center = rect.top + rect.height / 2 - window.innerHeight / 2;
+        const depth = Number(item.dataset.depth || 8);
+        const shift = clamp(center / window.innerHeight, -1, 1) * depth * -.45;
+        item.style.setProperty("--reactive-shift", shift.toFixed(2));
+      });
     }
     ticking = false;
   };
@@ -2433,6 +2454,18 @@
     ticking = true;
     requestAnimationFrame(updateScrollMotion);
   };
+  const decayWheelMotion = () => {
+    wheelBoost += (wheelTarget - wheelBoost) * .18;
+    wheelTarget *= .82;
+    root.style.setProperty("--wheel-boost", wheelBoost.toFixed(3));
+    if (Math.abs(wheelBoost) > .01 || Math.abs(wheelTarget) > .01) requestAnimationFrame(decayWheelMotion);
+  };
+  if (!reducedMotion) {
+    window.addEventListener("wheel", (event) => {
+      wheelTarget = clamp(event.deltaY / 700, -1, 1);
+      requestAnimationFrame(decayWheelMotion);
+    }, { passive: true });
+  }
   updateScrollMotion();
   window.addEventListener("scroll", requestScrollMotion, { passive: true });
   window.addEventListener("resize", requestScrollMotion);

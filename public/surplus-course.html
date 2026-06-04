@@ -5,77 +5,89 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#0a0a0c" />
 <title>Inside Surplus - Course Modules by Rosario</title>
-<style>
-  html,body{background:#0a0a0c;color:#f4efe2;color-scheme:dark}
-  html.preload-transition::before{
-    content:"";
-    position:fixed;
-    inset:0;
-    z-index:9999;
-    background:#0a0a0c;
-    pointer-events:none;
-  }
-</style>
-<script>
-  (() => {
-    try {
-      sessionStorage.removeItem("surplusIrisTransition");
-    } catch {}
-  })();
-</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#0a0a0c;
+    --bg-soft:#111115;
     --ink:#f4efe2;
     --ink-dim:#aaa397;
     --ink-faint:#6e685f;
     --gold:#b99a55;
     --gold-bright:#d8bb70;
     --gold-deep:#806936;
+    --green:#83d6a0;
+    --blue:#9db9ff;
     --line:rgba(185,154,85,.2);
-    --glass:rgba(255,255,255,.04);
+    --line-soft:rgba(255,255,255,.08);
+    --glass:rgba(255,255,255,.045);
     --serif:"Fraunces",serif;
     --sans:"Inter Tight",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --page-progress:0;
+    --wheel-boost:0;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth;background:var(--bg);color-scheme:dark}
   body{
     min-height:100vh;
     background:
-      radial-gradient(ellipse 58% 46% at 18% 8%,rgba(185,154,85,.18),transparent 64%),
-      radial-gradient(ellipse 48% 38% at 78% 24%,rgba(216,187,112,.11),transparent 64%),
-      #0a0a0c;
+      radial-gradient(ellipse 62% 44% at 14% 4%,rgba(185,154,85,.18),transparent 65%),
+      radial-gradient(ellipse 50% 38% at 86% 18%,rgba(157,185,255,.08),transparent 64%),
+      linear-gradient(180deg,#0a0a0c 0%,#09090b 52%,#0c0c0f 100%);
     color:var(--ink);
     font-family:var(--sans);
     line-height:1.5;
     overflow-x:hidden;
     -webkit-font-smoothing:antialiased;
   }
-  body::after{
+  body::before{
     content:"";
     position:fixed;
     inset:0;
     z-index:0;
     pointer-events:none;
-    opacity:.04;
+    opacity:.05;
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.55'/></svg>");
   }
-  .wrap{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:0 28px}
+  body::after{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:1;
+    pointer-events:none;
+    background:linear-gradient(115deg,transparent 0 44%,rgba(216,187,112,.035) 49%,transparent 54% 100%);
+    transform:translate3d(calc(var(--page-progress) * 28px),calc(var(--page-progress) * -18px),0);
+  }
+  .wrap{position:relative;z-index:2;max-width:1200px;margin:0 auto;padding:0 28px}
+  .scroll-progress{
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    z-index:500;
+    height:2px;
+    transform:scaleX(var(--page-progress));
+    transform-origin:left center;
+    background:linear-gradient(90deg,var(--gold-deep),var(--gold-bright),var(--ink));
+    box-shadow:0 0 18px rgba(216,187,112,.45);
+    pointer-events:none;
+  }
   nav{
     position:fixed;
     top:0;
     left:0;
     right:0;
-    z-index:100;
+    z-index:120;
     padding:16px 28px;
     border-bottom:1px solid var(--line);
-    background:rgba(10,10,12,.74);
+    background:rgba(10,10,12,.7);
     backdrop-filter:blur(18px) saturate(1.35);
+    transition:padding .24s ease,background .24s ease,border-color .24s ease;
   }
-  .nav-inner{max-width:1180px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:24px}
+  body.nav-scrolled nav{padding:12px 28px;background:rgba(10,10,12,.9);border-color:rgba(185,154,85,.28)}
+  .nav-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:24px}
   .logo{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none}
   .logo-mark{
     width:36px;height:36px;border-radius:10px;display:grid;place-items:center;
@@ -86,9 +98,9 @@
   .logo-text{display:flex;flex-direction:column;line-height:1.05}
   .logo-name{font-family:var(--serif);font-size:21px;letter-spacing:-.02em}
   .logo-by{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint);font-weight:600;margin-top:3px}
-  .nav-links{display:flex;align-items:center;gap:24px}
-  .nav-links a{color:var(--ink-dim);text-decoration:none;font-size:14px;transition:.25s color}
-  .nav-links a:hover{color:var(--gold-bright)}
+  .nav-links{display:flex;align-items:center;gap:22px}
+  .nav-links a{color:var(--ink-dim);text-decoration:none;font-size:14px;transition:.22s color,.22s background}
+  .nav-links a:hover,.nav-links a.is-active{color:var(--gold-bright)}
   .nav-links a.nav-cta{color:var(--ink)}
   .nav-menu-toggle{
     display:none;
@@ -106,530 +118,15 @@
     border-radius:999px;
     padding:11px 18px;
     background:var(--gold);
-    font-weight:600;
-    text-shadow:0 1px 10px rgba(0,0,0,.28);
-  }
-  .page-transition{
-    --transition-dur:680ms;
-    --transition-ease:cubic-bezier(.16,1,.3,1);
-    position:fixed;
-    inset:0;
-    z-index:3000;
-    opacity:0;
-    pointer-events:none;
-    overflow:hidden;
-    background:
-      radial-gradient(circle at 50% 50%,rgba(216,187,112,.11),transparent 34%),
-      rgba(10,10,12,.78);
-    backdrop-filter:blur(0);
-    transition:opacity .18s ease,backdrop-filter .28s ease;
-  }
-  .page-transition::before{
-    content:"";
-    position:absolute;
-    top:50%;
-    left:50%;
-    width:150vw;
-    height:150vh;
-    background:
-      linear-gradient(90deg,transparent 0 41%,rgba(216,187,112,.12) 47%,rgba(244,239,226,.86) 50%,rgba(185,154,85,.38) 53%,transparent 60%),
-      linear-gradient(90deg,transparent 0 47%,rgba(185,154,85,.9) 50%,transparent 53%);
-    filter:blur(.2px);
-    opacity:0;
-    transform:translate(-50%,-50%) translateX(-92vw) rotate(-14deg);
-    transform-origin:center;
-    will-change:transform,opacity;
-  }
-  .page-transition::after{
-    content:"";
-    position:absolute;
-    inset:0;
-    background:
-      linear-gradient(90deg,transparent,rgba(216,187,112,.08),transparent),
-      rgba(10,10,12,.82);
-    opacity:0;
-    transform:scaleX(.94);
-    transform-origin:center;
-    will-change:opacity,transform;
-  }
-  .transition-logo{
-    position:absolute;
-    left:50%;
-    top:50%;
-    z-index:3;
-    display:grid;
-    grid-template-columns:auto 1fr;
-    align-items:center;
-    gap:13px;
-    min-width:216px;
-    padding:12px 16px 12px 12px;
-    border:1px solid rgba(216,187,112,.24);
-    border-radius:22px;
-    background:rgba(10,10,12,.72);
-    box-shadow:0 26px 80px rgba(0,0,0,.44),0 0 44px rgba(185,154,85,.16);
-    backdrop-filter:blur(20px);
-    opacity:0;
-    filter:blur(8px);
-    transform:translate(-50%,-50%) translateY(12px) scale(.98);
-    text-align:left;
-  }
-  .transition-mark{
-    width:48px;
-    height:48px;
-    border-radius:14px;
-    display:grid;
-    place-items:center;
-    background:linear-gradient(135deg,var(--gold-bright),var(--gold-deep));
-    color:#0a0a0c;
-    font-family:var(--serif);
-    font-size:27px;
-    font-style:italic;
-    font-weight:500;
-    box-shadow:0 14px 36px rgba(0,0,0,.38),0 0 24px rgba(185,154,85,.28),inset 0 1px 0 rgba(255,255,255,.28);
-  }
-  .transition-word{font-family:var(--serif);font-size:21px;font-weight:500;color:var(--ink);line-height:1}
-  .transition-by{margin-top:5px;color:var(--gold-bright);font-size:9px;font-weight:700;letter-spacing:.25em;text-transform:uppercase}
-  body.page-leaving .page-transition,
-  body.page-entering .page-transition{opacity:1;pointer-events:auto;backdrop-filter:blur(14px)}
-  body.page-leaving .page-transition::before{animation:goldSweepOut var(--transition-dur) var(--transition-ease) forwards}
-  body.page-leaving .page-transition::after{animation:veilIn var(--transition-dur) var(--transition-ease) forwards}
-  body.page-entering .page-transition::before{animation:goldSweepIn var(--transition-dur) var(--transition-ease) forwards}
-  body.page-entering .page-transition::after{animation:veilOut var(--transition-dur) var(--transition-ease) forwards}
-  body.page-leaving .transition-logo{animation:transitionLogoIn var(--transition-dur) var(--transition-ease) forwards}
-  body.page-entering .transition-logo{opacity:1;animation:transitionLogoOut var(--transition-dur) var(--transition-ease) forwards}
-  @keyframes goldSweepOut{
-    0%{opacity:0;transform:translate(-50%,-50%) translateX(-92vw) rotate(-14deg)}
-    18%,76%{opacity:1}
-    100%{opacity:0;transform:translate(-50%,-50%) translateX(92vw) rotate(-14deg)}
-  }
-  @keyframes goldSweepIn{
-    0%{opacity:0;transform:translate(-50%,-50%) translateX(-82vw) rotate(-14deg)}
-    15%,68%{opacity:.95}
-    100%{opacity:0;transform:translate(-50%,-50%) translateX(82vw) rotate(-14deg)}
-  }
-  @keyframes veilIn{
-    0%{opacity:0;transform:scaleX(.94)}
-    42%,100%{opacity:1;transform:scaleX(1)}
-  }
-  @keyframes veilOut{
-    0%,18%{opacity:1;transform:scaleX(1)}
-    100%{opacity:0;transform:scaleX(1.04)}
-  }
-  @keyframes transitionLogoIn{
-    0%,24%{opacity:0;filter:blur(8px);transform:translate(-50%,-50%) translateY(12px) scale(.98)}
-    58%,100%{opacity:1;filter:blur(0);transform:translate(-50%,-50%) translateY(0) scale(1)}
-  }
-  @keyframes transitionLogoOut{
-    0%,32%{opacity:1;filter:blur(0);transform:translate(-50%,-50%) translateY(0) scale(1)}
-    100%{opacity:0;filter:blur(7px);transform:translate(-50%,-50%) translateY(-10px) scale(.985)}
-  }
-  .page-transition{
-    --transition-dur:560ms;
-    --transition-ease:cubic-bezier(.22,1,.36,1);
-    background:rgba(10,10,12,.88);
-    backdrop-filter:blur(0);
-  }
-  .page-transition::before{
-    top:50%;
-    left:50%;
-    width:min(360px,64vw);
-    height:2px;
-    border:0;
-    background:linear-gradient(90deg,transparent,var(--gold-bright),transparent);
-    box-shadow:0 0 22px rgba(216,187,112,.48);
-    opacity:0;
-    transform:translate(-50%,76px) scaleX(.18);
-  }
-  .page-transition::after{
-    display:none;
-  }
-  .transition-logo{
-    display:grid;
-    grid-template-columns:auto 1fr;
-    gap:12px;
-    min-width:210px;
-    padding:12px 15px 12px 12px;
-    border:1px solid rgba(216,187,112,.22);
-    border-radius:20px;
-    background:rgba(12,12,15,.72);
-    box-shadow:0 24px 70px rgba(0,0,0,.42),0 0 34px rgba(185,154,85,.12);
-    backdrop-filter:blur(18px);
-    filter:blur(8px);
-    transform:translate(-50%,-50%) translateY(8px) scale(.98);
-    text-align:left;
-  }
-  .transition-mark{width:46px;height:46px;border-radius:14px;font-size:26px}
-  .transition-word{font-size:21px;color:var(--ink)}
-  .transition-by{margin-top:5px;color:var(--gold-bright);font-size:9px;letter-spacing:.25em}
-  body.page-leaving .page-transition,
-  body.page-entering .page-transition{opacity:1;pointer-events:auto;backdrop-filter:blur(10px)}
-  body.page-leaving .page-transition::before{animation:transitionLineLoad var(--transition-dur) var(--transition-ease) forwards}
-  body.page-entering .page-transition::before{animation:transitionLineUnload var(--transition-dur) var(--transition-ease) forwards}
-  body.page-leaving .transition-logo{animation:minimalLogoIn var(--transition-dur) var(--transition-ease) forwards}
-  body.page-entering .transition-logo{opacity:1;animation:minimalLogoOut var(--transition-dur) var(--transition-ease) forwards}
-  @keyframes transitionLineLoad{
-    0%{opacity:0;transform:translate(-50%,76px) scaleX(.18)}
-    36%{opacity:1}
-    100%{opacity:1;transform:translate(-50%,76px) scaleX(1)}
-  }
-  @keyframes transitionLineUnload{
-    0%{opacity:1;transform:translate(-50%,76px) scaleX(1)}
-    100%{opacity:0;transform:translate(-50%,76px) scaleX(.18)}
-  }
-  @keyframes minimalLogoIn{
-    0%{opacity:0;filter:blur(8px);transform:translate(-50%,-50%) translateY(8px) scale(.98)}
-    100%{opacity:1;filter:blur(0);transform:translate(-50%,-50%) translateY(0) scale(1)}
-  }
-  @keyframes minimalLogoOut{
-    0%{opacity:1;filter:blur(0);transform:translate(-50%,-50%) translateY(0) scale(1)}
-    100%{opacity:0;filter:blur(7px);transform:translate(-50%,-50%) translateY(-6px) scale(.99)}
-  }
-  .page-transition{
-    --transition-dur:620ms;
-    --transition-ease:cubic-bezier(.19,1,.22,1);
-    background:
-      radial-gradient(circle at 12% 10%,rgba(216,187,112,.18),transparent 28%),
-      rgba(10,10,12,.72);
-    backdrop-filter:blur(0);
-    clip-path:polygon(0 0,0 0,0 0,0 0);
-  }
-  .page-transition::before{
-    left:auto;
-    top:0;
-    right:-18vw;
-    width:34vw;
-    min-width:220px;
-    height:145vh;
-    border:0;
-    background:linear-gradient(90deg,transparent,rgba(216,187,112,.62),rgba(244,239,226,.96),rgba(185,154,85,.3),transparent);
-    box-shadow:0 0 44px rgba(216,187,112,.35);
-    opacity:0;
-    transform:translate3d(-138vw,-34vh,0) rotate(-18deg);
-  }
-  .page-transition::after{display:none}
-  .transition-logo{
-    grid-template-columns:auto 1fr;
-    min-width:214px;
-    gap:12px;
-    padding:12px 15px 12px 12px;
-    border-radius:20px;
-    background:rgba(12,12,15,.76);
-    border:1px solid rgba(216,187,112,.24);
-    box-shadow:0 26px 76px rgba(0,0,0,.44),0 0 36px rgba(185,154,85,.14);
-    transform:translate(-50%,-50%) translate(-10px,-10px) scale(.985);
-    filter:blur(8px);
-    text-align:left;
-  }
-  .transition-mark{width:48px;height:48px;border-radius:14px;font-size:27px}
-  body.page-leaving .page-transition,
-  body.page-entering .page-transition{opacity:1;pointer-events:auto;backdrop-filter:blur(12px)}
-  body.page-leaving .page-transition{animation:diagonalCover var(--transition-dur) var(--transition-ease) forwards}
-  body.page-entering .page-transition{clip-path:polygon(0 0,180% 0,100% 180%,0 100%);animation:diagonalReveal var(--transition-dur) var(--transition-ease) forwards}
-  body.page-leaving .page-transition::before{animation:diagonalEdgeIn var(--transition-dur) var(--transition-ease) forwards}
-  body.page-entering .page-transition::before{animation:diagonalEdgeOut var(--transition-dur) var(--transition-ease) forwards}
-  body.page-leaving .transition-logo{animation:diagonalLogoIn var(--transition-dur) var(--transition-ease) forwards}
-  body.page-entering .transition-logo{opacity:1;animation:diagonalLogoOut var(--transition-dur) var(--transition-ease) forwards}
-  @keyframes diagonalCover{
-    0%{clip-path:polygon(0 0,0 0,0 0,0 0)}
-    100%{clip-path:polygon(0 0,180% 0,100% 180%,0 100%)}
-  }
-  @keyframes diagonalReveal{
-    0%{clip-path:polygon(0 0,180% 0,100% 180%,0 100%)}
-    100%{clip-path:polygon(100% 100%,100% 100%,100% 100%,100% 100%)}
-  }
-  @keyframes diagonalEdgeIn{
-    0%{opacity:0;transform:translate3d(-138vw,-34vh,0) rotate(-18deg)}
-    18%,72%{opacity:1}
-    100%{opacity:0;transform:translate3d(28vw,22vh,0) rotate(-18deg)}
-  }
-  @keyframes diagonalEdgeOut{
-    0%{opacity:0;transform:translate3d(-86vw,-22vh,0) rotate(-18deg)}
-    16%,66%{opacity:.95}
-    100%{opacity:0;transform:translate3d(72vw,32vh,0) rotate(-18deg)}
-  }
-  @keyframes diagonalLogoIn{
-    0%,28%{opacity:0;filter:blur(8px);transform:translate(-50%,-50%) translate(-10px,-10px) scale(.985)}
-    74%,100%{opacity:1;filter:blur(0);transform:translate(-50%,-50%) translate(0,0) scale(1)}
-  }
-  @keyframes diagonalLogoOut{
-    0%,24%{opacity:1;filter:blur(0);transform:translate(-50%,-50%) translate(0,0) scale(1)}
-    100%{opacity:0;filter:blur(7px);transform:translate(-50%,-50%) translate(10px,10px) scale(.985)}
-  }
-  body.page-leaving main,
-  body.page-leaving footer{
-    animation:pageFadeOut 420ms cubic-bezier(.22,1,.36,1) forwards;
-  }
-  body.page-entering main,
-  body.page-entering footer{
-    animation:pageFadeIn 760ms cubic-bezier(.16,1,.3,1) both;
-  }
-  @keyframes pageFadeOut{
-    to{opacity:.68;filter:blur(4px);transform:translate3d(0,-8px,0) scale(.997)}
-  }
-  @keyframes pageFadeIn{
-    0%{opacity:.35;filter:blur(10px);transform:translate3d(0,14px,0) scale(.994)}
-    42%{opacity:.65}
-    100%{opacity:1;filter:blur(0);transform:translate3d(0,0,0) scale(1)}
-  }
-  .page-transition{
-    --transition-dur:560ms;
-    --transition-ease:cubic-bezier(.2,.8,.2,1);
-    clip-path:none !important;
-    background:rgba(10,10,12,.96);
-    backdrop-filter:none;
-    transform:translateZ(0);
-  }
-  .page-transition::before{
-    display:block;
-    top:50%;
-    left:50%;
-    right:auto;
-    width:150vmax;
-    min-width:0;
-    height:4px;
-    border:0;
-    background:linear-gradient(90deg,transparent,rgba(216,187,112,.5),var(--gold-bright),rgba(244,239,226,.95),var(--gold-bright),rgba(216,187,112,.38),transparent);
-    box-shadow:0 0 28px rgba(216,187,112,.58);
-    opacity:0;
-    transform:translate3d(-86vmax,-48vmax,0) rotate(45deg);
-  }
-  .page-transition::after{display:none}
-  .transition-logo{
-    filter:none;
-    backdrop-filter:none;
-    transform:translate(-50%,-50%) translate3d(-6px,-6px,0) scale(.99);
-    will-change:opacity,transform;
-  }
-  body.page-leaving .page-transition,
-  body.page-entering .page-transition{opacity:1;pointer-events:auto;backdrop-filter:none}
-  body.page-leaving .page-transition{animation:fastOverlayIn var(--transition-dur) var(--transition-ease) forwards}
-  body.page-entering .page-transition{animation:fastOverlayOut var(--transition-dur) var(--transition-ease) forwards}
-  body.page-leaving .page-transition::before{animation:fastDiagonalIn var(--transition-dur) var(--transition-ease) forwards}
-  body.page-entering .page-transition::before{animation:fastDiagonalOut var(--transition-dur) var(--transition-ease) forwards}
-  body.page-leaving .transition-logo{animation:fastLogoIn var(--transition-dur) var(--transition-ease) forwards}
-  body.page-entering .transition-logo{opacity:1;animation:fastLogoOut var(--transition-dur) var(--transition-ease) forwards}
-  @keyframes fastOverlayIn{
-    from{opacity:0}
-    to{opacity:1}
-  }
-  @keyframes fastOverlayOut{
-    from{opacity:1}
-    to{opacity:0}
-  }
-  @keyframes fastDiagonalIn{
-    0%{opacity:0;transform:translate3d(-86vmax,-48vmax,0) rotate(45deg)}
-    18%,78%{opacity:1}
-    100%{opacity:0;transform:translate3d(38vmax,38vmax,0) rotate(45deg)}
-  }
-  @keyframes fastDiagonalOut{
-    0%{opacity:0;transform:translate3d(-56vmax,-32vmax,0) rotate(45deg)}
-    16%,72%{opacity:.95}
-    100%{opacity:0;transform:translate3d(60vmax,44vmax,0) rotate(45deg)}
-  }
-  @keyframes fastLogoIn{
-    from{opacity:0;transform:translate(-50%,-50%) translate3d(-6px,-6px,0) scale(.99)}
-    to{opacity:1;transform:translate(-50%,-50%) translate3d(0,0,0) scale(1)}
-  }
-  @keyframes fastLogoOut{
-    from{opacity:1;transform:translate(-50%,-50%) translate3d(0,0,0) scale(1)}
-    to{opacity:0;transform:translate(-50%,-50%) translate3d(6px,6px,0) scale(.99)}
-  }
-  .transition-logo{
-    grid-template-columns:48px minmax(138px,1fr);
-    width:min(330px,88vw);
-  }
-  .transition-icons{
-    grid-column:1/-1;
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:8px;
-    margin-top:2px;
-  }
-  .transition-icons span{
-    min-height:30px;
-    border:1px solid rgba(216,187,112,.18);
-    border-radius:12px;
-    display:grid;
-    place-items:center;
-    background:rgba(185,154,85,.07);
-    color:var(--gold-bright);
-    font-size:12px;
-    font-weight:800;
-    letter-spacing:.04em;
-    opacity:.82;
-  }
-  .transition-quote{
-    grid-column:1/-1;
-    color:var(--ink-dim);
-    font-size:13px;
-    line-height:1.35;
-    text-align:center;
-    opacity:.9;
-  }
-  body.page-leaving .transition-icons span,
-  body.page-entering .transition-icons span{animation:iconPulse 430ms cubic-bezier(.2,.8,.2,1) both}
-  body.page-leaving .transition-icons span:nth-child(2),
-  body.page-entering .transition-icons span:nth-child(2){animation-delay:45ms}
-  body.page-leaving .transition-icons span:nth-child(3),
-  body.page-entering .transition-icons span:nth-child(3){animation-delay:90ms}
-  body.page-leaving .transition-icons span:nth-child(4),
-  body.page-entering .transition-icons span:nth-child(4){animation-delay:135ms}
-  @keyframes iconPulse{
-    0%{opacity:.35;transform:translate3d(0,5px,0) scale(.98)}
-    60%{opacity:1;transform:translate3d(0,0,0) scale(1)}
-    100%{opacity:.82;transform:translate3d(0,0,0) scale(1)}
-  }
-  .page-transition .transition-logo{display:none !important}
-  @keyframes pageFadeOut{
-    to{opacity:.82;transform:translate3d(0,-4px,0) scale(.999)}
-  }
-  @keyframes pageFadeIn{
-    0%{opacity:.72;transform:translate3d(0,8px,0) scale(.998)}
-    100%{opacity:1;transform:translate3d(0,0,0) scale(1)}
-  }
-  .page-transition{
-    --transition-dur:760ms;
-    --transition-ease:cubic-bezier(.83,0,.17,1);
-    background:transparent;
-    clip-path:none !important;
-    backdrop-filter:none;
-    overflow:hidden;
-    contain:paint;
-    transform:translateZ(0);
-  }
-  .page-transition::before{
-    display:block;
-    top:50%;
-    left:50%;
-    right:auto;
-    width:210vmax;
-    min-width:0;
-    height:210vmax;
-    border:0;
-    background:
-      radial-gradient(circle at 26% 20%,rgba(216,187,112,.12),transparent 34%),
-      rgba(10,10,12,.98);
-    box-shadow:0 0 90px rgba(0,0,0,.52);
-    opacity:1;
-    transform:translate3d(calc(-50% - 185vmax),calc(-50% - 185vmax),0) rotate(45deg);
-    will-change:transform;
-  }
-  .page-transition::after{
-    content:"";
-    display:block;
-    position:absolute;
-    top:50%;
-    left:50%;
-    width:190vmax;
-    height:3px;
-    border:0;
-    background:linear-gradient(90deg,transparent,rgba(216,187,112,.45),var(--gold-bright),rgba(244,239,226,.95),var(--gold-bright),rgba(216,187,112,.35),transparent);
-    box-shadow:0 0 26px rgba(216,187,112,.58);
-    opacity:1;
-    transform:translate3d(calc(-50% - 185vmax),calc(-50% - 185vmax),0) rotate(45deg);
-    will-change:transform;
-  }
-  .page-transition .transition-logo{display:none !important}
-  body.page-leaving .page-transition,
-  body.page-entering .page-transition{opacity:1;pointer-events:auto;backdrop-filter:none;animation:none}
-  body.page-leaving main,
-  body.page-leaving footer{animation:pageFadeOut 520ms cubic-bezier(.22,1,.36,1) forwards}
-  body.page-entering main,
-  body.page-entering footer{animation:pageFadeIn 780ms cubic-bezier(.16,1,.3,1) 80ms both}
-  body.page-leaving .page-transition::before{animation:diagonalPanelIn var(--transition-dur) var(--transition-ease) forwards}
-  body.page-entering .page-transition::before{transform:translate3d(-50%,-50%,0) rotate(45deg);animation:diagonalPanelOut var(--transition-dur) var(--transition-ease) forwards}
-  body.page-leaving .page-transition::after{animation:diagonalEdgeIn var(--transition-dur) var(--transition-ease) forwards}
-  body.page-entering .page-transition::after{transform:translate3d(-50%,-50%,0) rotate(45deg);animation:diagonalEdgeOut var(--transition-dur) var(--transition-ease) forwards}
-  @keyframes diagonalPanelIn{
-    from{transform:translate3d(calc(-50% - 185vmax),calc(-50% - 185vmax),0) rotate(45deg)}
-    to{transform:translate3d(-50%,-50%,0) rotate(45deg)}
-  }
-  @keyframes diagonalPanelOut{
-    from{transform:translate3d(-50%,-50%,0) rotate(45deg)}
-    to{transform:translate3d(calc(-50% + 185vmax),calc(-50% + 185vmax),0) rotate(45deg)}
-  }
-  @keyframes diagonalEdgeIn{
-    from{transform:translate3d(calc(-50% - 185vmax),calc(-50% - 185vmax),0) rotate(45deg);opacity:.55}
-    to{transform:translate3d(-50%,-50%,0) rotate(45deg)}
-  }
-  @keyframes diagonalEdgeOut{
-    from{transform:translate3d(-50%,-50%,0) rotate(45deg)}
-    to{transform:translate3d(calc(-50% + 185vmax),calc(-50% + 185vmax),0) rotate(45deg);opacity:.55}
-  }
-  .page-transition{
-    --transition-dur:460ms;
-    --transition-ease:cubic-bezier(.22,1,.36,1);
-    background:transparent;
-    clip-path:none !important;
-    transform:translateZ(0);
-    overflow:hidden;
-  }
-  .page-transition::before{
-    inset:-18%;
-    width:auto !important;
-    height:auto !important;
-    min-width:0 !important;
-    background:
-      linear-gradient(135deg,
-        rgba(10,10,12,.985) 0 57%,
-        rgba(216,187,112,.62) 57% 58.5%,
-        rgba(10,10,12,.985) 58.5% 100%);
-    box-shadow:none;
-    transform:translate3d(-112%,-112%,0);
-    clip-path:none !important;
-    will-change:transform;
-  }
-  .page-transition::after{
-    display:none !important;
-  }
-  .transition-logo,.transition-icons,.transition-quote{display:none !important}
-  body.page-leaving .page-transition,
-  body.page-entering .page-transition{opacity:1;pointer-events:auto;backdrop-filter:none}
-  body.page-leaving .page-transition{animation:none}
-  body.page-entering .page-transition{animation:none}
-  body.page-leaving .page-transition::before{animation:simpleDiagonalIn var(--transition-dur) var(--transition-ease) forwards !important}
-  body.page-entering .page-transition::before{animation:simpleDiagonalOut var(--transition-dur) var(--transition-ease) forwards !important}
-  body.page-leaving .page-transition::after,
-  body.page-entering .page-transition::after{animation:none !important}
-  @keyframes simpleDiagonalIn{
-    from{transform:translate3d(-112%,-112%,0)}
-    to{transform:translate3d(0,0,0)}
-  }
-  @keyframes simpleDiagonalOut{
-    from{transform:translate3d(0,0,0)}
-    to{transform:translate3d(112%,112%,0)}
-  }
-  @keyframes cornerSwipeIn{
-    from{clip-path:polygon(0 0,0 0,0 0)}
-    to{clip-path:polygon(0 0,220% 0,0 220%)}
-  }
-  @keyframes cornerSwipeOut{
-    from{clip-path:polygon(0 0,220% 0,0 220%)}
-    to{clip-path:polygon(100% 100%,100% 100%,100% 100%)}
-  }
-  @keyframes cornerEdgeIn{
-    from{transform:translate3d(-16vmax,-16vmax,0) rotate(45deg);opacity:.45}
-    to{transform:translate3d(112vmax,112vmax,0) rotate(45deg);opacity:.7}
-  }
-  @keyframes cornerEdgeOut{
-    from{transform:translate3d(-8vmax,-8vmax,0) rotate(45deg);opacity:.7}
-    to{transform:translate3d(116vmax,116vmax,0) rotate(45deg);opacity:.35}
-  }
-  html.preload-transition::before,
-  .page-transition{display:none !important}
-  body.page-leaving main,
-  body.page-leaving footer,
-  body.page-entering main,
-  body.page-entering footer{
-    animation:none !important;
-    opacity:1 !important;
-    filter:none !important;
-    transform:none !important;
-  }
-  section{position:relative;z-index:2;padding:104px 0;scroll-margin-top:86px}
-  .hero{padding:150px 0 96px}
+    font-weight:700;
+    color:#fff !important;
+    box-shadow:0 10px 28px rgba(185,154,85,.18);
+  }
+  section{position:relative;z-index:2;padding:106px 0;scroll-margin-top:86px}
+  .hero{min-height:100vh;display:flex;align-items:center;padding:142px 0 86px;overflow:hidden}
+  .hero-grid{display:grid;grid-template-columns:minmax(0,1.04fr) minmax(340px,.96fr);gap:58px;align-items:center}
   .eyebrow{
-    display:inline-flex;align-items:center;gap:10px;margin-bottom:26px;padding:8px 14px;
+    display:inline-flex;align-items:center;gap:10px;margin-bottom:24px;padding:8px 14px;
     border:1px solid var(--line);border-radius:999px;background:var(--glass);
     color:var(--gold-bright);font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;
   }
@@ -640,61 +137,173 @@
     letter-spacing:-.03em;
     line-height:1.02;
   }
-  h1{font-size:clamp(48px,7vw,92px);max-width:920px;margin-bottom:24px}
+  h1{font-size:clamp(48px,7vw,92px);max-width:880px;margin-bottom:24px}
   em{font-style:italic;color:var(--gold-bright);font-weight:300}
-  .lede{max-width:730px;color:var(--ink-dim);font-size:20px;line-height:1.62;margin-bottom:34px}
+  .lede{max-width:700px;color:var(--ink-dim);font-size:20px;line-height:1.62;margin-bottom:34px}
   .btn-row{display:flex;gap:14px;flex-wrap:wrap}
   .btn{
     display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;
     border-radius:999px;padding:15px 24px;border:1px solid var(--line);
-    color:var(--ink);text-decoration:none;font-size:15px;font-weight:600;
-    transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;
+    color:var(--ink);text-decoration:none;font-size:15px;font-weight:700;
+    transition:transform .24s ease,box-shadow .24s ease,border-color .24s ease,background .24s ease;
   }
   .btn:hover{transform:translateY(-2px);border-color:rgba(216,187,112,.5)}
   .btn-primary{
     border:0;background:linear-gradient(135deg,var(--gold-bright),var(--gold) 58%,var(--gold-deep));
     color:#0a0a0c;box-shadow:0 14px 34px rgba(185,154,85,.25),inset 0 1px 0 rgba(255,255,255,.32);
   }
-  .section-head{margin-bottom:42px}
-  .section-title{font-size:clamp(36px,5vw,64px);max-width:880px;margin-bottom:18px}
-  .section-lede{max-width:720px;color:var(--ink-dim);font-size:18px;line-height:1.65}
-  .split{
-    display:grid;
-    grid-template-columns:.9fr 1.1fr;
-    gap:42px;
-    align-items:start;
-  }
-  .panel{
+  .hero-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:42px;max-width:680px}
+  .hero-meta div{
     border:1px solid var(--line);
-    border-radius:30px;
-    background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(255,255,255,.015));
-    box-shadow:0 34px 90px rgba(0,0,0,.35);
+    border-radius:18px;
+    padding:16px;
+    background:rgba(255,255,255,.032);
+    color:var(--ink-dim);
+    font-size:13px;
+    min-height:92px;
+  }
+  .hero-meta strong{display:block;color:var(--ink);font-family:var(--serif);font-size:26px;font-weight:500;line-height:1;margin-bottom:7px}
+  .course-device{
+    position:relative;
+    min-height:560px;
+    border:1px solid rgba(185,154,85,.24);
+    border-radius:34px;
+    padding:18px;
+    background:linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.018));
+    box-shadow:0 46px 120px rgba(0,0,0,.52),0 0 80px rgba(185,154,85,.08);
+    transform:perspective(1100px) rotateY(calc(var(--wheel-boost) * -1.3deg)) translate3d(0,calc(var(--page-progress) * -18px),0);
+    transition:transform .16s ease-out;
+  }
+  .device-top{display:flex;align-items:center;justify-content:space-between;padding:8px 8px 18px;color:var(--ink-faint);font-size:12px}
+  .device-dots{display:flex;gap:7px}
+  .device-dots span{width:8px;height:8px;border-radius:50%;background:rgba(244,239,226,.24)}
+  .device-screen{
+    min-height:492px;
+    border:1px solid rgba(185,154,85,.18);
+    border-radius:26px;
+    padding:24px;
+    background:
+      radial-gradient(circle at 12% 10%,rgba(216,187,112,.16),transparent 34%),
+      linear-gradient(160deg,rgba(12,12,15,.94),rgba(6,6,8,.98));
     overflow:hidden;
   }
-  .panel-pad{padding:36px}
-  .module-list{display:grid;gap:16px}
-  .module{
-    border:1px solid var(--line);
-    border-radius:22px;
-    padding:26px;
+  .screen-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;border-bottom:1px solid rgba(185,154,85,.16);padding-bottom:18px;margin-bottom:20px}
+  .screen-head h2{font-family:var(--serif);font-weight:500;font-size:30px;line-height:1.05}
+  .screen-head span{display:inline-flex;border:1px solid rgba(131,214,160,.28);border-radius:999px;padding:7px 10px;color:var(--green);background:rgba(131,214,160,.08);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.13em;white-space:nowrap}
+  .lesson-now{display:grid;gap:16px}
+  .lesson-hero{
+    border:1px solid rgba(185,154,85,.18);
+    border-radius:20px;
+    padding:20px;
+    background:rgba(255,255,255,.035);
+  }
+  .lesson-hero small{color:var(--gold-bright);letter-spacing:.16em;text-transform:uppercase;font-weight:800}
+  .lesson-hero h3{font-family:var(--serif);font-size:28px;font-weight:500;line-height:1.1;margin:12px 0 8px}
+  .lesson-hero p{color:var(--ink-dim);font-size:14px;line-height:1.55}
+  .progress-track{height:7px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:18px}
+  .progress-track span{display:block;width:43%;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--gold-bright),var(--gold-deep));box-shadow:0 0 18px rgba(216,187,112,.32)}
+  .mini-lessons{display:grid;gap:10px}
+  .mini-lesson{
+    display:grid;
+    grid-template-columns:38px 1fr auto;
+    gap:13px;
+    align-items:center;
+    border:1px solid rgba(185,154,85,.14);
+    border-radius:16px;
+    padding:12px;
     background:rgba(255,255,255,.025);
   }
-  .kicker{color:var(--gold-bright);font-size:11px;letter-spacing:.17em;text-transform:uppercase;font-weight:700;margin-bottom:10px}
-  .module h3,.week h3,.compare h3,.template h3,.script-card h3{
-    font-family:var(--serif);
-    font-size:27px;
-    font-weight:500;
-    line-height:1.1;
-    margin-bottom:10px;
+  .mini-num{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:rgba(185,154,85,.13);color:var(--gold-bright);font-family:var(--serif)}
+  .mini-lesson strong{display:block;font-size:14px}
+  .mini-lesson span{display:block;color:var(--ink-faint);font-size:12px;margin-top:2px}
+  .mini-time{color:var(--ink-dim);font-size:12px}
+  .float-chip{
+    position:absolute;
+    right:-16px;
+    bottom:80px;
+    width:190px;
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:16px;
+    background:rgba(14,14,17,.86);
+    box-shadow:0 24px 62px rgba(0,0,0,.42);
+    color:var(--ink-dim);
+    font-size:12px;
+    transform:translate3d(0,calc(var(--wheel-boost) * -8px),0);
   }
+  .float-chip strong{display:block;color:var(--gold-bright);font-family:var(--serif);font-size:28px;line-height:1;margin-bottom:6px}
+  .section-head{margin-bottom:44px}
+  .section-title{font-size:clamp(36px,5vw,64px);max-width:880px;margin-bottom:18px}
+  .section-lede{max-width:730px;color:var(--ink-dim);font-size:18px;line-height:1.65}
+  .course-shell{display:grid;grid-template-columns:300px 1fr;gap:34px;align-items:start}
+  .course-rail{
+    position:sticky;
+    top:100px;
+    border:1px solid var(--line);
+    border-radius:26px;
+    padding:18px;
+    background:rgba(255,255,255,.032);
+    box-shadow:0 26px 70px rgba(0,0,0,.28);
+  }
+  .rail-title{font-family:var(--serif);font-size:23px;margin-bottom:6px}
+  .rail-copy{color:var(--ink-dim);font-size:13px;line-height:1.5;margin-bottom:18px}
+  .rail-list{display:grid;gap:8px}
+  .rail-link{
+    display:grid;
+    grid-template-columns:34px 1fr;
+    gap:10px;
+    align-items:center;
+    border:1px solid transparent;
+    border-radius:16px;
+    padding:9px;
+    color:var(--ink-dim);
+    text-decoration:none;
+    font-size:13px;
+    transition:.2s ease;
+  }
+  .rail-link span:first-child{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:rgba(185,154,85,.09);color:var(--gold-bright);font-family:var(--serif)}
+  .rail-link:hover,.rail-link.is-active{border-color:rgba(185,154,85,.3);background:rgba(185,154,85,.08);color:var(--ink)}
+  .modules-grid{display:grid;gap:18px}
+  .module{
+    position:relative;
+    border:1px solid var(--line);
+    border-radius:26px;
+    padding:28px;
+    background:linear-gradient(145deg,rgba(255,255,255,.056),rgba(255,255,255,.018));
+    overflow:hidden;
+    transform:translate3d(0,calc(var(--card-shift,0) * 1px),0);
+    transition:transform .22s ease,border-color .22s ease,background .22s ease;
+  }
+  .module::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:radial-gradient(circle at var(--mx,80%) var(--my,10%),rgba(216,187,112,.14),transparent 42%);
+    opacity:0;
+    transition:opacity .24s ease;
+    pointer-events:none;
+  }
+  .module:hover{border-color:rgba(216,187,112,.42);transform:translateY(-4px)}
+  .module:hover::before{opacity:1}
+  .module-head{position:relative;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:start;margin-bottom:18px}
+  .kicker{color:var(--gold-bright);font-size:11px;letter-spacing:.17em;text-transform:uppercase;font-weight:800;margin-bottom:10px}
+  .module h3,.week h3,.compare h3,.template h3,.script-card h3{font-family:var(--serif);font-size:28px;font-weight:500;line-height:1.1;margin-bottom:10px}
   .module p,.week p,.compare li,.template p,.script-card p{color:var(--ink-dim);font-size:15px;line-height:1.62}
-  .lessons{list-style:none;display:grid;gap:8px;margin-top:15px;color:var(--ink-dim);font-size:13px}
-  .lessons li{display:flex;gap:8px;align-items:flex-start}
-  .lessons li::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--gold);margin-top:7px;flex:0 0 auto}
+  .module-tag{border:1px solid rgba(185,154,85,.22);border-radius:999px;padding:7px 10px;color:var(--ink-dim);font-size:12px;white-space:nowrap}
+  .lesson-grid{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+  .lesson{
+    border:1px solid rgba(185,154,85,.14);
+    border-radius:16px;
+    padding:14px;
+    background:rgba(0,0,0,.16);
+    min-height:112px;
+  }
+  .lesson strong{display:block;color:var(--ink);font-size:14px;margin-bottom:5px}
+  .lesson span{color:var(--ink-dim);font-size:12px;line-height:1.42}
   .timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
   .week{
     border:1px solid var(--line);
-    border-radius:22px;
+    border-radius:24px;
     padding:26px;
     background:linear-gradient(145deg,rgba(255,255,255,.052),rgba(255,255,255,.012));
   }
@@ -703,36 +312,63 @@
   .template-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
   .template{
     border:1px solid var(--line);
-    border-radius:22px;
+    border-radius:24px;
     padding:24px;
     background:rgba(255,255,255,.025);
-    min-height:190px;
+    min-height:204px;
   }
+  .template-icon{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:rgba(185,154,85,.12);color:var(--gold-bright);font-family:var(--serif);font-size:20px;margin-bottom:18px}
+  .compare-panel{border:1px solid var(--line);border-radius:28px;overflow:hidden;background:rgba(255,255,255,.03)}
   .compare-grid{display:grid;grid-template-columns:1fr 1fr}
   .compare{padding:34px;border-right:1px solid var(--line)}
   .compare:last-child{border-right:0;background:rgba(185,154,85,.055)}
   .compare ul{list-style:none;display:grid;gap:14px}
   .compare li{display:flex;gap:10px}
-  .compare li::before{content:"-";color:var(--ink-faint);font-weight:700}
+  .compare li::before{content:"-";color:var(--ink-faint);font-weight:800}
   .compare:last-child li::before{content:"+";color:var(--gold-bright)}
-  .script-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:26px;align-items:start}
+  .recording-card{
+    display:grid;
+    grid-template-columns:.9fr 1.1fr;
+    gap:28px;
+    align-items:start;
+    border:1px solid var(--line);
+    border-radius:30px;
+    padding:36px;
+    background:linear-gradient(145deg,rgba(255,255,255,.056),rgba(255,255,255,.016));
+  }
   .script-lines{display:grid;gap:12px}
   .script-lines div{
     border:1px solid var(--line);
     border-radius:16px;
     padding:16px 18px;
-    background:rgba(10,10,12,.5);
+    background:rgba(10,10,12,.52);
     color:var(--ink);
     font-size:15px;
     line-height:1.5;
   }
-  .cta-panel{text-align:center;padding:70px 34px}
+  .cta-panel{
+    border:1px solid var(--line);
+    border-radius:34px;
+    padding:70px 34px;
+    text-align:center;
+    background:
+      radial-gradient(circle at 50% 0%,rgba(216,187,112,.16),transparent 45%),
+      linear-gradient(145deg,rgba(255,255,255,.056),rgba(255,255,255,.016));
+    box-shadow:0 34px 90px rgba(0,0,0,.35);
+  }
   .cta-panel h2{font-family:var(--serif);font-size:clamp(38px,5vw,68px);font-weight:400;line-height:1;margin-bottom:18px}
   .cta-panel p{color:var(--ink-dim);font-size:18px;max-width:620px;margin:0 auto 30px;line-height:1.65}
+  .scroll-reveal{opacity:0;transform:translate3d(0,34px,0) scale(.988);transition:opacity .68s cubic-bezier(.2,.8,.2,1),transform .68s cubic-bezier(.2,.8,.2,1);transition-delay:var(--delay,0ms)}
+  .scroll-reveal.is-visible{opacity:1;transform:translate3d(0,0,0) scale(1)}
+  .wheel-reactive{will-change:transform}
   footer{position:relative;z-index:2;border-top:1px solid var(--line);padding:42px 0;color:var(--ink-faint);font-size:13px}
   .footer-inner{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
-  @media(max-width:980px){
-    .split,.timeline,.template-grid,.compare-grid,.script-grid{grid-template-columns:1fr}
+  @media(max-width:1020px){
+    .hero-grid,.course-shell,.recording-card{grid-template-columns:1fr}
+    .course-rail{position:relative;top:auto}
+    .rail-list{grid-template-columns:repeat(2,1fr)}
+    .timeline,.template-grid{grid-template-columns:repeat(2,1fr)}
+    .compare-grid{grid-template-columns:1fr}
     .compare{border-right:0;border-bottom:1px solid var(--line)}
     .compare:last-child{border-bottom:0}
     body.nav-open{overflow:hidden}
@@ -762,19 +398,24 @@
     .nav-links a:hover{background:rgba(185,154,85,.08)}
     .nav-links .nav-cta{display:flex;justify-content:center;margin-top:4px}
   }
-  @media(max-width:640px){
+  @media(max-width:720px){
     nav{padding:14px 18px}
+    body.nav-scrolled nav{padding:12px 18px}
     .wrap{padding:0 20px}
-    section{padding:76px 0}
+    section{padding:78px 0}
     .hero{padding:116px 0 76px}
-    h1{font-size:clamp(40px,12vw,52px);line-height:1.03}
+    h1{font-size:clamp(40px,12vw,54px);line-height:1.03}
     .lede{font-size:18px;line-height:1.58}
-    .btn-row{display:grid;grid-template-columns:1fr;gap:12px}
+    .btn-row,.hero-meta{display:grid;grid-template-columns:1fr;gap:12px}
     .btn{width:100%;min-height:54px}
     .section-title{font-size:clamp(34px,10vw,46px);line-height:1.08}
     .section-lede{font-size:17px}
-    .panel{border-radius:24px}
-    .panel-pad,.module,.week,.template,.compare{padding:22px}
+    .course-device{min-height:auto;padding:12px;border-radius:26px}
+    .device-screen{min-height:auto;padding:18px;border-radius:20px}
+    .float-chip{position:relative;right:auto;bottom:auto;width:auto;margin-top:14px}
+    .screen-head,.module-head{grid-template-columns:1fr}
+    .lesson-grid,.timeline,.template-grid,.rail-list{grid-template-columns:1fr}
+    .recording-card,.module,.week,.template,.compare{padding:22px}
     .module h3,.week h3,.compare h3,.template h3,.script-card h3{font-size:24px}
     .script-lines div{font-size:14px;padding:15px}
     .cta-panel{padding:48px 22px}
@@ -787,9 +428,14 @@
     .logo-mark{width:34px;height:34px}
     h1{font-size:clamp(37px,11.5vw,46px)}
   }
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;scroll-behavior:auto !important;transition-duration:.001ms !important}
+    .scroll-reveal{opacity:1 !important;transform:none !important}
+  }
 </style>
 </head>
 <body>
+<div class="scroll-progress" aria-hidden="true"></div>
 <nav aria-label="Primary navigation">
   <div class="nav-inner">
     <a class="logo" href="/surplus.html" aria-label="Back to Surplus homepage">
@@ -808,97 +454,160 @@
     </div>
   </div>
 </nav>
-<div class="page-transition" aria-hidden="true"></div>
 
 <main>
   <section class="hero">
-    <div class="wrap">
-      <div class="eyebrow">Inside the $50/month membership</div>
-      <h1>The course page, with room to <em>breathe.</em></h1>
-      <p class="lede">This page holds the deeper details: modules, first 30 days, spreadsheets, AI lessons, community structure, and the reason Surplus is different from expensive guru courses.</p>
-      <div class="btn-row">
-        <a class="btn btn-primary" href="/surplus.html#signup">Start the climb for $50/mo <span aria-hidden="true">&rarr;</span></a>
-        <a class="btn" href="/surplus-member.html?limited=1">View member portal</a>
+    <div class="wrap hero-grid">
+      <div class="scroll-reveal">
+        <div class="eyebrow">Inside the $50/month membership</div>
+        <h1>A course built like a <em>climb</em>, not a content dump.</h1>
+        <p class="lede">Surplus gives members a clear path: fix the money leak, build discipline, grow income, use AI as leverage, and stay around people who are moving too.</p>
+        <div class="btn-row">
+          <a class="btn btn-primary" href="/surplus.html#signup">Start the climb for $50/mo <span aria-hidden="true">&rarr;</span></a>
+          <a class="btn" href="/surplus-member.html?limited=1">View member portal</a>
+        </div>
+        <div class="hero-meta">
+          <div><strong>6</strong>core modules from foundation to wealth basics</div>
+          <div><strong>30</strong>day starting path so members know what to do first</div>
+          <div><strong>12+</strong>templates, prompts, and tools included</div>
+        </div>
+      </div>
+
+      <div class="course-device wheel-reactive scroll-reveal" data-depth="22">
+        <div class="device-top">
+          <div class="device-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+          <span>Surplus member dashboard</span>
+        </div>
+        <div class="device-screen">
+          <div class="screen-head">
+            <h2>Today inside Surplus</h2>
+            <span>On track</span>
+          </div>
+          <div class="lesson-now">
+            <div class="lesson-hero">
+              <small>Current lesson</small>
+              <h3>Install the monthly budget system</h3>
+              <p>Run the first audit, name the leaks, and set up the weekly check-in rhythm that keeps the month from getting away from you.</p>
+              <div class="progress-track" aria-hidden="true"><span></span></div>
+            </div>
+            <div class="mini-lessons">
+              <div class="mini-lesson"><div class="mini-num">1</div><div><strong>Know your number</strong><span>Cash flow, debt, bills, pressure.</span></div><div class="mini-time">18m</div></div>
+              <div class="mini-lesson"><div class="mini-num">2</div><div><strong>Find the leak</strong><span>Subscriptions, habits, impulse spend.</span></div><div class="mini-time">14m</div></div>
+              <div class="mini-lesson"><div class="mini-num">3</div><div><strong>Pick the first income move</strong><span>One play, one offer, one week.</span></div><div class="mini-time">22m</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="float-chip">
+          <strong>+$500</strong>
+          first side-income target after the budget system is installed
+        </div>
       </div>
     </div>
   </section>
 
   <section id="modules">
-    <div class="wrap split">
-      <div class="section-head">
-        <div class="eyebrow">Course Modules</div>
-        <h2 class="section-title">What members unlock inside Surplus.</h2>
-        <p class="section-lede">The curriculum starts with personal foundation, then builds into money control, income, AI, business, and wealth basics.</p>
-      </div>
-      <div class="module-list">
-        <article class="module"><div class="kicker">Module 01</div><h3>The Wake-Up</h3><p>The mindset shift that starts everything: nobody is coming to save you, so you need a system and a standard.</p><ul class="lessons"><li>My story from helper to business owner</li><li>Why motivation is unreliable</li><li>Building discipline while life is busy</li></ul></article>
-        <article class="module"><div class="kicker">Module 02</div><h3>Money Control</h3><p>Budgeting for people who hate budgeting. Know the number, find the leak, and stop letting money disappear.</p><ul class="lessons"><li>Zero-based budget setup</li><li>Expense audit and spending leaks</li><li>Emergency fund and sinking funds</li></ul></article>
-        <article class="module"><div class="kicker">Module 03</div><h3>Income Ladder</h3><p>Grow income from where you are, whether that is a job, trade, side hustle, or service business.</p><ul class="lessons"><li>First $500/month side-income plan</li><li>High-value skills and service offers</li><li>Pricing your time without guessing</li></ul></article>
-        <article class="module"><div class="kicker">Module 04</div><h3>AI as a Tool</h3><p>Practical AI for people who want to move faster, plan better, and create more without pretending AI replaces work.</p><ul class="lessons"><li>AI for personal planning and decisions</li><li>AI for business owners and operators</li><li>Prompts for content, research, and systems</li></ul></article>
-        <article class="module"><div class="kicker">Module 05</div><h3>Business and Trades</h3><p>Lessons from starting a contracting company young while still working a job and learning through real pressure.</p><ul class="lessons"><li>Turning a skill into a paid offer</li><li>Getting first customers and referrals</li><li>Keeping standards when you are tired</li></ul></article>
-        <article class="module"><div class="kicker">Module 06</div><h3>Property and Wealth Basics</h3><p>First property decisions, renovation plans, long-term investing, and putting surplus to work.</p><ul class="lessons"><li>Primary home as an investment mindset</li><li>Renovation, resale, and risk basics</li><li>S&P 500 and long-term investing basics</li></ul></article>
+    <div class="wrap course-shell">
+      <aside class="course-rail scroll-reveal" aria-label="Course path">
+        <div class="rail-title">Course path</div>
+        <p class="rail-copy">The page reacts as you scroll so people always feel where they are in the system.</p>
+        <div class="rail-list">
+          <a class="rail-link" href="#m1" data-scroll="#m1"><span>1</span><strong>Wake-Up</strong></a>
+          <a class="rail-link" href="#m2" data-scroll="#m2"><span>2</span><strong>Money Control</strong></a>
+          <a class="rail-link" href="#m3" data-scroll="#m3"><span>3</span><strong>Income Ladder</strong></a>
+          <a class="rail-link" href="#m4" data-scroll="#m4"><span>4</span><strong>AI as a Tool</strong></a>
+          <a class="rail-link" href="#m5" data-scroll="#m5"><span>5</span><strong>Business</strong></a>
+          <a class="rail-link" href="#m6" data-scroll="#m6"><span>6</span><strong>Wealth Basics</strong></a>
+        </div>
+      </aside>
+
+      <div>
+        <div class="section-head scroll-reveal">
+          <div class="eyebrow">Course Modules</div>
+          <h2 class="section-title">What members unlock inside Surplus.</h2>
+          <p class="section-lede">The curriculum starts with your real life, then builds into money control, income, AI, business, and putting surplus to work.</p>
+        </div>
+        <div class="modules-grid">
+          <article class="module scroll-reveal wheel-reactive" id="m1" data-module="m1" data-depth="10">
+            <div class="module-head"><div><div class="kicker">Module 01</div><h3>The Wake-Up</h3><p>The mindset shift that starts everything: nobody is coming to save you, so build the system and standard now.</p></div><span class="module-tag">Start here</span></div>
+            <div class="lesson-grid"><div class="lesson"><strong>Origin story</strong><span>From helper at 11 to business owner at 19.</span></div><div class="lesson"><strong>The click</strong><span>Why waiting for rescue keeps people stuck.</span></div><div class="lesson"><strong>Discipline stack</strong><span>How to work while life is already busy.</span></div></div>
+          </article>
+          <article class="module scroll-reveal wheel-reactive" id="m2" data-module="m2" data-depth="11">
+            <div class="module-head"><div><div class="kicker">Module 02</div><h3>Money Control</h3><p>Budgeting for people who hate budgeting. Know the number, find the leak, and stop letting money disappear.</p></div><span class="module-tag">Budget system</span></div>
+            <div class="lesson-grid"><div class="lesson"><strong>Zero-based setup</strong><span>Give every dollar a job before it vanishes.</span></div><div class="lesson"><strong>Expense audit</strong><span>Find the first $300-$1,200 in leaks.</span></div><div class="lesson"><strong>Buffers</strong><span>Emergency fund, sinking funds, and calm.</span></div></div>
+          </article>
+          <article class="module scroll-reveal wheel-reactive" id="m3" data-module="m3" data-depth="12">
+            <div class="module-head"><div><div class="kicker">Module 03</div><h3>Income Ladder</h3><p>Grow from where you are: job, trade, side hustle, service offer, or a skill people will pay for.</p></div><span class="module-tag">Earn more</span></div>
+            <div class="lesson-grid"><div class="lesson"><strong>First $500</strong><span>A simple first side-income plan.</span></div><div class="lesson"><strong>Offer building</strong><span>Turn a skill into a clear paid outcome.</span></div><div class="lesson"><strong>Pricing</strong><span>Stop guessing what your time is worth.</span></div></div>
+          </article>
+          <article class="module scroll-reveal wheel-reactive" id="m4" data-module="m4" data-depth="13">
+            <div class="module-head"><div><div class="kicker">Module 04</div><h3>AI as a Tool</h3><p>Practical AI for planning, writing, research, decisions, business operations, and creating more output.</p></div><span class="module-tag">Leverage</span></div>
+            <div class="lesson-grid"><div class="lesson"><strong>Personal AI</strong><span>Plan weeks, compare choices, organize life.</span></div><div class="lesson"><strong>Business AI</strong><span>Quotes, SOPs, customer messages, follow-up.</span></div><div class="lesson"><strong>Content engine</strong><span>Turn one idea into posts, scripts, and clips.</span></div></div>
+          </article>
+          <article class="module scroll-reveal wheel-reactive" id="m5" data-module="m5" data-depth="14">
+            <div class="module-head"><div><div class="kicker">Module 05</div><h3>Business and Trades</h3><p>Lessons from starting young, working a job, learning under pressure, and using standards to create trust.</p></div><span class="module-tag">Operator mode</span></div>
+            <div class="lesson-grid"><div class="lesson"><strong>First customers</strong><span>Referral, local trust, and simple outreach.</span></div><div class="lesson"><strong>Service standards</strong><span>Quality, communication, and follow-through.</span></div><div class="lesson"><strong>Keep learning</strong><span>How the 9-to-5 can fund the bigger plan.</span></div></div>
+          </article>
+          <article class="module scroll-reveal wheel-reactive" id="m6" data-module="m6" data-depth="15">
+            <div class="module-head"><div><div class="kicker">Module 06</div><h3>Property and Wealth Basics</h3><p>First property decisions, renovation thinking, long-term investing basics, and what to do when surplus appears.</p></div><span class="module-tag">Put money to work</span></div>
+            <div class="lesson-grid"><div class="lesson"><strong>Property lens</strong><span>Primary home with investment thinking.</span></div><div class="lesson"><strong>Risk basics</strong><span>Renovation, resale, cash, and patience.</span></div><div class="lesson"><strong>Index funds</strong><span>Simple long-term investing education.</span></div></div>
+          </article>
+        </div>
       </div>
     </div>
   </section>
 
   <section id="first-30">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head scroll-reveal">
         <div class="eyebrow">First 30 Days</div>
         <h2 class="section-title">A clear first month, not content overload.</h2>
-        <p class="section-lede">Members should leave month one with clarity, a working budget, a first income plan, and AI workflows they can actually use.</p>
+        <p class="section-lede">Members should leave month one with clarity, a working budget, a first income plan, and an AI workflow they can actually use.</p>
       </div>
       <div class="timeline">
-        <article class="week"><div class="kicker">Week 01</div><h3>Audit your real life.</h3><p>List income, bills, debts, subscriptions, and pressure points.</p><div class="deliverable"><strong>Deliverable</strong>Your true monthly number and leak list.</div></article>
-        <article class="week"><div class="kicker">Week 02</div><h3>Build the budget rhythm.</h3><p>Set up the monthly budget and weekly check-in system.</p><div class="deliverable"><strong>Deliverable</strong>A live budget you can run every week.</div></article>
-        <article class="week"><div class="kicker">Week 03</div><h3>Pick your income move.</h3><p>Choose one income track and map the first $500/month attempt.</p><div class="deliverable"><strong>Deliverable</strong>A first offer, outreach plan, or raise plan.</div></article>
-        <article class="week"><div class="kicker">Week 04</div><h3>Install AI into the system.</h3><p>Use AI to plan, write, research, organize, and execute faster.</p><div class="deliverable"><strong>Deliverable</strong>Your first AI workflow and weekly action plan.</div></article>
+        <article class="week scroll-reveal"><div class="kicker">Week 01</div><h3>Audit your real life.</h3><p>List income, bills, debts, subscriptions, and pressure points.</p><div class="deliverable"><strong>Deliverable</strong>Your true monthly number and leak list.</div></article>
+        <article class="week scroll-reveal"><div class="kicker">Week 02</div><h3>Build the budget rhythm.</h3><p>Set up the monthly budget and weekly check-in system.</p><div class="deliverable"><strong>Deliverable</strong>A live budget you can run every week.</div></article>
+        <article class="week scroll-reveal"><div class="kicker">Week 03</div><h3>Pick your income move.</h3><p>Choose one income track and map the first $500/month attempt.</p><div class="deliverable"><strong>Deliverable</strong>A first offer, outreach plan, or raise plan.</div></article>
+        <article class="week scroll-reveal"><div class="kicker">Week 04</div><h3>Install AI into the system.</h3><p>Use AI to plan, write, research, organize, and execute faster.</p><div class="deliverable"><strong>Deliverable</strong>Your first AI workflow and weekly action plan.</div></article>
       </div>
     </div>
   </section>
 
   <section id="templates">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head scroll-reveal">
         <div class="eyebrow">Templates</div>
         <h2 class="section-title">Spreadsheets that make the system visible.</h2>
         <p class="section-lede">Built for Google Sheets and Excel-compatible. Plug in your numbers, follow the prompts, and let the formulas show the next move.</p>
       </div>
       <div class="template-grid">
-        <article class="template"><div class="kicker">01</div><h3>Monthly Budget</h3><p>Zero-based budget with category alerts and weekly review flow.</p></article>
-        <article class="template"><div class="kicker">02</div><h3>Debt Snowball</h3><p>Side-by-side payoff calculators for snowball and avalanche.</p></article>
-        <article class="template"><div class="kicker">03</div><h3>Net Worth Tracker</h3><p>Track cash, investments, equity, liabilities, and trajectory.</p></article>
-        <article class="template"><div class="kicker">04</div><h3>Sinking Funds</h3><p>Plan irregular expenses before they wreck the month.</p></article>
-        <article class="template"><div class="kicker">05</div><h3>Side Income Log</h3><p>Track gigs, hours, rates, profit, and best income plays.</p></article>
-        <article class="template"><div class="kicker">06+</div><h3>More Tools</h3><p>Savings goals, expense audit, salary calculator, AI prompts, and more.</p></article>
+        <article class="template scroll-reveal"><div class="template-icon">B</div><h3>Monthly Budget</h3><p>Zero-based budget with category alerts and weekly review flow.</p></article>
+        <article class="template scroll-reveal"><div class="template-icon">D</div><h3>Debt Snowball</h3><p>Side-by-side payoff calculators for snowball and avalanche.</p></article>
+        <article class="template scroll-reveal"><div class="template-icon">N</div><h3>Net Worth Tracker</h3><p>Track cash, investments, equity, liabilities, and trajectory.</p></article>
+        <article class="template scroll-reveal"><div class="template-icon">S</div><h3>Sinking Funds</h3><p>Plan irregular expenses before they wreck the month.</p></article>
+        <article class="template scroll-reveal"><div class="template-icon">I</div><h3>Side Income Log</h3><p>Track gigs, hours, rates, profit, and best income plays.</p></article>
+        <article class="template scroll-reveal"><div class="template-icon">+</div><h3>More Tools</h3><p>Savings goals, expense audit, salary calculator, AI prompts, and more.</p></article>
       </div>
     </div>
   </section>
 
   <section id="comparison">
     <div class="wrap">
-      <div class="section-head">
+      <div class="section-head scroll-reveal">
         <div class="eyebrow">Why Surplus</div>
         <h2 class="section-title">Not another guru course.</h2>
         <p class="section-lede">People have seen the rented cars, vague advice, and overpriced courses. Surplus should feel different immediately.</p>
       </div>
-      <div class="panel">
+      <div class="compare-panel scroll-reveal">
         <div class="compare-grid">
-          <div class="compare">
-            <h3>Typical online courses</h3>
-            <ul><li>Expensive upfront pricing before trust is built.</li><li>Advice from people too far removed from the beginning.</li><li>Polished lifestyle content with unclear next steps.</li><li>One-way videos with no real community.</li><li>Generic motivation that fades after a week.</li></ul>
-          </div>
-          <div class="compare">
-            <h3>Surplus by Rosario</h3>
-            <ul><li>$50/month so people can start without a huge gamble.</li><li>Real-time lessons from someone still building the climb.</li><li>Budget sheets, AI prompts, income plays, and weekly actions.</li><li>Discord community for questions and accountability.</li><li>Built around execution, not pretending success is effortless.</li></ul>
-          </div>
+          <div class="compare"><h3>Typical online courses</h3><ul><li>Expensive upfront pricing before trust is built.</li><li>Advice from people too far removed from the beginning.</li><li>Polished lifestyle content with unclear next steps.</li><li>One-way videos with no real community.</li><li>Generic motivation that fades after a week.</li></ul></div>
+          <div class="compare"><h3>Surplus by Rosario</h3><ul><li>$50/month so people can start without a huge gamble.</li><li>Real-time lessons from someone still building the climb.</li><li>Budget sheets, AI prompts, income plays, and weekly actions.</li><li>Discord community for questions and accountability.</li><li>Built around execution, not pretending success is effortless.</li></ul></div>
         </div>
       </div>
     </div>
   </section>
 
   <section id="recording">
-    <div class="wrap panel panel-pad script-grid">
+    <div class="wrap recording-card scroll-reveal">
       <div class="script-card">
         <div class="eyebrow">Recording Plan</div>
         <h3>Record this intro first.</h3>
@@ -913,11 +622,13 @@
   </section>
 
   <section>
-    <div class="wrap panel cta-panel">
+    <div class="wrap cta-panel scroll-reveal">
       <h2>Ready to start the climb?</h2>
       <p>Join Surplus for $50/month and get the course, Discord community, spreadsheets, AI playbooks, and live direction.</p>
-      <a class="btn btn-primary" href="/surplus.html#signup">Join Surplus <span aria-hidden="true">&rarr;</span></a>
-      <a class="btn" href="/surplus-member.html?limited=1" style="margin-left:10px">Preview the portal</a>
+      <div class="btn-row" style="justify-content:center">
+        <a class="btn btn-primary" href="/surplus.html#signup">Join Surplus <span aria-hidden="true">&rarr;</span></a>
+        <a class="btn" href="/surplus-member.html?limited=1">Preview the portal</a>
+      </div>
     </div>
   </section>
 </main>
@@ -934,13 +645,64 @@
 
 <script>
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const PAGE_TRANSITION_MS = 0;
-  sessionStorage.removeItem("surplusIrisTransition");
-  document.body.classList.add("page-ready");
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => document.documentElement.classList.remove("preload-transition"));
-  });
-  document.querySelectorAll("[data-scroll]").forEach((item) => {
+  const root = document.documentElement;
+  const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+  let ticking = false;
+  let wheelBoost = 0;
+  let wheelTarget = 0;
+
+  const updateScrollMotion = () => {
+    const maxScroll = root.scrollHeight - window.innerHeight;
+    const progress = maxScroll > 0 ? window.scrollY / maxScroll : 0;
+    root.style.setProperty("--page-progress", progress.toFixed(4));
+    root.style.setProperty("--wheel-boost", wheelBoost.toFixed(3));
+    document.body.classList.toggle("nav-scrolled", window.scrollY > 18);
+    document.querySelectorAll(".wheel-reactive").forEach((card) => {
+      const rect = card.getBoundingClientRect();
+      const center = (rect.top + rect.height / 2) - window.innerHeight / 2;
+      const shift = clamp(center / window.innerHeight, -1, 1) * -12;
+      card.style.setProperty("--card-shift", shift.toFixed(2));
+    });
+    ticking = false;
+  };
+  const requestScrollMotion = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(updateScrollMotion);
+  };
+  const decayWheel = () => {
+    wheelBoost += (wheelTarget - wheelBoost) * .18;
+    wheelTarget *= .82;
+    root.style.setProperty("--wheel-boost", wheelBoost.toFixed(3));
+    if (Math.abs(wheelBoost) > .01 || Math.abs(wheelTarget) > .01) requestAnimationFrame(decayWheel);
+  };
+  if (!reducedMotion) {
+    window.addEventListener("wheel", (event) => {
+      wheelTarget = clamp(event.deltaY / 700, -1, 1);
+      requestAnimationFrame(decayWheel);
+    }, { passive:true });
+  }
+  updateScrollMotion();
+  window.addEventListener("scroll", requestScrollMotion, { passive:true });
+  window.addEventListener("resize", requestScrollMotion);
+
+  const revealItems = document.querySelectorAll(".scroll-reveal");
+  if (!reducedMotion) {
+    revealItems.forEach((item, index) => item.style.setProperty("--delay", `${Math.min(index % 5, 4) * 60}ms`));
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("is-visible");
+        revealObserver.unobserve(entry.target);
+      });
+    }, { rootMargin:"0px 0px -12% 0px", threshold:.12 });
+    revealItems.forEach((item) => revealObserver.observe(item));
+  } else {
+    revealItems.forEach((item) => item.classList.add("is-visible"));
+  }
+
+  const scrollLinks = Array.from(document.querySelectorAll("[data-scroll]"));
+  scrollLinks.forEach((item) => {
     item.addEventListener("click", (event) => {
       const selector = item.getAttribute("data-scroll");
       const target = selector ? document.querySelector(selector) : null;
@@ -948,7 +710,7 @@
       event.preventDefault();
       document.body.classList.remove("nav-open");
       document.querySelector(".nav-menu-toggle")?.setAttribute("aria-expanded", "false");
-      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      target.scrollIntoView({ behavior:reducedMotion ? "auto" : "smooth", block:"start" });
     });
   });
 
@@ -957,11 +719,37 @@
     const isOpen = document.body.classList.toggle("nav-open");
     menuToggle.setAttribute("aria-expanded", String(isOpen));
   });
-
   document.querySelectorAll('a[href]').forEach((link) => {
     link.addEventListener("click", () => {
       document.body.classList.remove("nav-open");
-      document.querySelector(".nav-menu-toggle")?.setAttribute("aria-expanded", "false");
+      menuToggle?.setAttribute("aria-expanded", "false");
+    });
+  });
+
+  const navLinks = Array.from(document.querySelectorAll(".nav-links a[data-scroll]"))
+    .map((link) => ({ link, section:document.querySelector(link.getAttribute("data-scroll")) }))
+    .filter((item) => item.section);
+  const railLinks = Array.from(document.querySelectorAll(".rail-link"))
+    .map((link) => ({ link, section:document.querySelector(link.getAttribute("href")) }))
+    .filter((item) => item.section);
+  const updateActiveLinks = () => {
+    const marker = window.scrollY + window.innerHeight * .36;
+    const setActive = (items) => {
+      let current = items[0]?.section;
+      items.forEach(({ section }) => { if (section.offsetTop <= marker) current = section; });
+      items.forEach(({ link, section }) => link.classList.toggle("is-active", section === current));
+    };
+    setActive(navLinks);
+    setActive(railLinks);
+  };
+  updateActiveLinks();
+  window.addEventListener("scroll", () => requestAnimationFrame(updateActiveLinks), { passive:true });
+
+  document.querySelectorAll(".module").forEach((card) => {
+    card.addEventListener("pointermove", (event) => {
+      const rect = card.getBoundingClientRect();
+      card.style.setProperty("--mx", `${((event.clientX - rect.left) / rect.width) * 100}%`);
+      card.style.setProperty("--my", `${((event.clientY - rect.top) / rect.height) * 100}%`);
     });
   });
 </script>
