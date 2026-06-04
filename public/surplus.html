@@ -19,10 +19,7 @@
 <script>
   (() => {
     try {
-      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (!reduce && sessionStorage.getItem("surplusIrisTransition") === "1") {
-        document.documentElement.classList.add("preload-transition");
-      }
+      sessionStorage.removeItem("surplusIrisTransition");
     } catch {}
   })();
 </script>
@@ -682,6 +679,17 @@
   @keyframes cornerEdgeOut{
     from{transform:translate3d(-8vmax,-8vmax,0) rotate(45deg);opacity:.7}
     to{transform:translate3d(116vmax,116vmax,0) rotate(45deg);opacity:.35}
+  }
+  html.preload-transition::before,
+  .page-transition{display:none !important}
+  body.page-leaving main,
+  body.page-leaving footer,
+  body.page-entering main,
+  body.page-entering footer{
+    animation:none !important;
+    opacity:1 !important;
+    filter:none !important;
+    transform:none !important;
   }
   .scroll-progress{
     position:fixed;
@@ -2350,15 +2358,10 @@
   const CONTACT_EMAIL = "hello@surplusbyrosario.com";
   const VIDEO_URL = "https://www.youtube.com/embed/aOQndPlfNhU?autoplay=1&rel=0&enablejsapi=1";
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const PAGE_TRANSITION_MS = 460;
+  const PAGE_TRANSITION_MS = 0;
 
   const toast = document.getElementById("toast");
-  const shouldPlayEntryTransition = sessionStorage.getItem("surplusIrisTransition") === "1";
   sessionStorage.removeItem("surplusIrisTransition");
-  if (shouldPlayEntryTransition && !reducedMotion) {
-    document.body.classList.add("page-entering");
-    setTimeout(() => document.body.classList.remove("page-entering"), PAGE_TRANSITION_MS);
-  }
   document.body.classList.add("page-ready");
   requestAnimationFrame(() => {
     requestAnimationFrame(() => document.documentElement.classList.remove("preload-transition"));
@@ -2479,21 +2482,9 @@
   });
 
   document.querySelectorAll('a[href]').forEach((link) => {
-    link.addEventListener("click", (event) => {
-      const href = link.getAttribute("href");
-      if (!href || href.startsWith("#") || href.startsWith("mailto:") || link.target === "_blank" || link.hasAttribute("download")) return;
-      const next = new URL(href, window.location.href);
-      if (next.origin !== window.location.origin) return;
-      if (next.pathname === window.location.pathname && next.hash) return;
-      event.preventDefault();
+    link.addEventListener("click", () => {
       document.body.classList.remove("nav-open");
-      if (reducedMotion) {
-        window.location.href = next.href;
-        return;
-      }
-      sessionStorage.setItem("surplusIrisTransition", "1");
-      document.body.classList.add("page-leaving");
-      setTimeout(() => { window.location.href = next.href; }, PAGE_TRANSITION_MS);
+      document.querySelector(".nav-menu-toggle")?.setAttribute("aria-expanded", "false");
     });
   });
 
