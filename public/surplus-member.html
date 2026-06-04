@@ -104,6 +104,37 @@
 
   /* ---------- APP SHELL ---------- */
   .app{display:flex; min-height:100vh; position:relative; z-index:1}
+  .preview-banner{
+    position:fixed;
+    left:50%;
+    bottom:18px;
+    transform:translateX(-50%);
+    z-index:90;
+    display:none;
+    align-items:center;
+    gap:12px;
+    max-width:calc(100vw - 28px);
+    padding:10px 12px 10px 16px;
+    border:1px solid rgba(185,154,85,.28);
+    border-radius:999px;
+    background:rgba(10,10,12,.82);
+    backdrop-filter:blur(18px);
+    box-shadow:0 18px 50px rgba(0,0,0,.38);
+    color:var(--ink-dim);
+    font-size:13px;
+  }
+  body.preview-mode .preview-banner{display:flex}
+  .preview-banner strong{color:var(--gold-bright); font-family:var(--serif); font-weight:500; white-space:nowrap}
+  .preview-banner span{white-space:nowrap}
+  .preview-banner a{
+    color:#0a0a0c;
+    background:linear-gradient(135deg,var(--gold-bright),var(--gold-deep));
+    border-radius:999px;
+    padding:8px 12px;
+    text-decoration:none;
+    font-weight:700;
+    white-space:nowrap;
+  }
 
   /* Sidebar */
   .sidebar{
@@ -860,6 +891,15 @@
     .topbar-icon-btn{order:3; width:38px; flex:0 0 38px}
     .notif-wrap{order:3; width:38px; flex:0 0 38px}
     .notif-panel{position:fixed; top:84px; left:16px; right:16px; width:auto; max-width:none}
+    .preview-banner{
+      left:12px;
+      right:12px;
+      bottom:82px;
+      transform:none;
+      justify-content:space-between;
+      border-radius:18px;
+    }
+    .preview-banner span{display:none}
   }
 
   /* ---------- ONBOARDING WIZARD ---------- */
@@ -1225,6 +1265,11 @@
 
 <!-- ============ APP ============ -->
 <div class="app">
+  <div class="preview-banner" id="previewBanner">
+    <strong>Dashboard preview</strong>
+    <span>Explore the member experience. Sign-up is not required for this demo.</span>
+    <a href="/surplus.html#signup">Join Surplus</a>
+  </div>
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
@@ -2572,6 +2617,8 @@ const WIZARD_STAGES = [
 ];
 
 // ---------- STATE ----------
+const MEMBER_QUERY = new URLSearchParams(window.location.search);
+const IS_PREVIEW_MODE = MEMBER_QUERY.has('preview') || MEMBER_QUERY.has('demo');
 let CURRENT_STATE = 'active';
 
 // ---------- AUTH ----------
@@ -2579,6 +2626,10 @@ function signIn(){
   document.getElementById('signin').classList.add('hidden');
 }
 function logOut(){
+  if (IS_PREVIEW_MODE) {
+    window.location.href = '/surplus.html';
+    return;
+  }
   document.getElementById('signin').classList.remove('hidden');
   document.getElementById('wizard')?.classList.remove('open');
   document.getElementById('palette')?.classList.remove('open');
@@ -3128,6 +3179,7 @@ function openModuleDetail(){
 const _originalSignIn = signIn;
 signIn = function(){
   document.getElementById('signin').classList.add('hidden');
+  if (IS_PREVIEW_MODE) return;
   // Show wizard on first login (in real app, gated on user.onboarded flag)
   setTimeout(() => openWizard(), 600);
 };
@@ -3147,6 +3199,11 @@ renderGoals();
 renderNotifs();
 setDate();
 setState('active');
+if (IS_PREVIEW_MODE) {
+  document.body.classList.add('preview-mode');
+  document.getElementById('signin')?.classList.add('hidden');
+  document.getElementById('wizard')?.classList.remove('open');
+}
 
 // After module cards render, wire them to open the detail view
 document.querySelectorAll('.module-card').forEach(card => {
