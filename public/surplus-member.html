@@ -138,6 +138,7 @@
   body.preview-mode .main{padding-bottom:112px}
   body.preview-mode .topbar{justify-content:flex-end}
   body.preview-mode #section-home .page-head .btn-primary{display:none !important}
+  body.preview-mode .toast{display:none !important}
   body.preview-mode .nav-item:not([data-section="home"]){
     opacity:.58;
     cursor:not-allowed;
@@ -147,8 +148,16 @@
     color:var(--ink-dim);
     border-color:transparent;
   }
-  .nav-lock{
+  .nav-meta{
     margin-left:auto;
+    display:inline-flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:6px;
+    min-width:58px;
+    flex:0 0 auto;
+  }
+  .nav-lock{
     color:var(--gold-bright);
     font-size:13px;
     line-height:1;
@@ -210,9 +219,22 @@
   .nav-icon{width:18px; height:18px; flex-shrink:0; opacity:.7}
   .nav-item.active .nav-icon{opacity:1}
   .nav-badge{
-    margin-left:auto; font-size:10px; padding:2px 7px; border-radius:100px;
-    background:var(--gold); color:#0a0a0c; font-weight:600;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:3px;
+    min-width:26px;
+    height:22px;
+    font-size:10px;
+    line-height:1;
+    padding:0 7px;
+    border-radius:100px;
+    background:var(--gold);
+    color:#0a0a0c;
+    font-weight:700;
+    white-space:nowrap;
   }
+  .nav-badge .badge-emoji{font-size:12px; line-height:1; transform:translateY(-.5px)}
 
   .sidebar-foot{
     margin-top:auto; padding-top:18px; border-top:1px solid var(--line);
@@ -283,7 +305,9 @@
     .sidebar{width:72px; padding:18px 10px}
     .sidebar-brand{justify-content:center; padding-bottom:18px}
     .sidebar-name, .nav-section-label, .user-info, .demo-toggle, .nav-badge, .account-links, .nav-item span:not(.nav-icon-wrap){display:none}
-    body.preview-mode .nav-lock{display:block !important; position:absolute; right:4px; top:4px; font-size:10px}
+    body.preview-mode .nav-meta{display:inline-flex !important; position:absolute; right:3px; top:3px; min-width:0}
+    body.preview-mode .nav-lock{display:block !important; font-size:10px}
+    body.preview-mode .nav-badge{display:none !important}
     .nav-item{justify-content:center; padding:11px}
     .user-card{justify-content:center; padding:8px}
     .main{padding:24px 20px 60px}
@@ -1319,62 +1343,59 @@
     <a class="nav-item" data-section="modules">
       <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M9 4v16"/></svg>
       <span>Modules</span>
-      <span class="nav-badge">2</span>
-      <span class="nav-lock" aria-label="Locked">🔒</span>
+      <span class="nav-meta"><span class="nav-badge">2</span><span class="nav-lock" aria-label="Locked">🔒</span></span>
     </a>
     <a class="nav-item" data-section="spreadsheets">
       <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
       <span>Spreadsheets</span>
-      <span class="nav-lock" aria-label="Locked">🔒</span>
+      <span class="nav-meta"><span class="nav-lock" aria-label="Locked">🔒</span></span>
     </a>
     <a class="nav-item" data-section="ladder">
       <svg class="ico" viewBox="0 0 24 24"><path d="M7 3v18"/><path d="M17 3v18"/><path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h10"/></svg>
       <span>The Ladder</span>
-      <span class="nav-lock" aria-label="Locked">🔒</span>
+      <span class="nav-meta"><span class="nav-lock" aria-label="Locked">🔒</span></span>
     </a>
     <a class="nav-item" data-section="goals">
       <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
       <span>Goals &amp; Streak</span>
-      <span class="nav-badge">🔥 12</span>
-      <span class="nav-lock" aria-label="Locked">🔒</span>
+      <span class="nav-meta"><span class="nav-badge"><span class="badge-emoji">🔥</span>12</span><span class="nav-lock" aria-label="Locked">🔒</span></span>
     </a>
     <a class="nav-item" data-section="resources">
       <svg class="ico" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
       <span>Resources</span>
-      <span class="nav-lock" aria-label="Locked">🔒</span>
+      <span class="nav-meta"><span class="nav-lock" aria-label="Locked">🔒</span></span>
     </a>
     <a class="nav-item" data-section="workshops">
       <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M8 3v4"/><path d="M16 3v4"/></svg>
       <span>Workshops</span>
-      <span class="nav-lock" aria-label="Locked">🔒</span>
+      <span class="nav-meta"><span class="nav-lock" aria-label="Locked">🔒</span></span>
     </a>
     <a class="nav-item" data-section="replays">
       <svg class="ico" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
       <span>Replays</span>
-      <span class="nav-lock" aria-label="Locked">🔒</span>
+      <span class="nav-meta"><span class="nav-lock" aria-label="Locked">🔒</span></span>
     </a>
     <a class="nav-item" data-section="community">
       <svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       <span>Community</span>
-      <span class="nav-badge" style="background:#5865f2; color:#fff">Live</span>
-      <span class="nav-lock" aria-label="Locked">🔒</span>
+      <span class="nav-meta"><span class="nav-badge" style="background:#5865f2; color:#fff">Live</span><span class="nav-lock" aria-label="Locked">🔒</span></span>
     </a>
 
     <div class="nav-section-label">Account</div>
     <a class="nav-item" data-section="profile">
       <svg class="ico" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <span>Profile</span>
-      <span class="nav-lock" aria-label="Locked">🔒</span>
+      <span class="nav-meta"><span class="nav-lock" aria-label="Locked">🔒</span></span>
     </a>
     <a class="nav-item" data-section="refer">
       <svg class="ico" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
       <span>Refer &amp; Earn</span>
-      <span class="nav-lock" aria-label="Locked">🔒</span>
+      <span class="nav-meta"><span class="nav-lock" aria-label="Locked">🔒</span></span>
     </a>
     <a class="nav-item" data-section="settings">
       <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       <span>Settings &amp; Billing</span>
-      <span class="nav-lock" aria-label="Locked">🔒</span>
+      <span class="nav-meta"><span class="nav-lock" aria-label="Locked">🔒</span></span>
     </a>
 
     <div class="sidebar-foot">
@@ -2689,7 +2710,6 @@ function navigateTo(id){
     document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.toggle('active', el.dataset.section === 'home'));
     document.querySelectorAll('.section').forEach(el => el.classList.toggle('active', el.id === 'section-home'));
     window.scrollTo({top:0, behavior:'smooth'});
-    showToast('Limited access view. Return to the website to join Surplus.');
     closePalette();
     return;
   }
