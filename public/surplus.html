@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#0a0a0c" />
-<title>Surplus by Rosario - Budget Smarter, Earn More</title>
+<title>Surplus by Rosario - Build Income, Skills, and Options</title>
 <style>
   html,body{background:#0a0a0c;color:#f4efe2;color-scheme:dark}
   html.preload-transition::before{
@@ -1169,20 +1169,23 @@
   .proof-stat strong{display:block;font-family:var(--serif);font-size:30px;font-weight:500;line-height:1;color:var(--gold-bright);margin-bottom:8px}
   .proof-stat span{display:block;color:var(--ink-dim);font-size:13px;line-height:1.45}
 
+  .fit-grid,
   .outcomes-grid{
     display:grid;
-    grid-template-columns:repeat(4,1fr);
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
     gap:16px;
   }
+  .fit-card,
   .outcome-card{
     position:relative;
-    min-height:220px;
+    min-height:210px;
     border:1px solid var(--line);
     border-radius:22px;
     padding:24px;
     background:linear-gradient(145deg,rgba(255,255,255,.06),rgba(255,255,255,.014));
     overflow:hidden;
   }
+  .fit-card::before,
   .outcome-card::before{
     content:"";
     position:absolute;
@@ -1206,12 +1209,25 @@
   }
   .outcome-card h3{position:relative;font-family:var(--serif);font-size:25px;font-weight:500;line-height:1.12;margin-bottom:10px}
   .outcome-card p{position:relative;color:var(--ink-dim);font-size:15px;line-height:1.58}
+  .fit-card h3{position:relative;font-family:var(--serif);font-size:23px;font-weight:500;line-height:1.12;margin-bottom:10px}
+  .fit-card p{position:relative;color:var(--ink-dim);font-size:15px;line-height:1.58}
+  .builder-line{
+    margin-top:34px;
+    border:1px solid rgba(216,187,112,.3);
+    border-radius:24px;
+    padding:28px;
+    background:rgba(185,154,85,.07);
+  }
+  .builder-line p{color:var(--ink-dim);font-size:18px;line-height:1.55;margin-bottom:6px}
+  .builder-line strong{display:block;font-family:var(--serif);font-size:clamp(28px,4vw,42px);font-weight:500;color:var(--gold-bright)}
 
+  .framework-grid,
   .wins-grid{
     display:grid;
-    grid-template-columns:repeat(3,1fr);
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
     gap:16px;
   }
+  .framework-card,
   .win-card{
     border:1px solid var(--line);
     border-radius:20px;
@@ -1258,8 +1274,35 @@
     font-size:14px;
     line-height:1.55;
   }
+  .framework-card small{
+    display:block;
+    position:relative;
+    color:var(--gold-bright);
+    font-size:11px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin-bottom:14px;
+  }
+  .framework-card strong{
+    display:block;
+    position:relative;
+    font-family:var(--serif);
+    font-size:30px;
+    font-weight:500;
+    line-height:1;
+    letter-spacing:-.02em;
+    margin-bottom:12px;
+  }
+  .framework-card span{
+    display:block;
+    position:relative;
+    color:var(--ink-dim);
+    font-size:15px;
+    line-height:1.58;
+  }
 
-  .features-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+  .features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
   .feature{
     border:1px solid var(--line);
     border-radius:18px;
@@ -1802,11 +1845,13 @@
     </a>
     <button class="nav-menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="primaryNav">Menu</button>
     <div class="nav-links" id="primaryNav">
+      <a href="#fit" data-scroll="#fit">For You</a>
       <a href="#story" data-scroll="#story">My Story</a>
-      <a href="#what" data-scroll="#what">What You Get</a>
-      <a href="/surplus-course.html">Inside Course</a>
+      <a href="#framework" data-scroll="#framework">Framework</a>
+      <a href="#build" data-scroll="#build">What You Build</a>
+      <a href="#community" data-scroll="#community">Community</a>
+      <a href="/surplus-course.html">Inside</a>
       <a href="/surplus-member.html?limited=1">Portal Preview</a>
-      <a href="#ladder" data-scroll="#ladder">The Ladder</a>
       <a href="#pricing" data-scroll="#pricing">Pricing</a>
       <a class="nav-cta nav-cta-link" href="#signup" data-scroll="#signup">Join Waitlist</a>
     </div>
@@ -1821,17 +1866,18 @@
   <section class="hero">
     <div class="wrap hero-grid">
       <div>
-        <div class="eyebrow">Monthly membership - $50</div>
-        <h1>Take control. Build <em>income.</em> Create surplus.</h1>
-      <p class="lede">A financial education community for people who want the real climb, not guru theory. The first 100 members lock in $30/month for life with no price increases.</p>
+        <div class="eyebrow">Transformation system for builders</div>
+        <h1>Nobody is coming to <em>save you.</em></h1>
+        <p class="lede">Surplus is the roadmap for people ready to stop surviving, start building income, and create a life with more options.</p>
+        <p class="lede" style="font-size:17px;margin-top:-18px">No hype. No fake guru promises. Just practical lessons, real assignments, and a community built to help you turn skills into income and income into freedom.</p>
         <div class="btn-row">
-          <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the waitlist <span aria-hidden="true">&rarr;</span></a>
-          <a class="btn btn-ghost" href="/surplus-member.html?limited=1">Preview member dashboard</a>
+          <a class="btn btn-primary" href="#signup" data-scroll="#signup">Start Building Today <span aria-hidden="true">&rarr;</span></a>
+          <a class="btn btn-ghost" href="#build" data-scroll="#build">See What's Inside</a>
         </div>
         <div class="hero-meta" aria-label="Membership highlights">
-          <span>Video modules</span>
-          <span>Discord community</span>
-          <span>AI playbooks</span>
+          <span>Builder roadmap</span>
+          <span>Real assignments</span>
+          <span>Community accountability</span>
         </div>
       </div>
 
@@ -1873,30 +1919,30 @@
         </div>
       </div>
     </div>
-    <a class="scroll-cue" href="#story" data-scroll="#story" aria-label="Scroll to story"></a>
+    <a class="scroll-cue" href="#fit" data-scroll="#fit" aria-label="Scroll to fit section"></a>
   </section>
 
-  <section class="proof" aria-label="What the system focuses on">
-    <div class="proof-label">A system built around</div>
-    <div class="marquee">
-      <div class="marquee-track">
-        <span class="marquee-item">Zero-Based Budgeting</span>
-        <span class="marquee-item">Side Income Stacking</span>
-        <span class="marquee-item">AI for Everyday Life</span>
-        <span class="marquee-item">Service Business Basics</span>
-        <span class="marquee-item">Expense Auditing</span>
-        <span class="marquee-item">Community Accountability</span>
-        <span class="marquee-item">Zero-Based Budgeting</span>
-        <span class="marquee-item">Side Income Stacking</span>
-        <span class="marquee-item">AI for Everyday Life</span>
-        <span class="marquee-item">Service Business Basics</span>
-        <span class="marquee-item">Expense Auditing</span>
-        <span class="marquee-item">Community Accountability</span>
+  <section id="fit">
+    <div class="wrap">
+      <div class="section-eyebrow">Is Surplus for you?</div>
+      <h2 class="section-title">For people who know they are capable of more.</h2>
+      <p class="section-lede">Surplus was built for people who need a clear path to stop drifting and start building.</p>
+      <div class="fit-grid">
+        <article class="fit-card"><h3>You are tired of living paycheck to paycheck.</h3><p>You want control, breathing room, and a plan that makes the next month less stressful.</p></article>
+        <article class="fit-card"><h3>You want your first income stream.</h3><p>You know your job matters, but you also know one paycheck should not be your only option.</p></article>
+        <article class="fit-card"><h3>You feel stuck and do not know where to start.</h3><p>You have watched enough content. Now you need a sequence, assignments, and accountability.</p></article>
+        <article class="fit-card"><h3>You work a job but want more.</h3><p>Hourly, trades, blue-collar, entry-level, or early career - Surplus is built for real schedules.</p></article>
+        <article class="fit-card"><h3>You want skills that actually make money.</h3><p>Learn how to become more valuable, build useful offers, and move with direction.</p></article>
+        <article class="fit-card"><h3>You are ready to take action.</h3><p>This is for people willing to run the assignments, post the goal, and build weekly.</p></article>
+      </div>
+      <div class="builder-line">
+        <p>If that sounds like you, you are not just a student here.</p>
+        <strong>You are a Builder.</strong>
       </div>
     </div>
   </section>
 
-  <section id="outcomes">
+  <section id="outcomes" hidden>
     <div class="wrap">
       <div class="section-eyebrow">What You Walk Away With</div>
       <h2 class="section-title">The first win is control. The next win is momentum.</h2>
@@ -1929,8 +1975,8 @@
   <section id="story">
     <div class="wrap">
       <div class="section-eyebrow">My Story</div>
-      <h2 class="section-title">Not a guru at the finish line. Someone still in the fight.</h2>
-      <p class="section-lede">I started learning trades at 11, launched my business at 19, left the slow college path, and kept working a 9-to-5 while building multiple income streams. Surplus is the real-time playbook from that climb.</p>
+      <h2 class="section-title">Built from real experience. Not theory.</h2>
+      <p class="section-lede">I am not a celebrity entrepreneur. I am not a fake guru. And I did not build Surplus from a rented mansion or a rented car.</p>
 
       <div class="story-grid">
         <div class="video-shell">
@@ -1966,7 +2012,7 @@
               <strong>Watch the story first</strong>
               <span>Then start with the exact next step.</span>
             </div>
-            <a class="btn btn-ghost" href="#signup" data-scroll="#signup">Join after watching</a>
+            <a class="btn btn-ghost" href="#framework" data-scroll="#framework">Learn the Framework</a>
           </div>
         </div>
 
@@ -1974,19 +2020,19 @@
           <p class="story-quote">The moment it clicked: nobody is coming to save you. You either take control, or you stay where you are.</p>
           <div class="story-panel">
             <article class="story-card">
-              <div class="tag">The Start</div>
-              <h3>I learned the trades before I ever had a business card.</h3>
-              <p>I started helping my stepdad with contracting work at 11. Plumbing, electrical, HVAC, repairs, cleanup, problem solving. That foundation became the thing I could build from.</p>
+              <div class="tag">The wake-up</div>
+              <h3>I was a broke college student loading UPS trucks through the night.</h3>
+              <p>I was making just enough to get by, trying to figure out money, work, business, and what my future was actually going to look like. Then I crashed my car. That moment forced me to face the truth: if my life was going to change, I had to be the one to change it.</p>
             </article>
             <article class="story-card">
-              <div class="tag">The Decision</div>
-              <h3>I chose speed over waiting 10 to 15 years.</h3>
-              <p>I went to ASU for finance, saw the traditional path, and realized I did not want to wait a decade to build income. I dropped out, started the company, and kept working a $33/hour supervisor job while building on the side.</p>
+              <div class="tag">The build</div>
+              <h3>I started stacking skills before I had everything figured out.</h3>
+              <p>I learned trades hands-on, moved up in my career, started Arizona Residential, created additional income streams, invested, and kept building toward financial freedom while still working.</p>
             </article>
             <article class="story-card">
-              <div class="tag">The Proof</div>
-              <h3>This is not theory from someone ten steps removed.</h3>
-              <p>By 21, I had built roughly $200K across income streams and bought a half-million-dollar property with an investment plan. I am still renovating, still working, still learning, and that is the point.</p>
+              <div class="tag">The roadmap</div>
+              <h3>Surplus is what I wish I had when I started.</h3>
+              <p>Not theory. Not a flex. A practical roadmap for people who are early, hungry, stressed, ambitious, and ready to build something real.</p>
             </article>
           </div>
           <div class="proof-stats" aria-label="Rosario proof points">
@@ -2000,105 +2046,115 @@
     </div>
   </section>
 
-  <section id="wins">
+  <section id="framework">
     <div class="wrap">
-      <div class="section-eyebrow">Member Wins</div>
-      <h2 class="section-title">The goal is not hype. It is practical progress you can repeat.</h2>
-      <p class="section-lede">Surplus is built around simple wins that compound: know your number, find leaks, create the first extra dollars, use AI to move faster, and stay around people who are climbing too.</p>
-      <div class="wins-grid">
-        <article class="win-card scroll-reactive" data-depth="8"><small>Money Clarity</small><strong>$300+</strong><span>Find leaks, subscriptions, and habits hiding inside a normal month.</span></article>
-        <article class="win-card scroll-reactive" data-depth="9"><small>First Target</small><strong>$500/mo</strong><span>Choose one income move and build the first realistic side-income plan.</span></article>
-        <article class="win-card scroll-reactive" data-depth="10"><small>Stability</small><strong>$1,000</strong><span>Create the starter buffer that keeps one bad week from becoming a crisis.</span></article>
-        <article class="win-card scroll-reactive" data-depth="8"><small>Rhythm</small><strong>1 budget</strong><span>Install a weekly money check-in that removes the guessing.</span></article>
-        <article class="win-card scroll-reactive" data-depth="9"><small>Execution</small><strong>30 days</strong><span>Follow a clear first-month path instead of wondering what to do next.</span></article>
-        <article class="win-card scroll-reactive" data-depth="10"><small>AI Leverage</small><strong>Hours back</strong><span>Use prompts and workflows for planning, decisions, content, and business tasks.</span></article>
+      <div class="section-eyebrow">The Surplus Framework</div>
+      <h2 class="section-title">A simple path from survival mode to building real leverage.</h2>
+      <p class="section-lede">Surplus is not about watching videos. It is about becoming the type of person who builds.</p>
+      <div class="framework-grid">
+        <article class="framework-card scroll-reactive" data-depth="8"><small>Stage 01</small><strong>Ownership</strong><span>Stop blaming circumstances and start taking control of your future.</span></article>
+        <article class="framework-card scroll-reactive" data-depth="9"><small>Stage 02</small><strong>Value</strong><span>Learn skills people actually pay for and become more valuable in the marketplace.</span></article>
+        <article class="framework-card scroll-reactive" data-depth="10"><small>Stage 03</small><strong>Cash Flow</strong><span>Build your first income stream and learn how to turn skills into money.</span></article>
+        <article class="framework-card scroll-reactive" data-depth="8"><small>Stage 04</small><strong>Money</strong><span>Create a financial system for budgeting, credit, saving, and investing.</span></article>
+        <article class="framework-card scroll-reactive" data-depth="9"><small>Stage 05</small><strong>Leverage</strong><span>Use systems, assets, and multiple income streams to build long-term freedom.</span></article>
       </div>
     </div>
   </section>
 
-  <section id="what">
+  <section id="build">
     <div class="wrap">
-      <div class="section-eyebrow">What You Get</div>
-      <h2 class="section-title">Part course. Part community. Part real-time climb.</h2>
-      <p class="section-lede">Surplus is not just videos sitting in a dashboard. It is modules you can unlock, a Discord community to stay connected, practical AI training, spreadsheets, and weekly direction for people trying to actually move.</p>
+      <div class="section-eyebrow">What You'll Build Inside Surplus</div>
+      <h2 class="section-title">What you will build inside Surplus</h2>
+      <p class="section-lede">This is not a content dump. Every part of the membership points toward outcomes you can actually use.</p>
       <div class="features-grid">
         <article class="feature scroll-reactive" data-depth="8">
-          <div class="feature-icon">B</div>
-          <h3>The Budget System</h3>
-          <p>A zero-based setup that makes every dollar visible and gives members a weekly rhythm they can actually maintain.</p>
+          <div class="feature-icon">1</div>
+          <h3>Build Ownership</h3>
+          <p>Take responsibility for your future and stop waiting for the perfect time.</p>
         </article>
         <article class="feature scroll-reactive" data-depth="9">
-          <div class="feature-icon">$</div>
-          <h3>The Income Playbook</h3>
-          <p>Side-income tracks, pricing guidance, scripts, and practical ways to widen the gap between income and lifestyle.</p>
+          <div class="feature-icon">2</div>
+          <h3>Build Skills</h3>
+          <p>Identify income-producing skills and learn how to stack them into real opportunity.</p>
         </article>
         <article class="feature scroll-reactive" data-depth="10">
-          <div class="feature-icon">X</div>
-          <h3>Prebuilt Spreadsheets</h3>
-          <p>Budgeting, debt payoff, savings goals, net worth, sinking funds, side income, and calculators that do the math.</p>
+          <div class="feature-icon">3</div>
+          <h3>Build Cash Flow</h3>
+          <p>Create your first income stream outside of your main job.</p>
         </article>
         <article class="feature scroll-reactive" data-depth="8">
-          <div class="feature-icon">AI</div>
-          <h3>AI for Real Life</h3>
-          <p>Learn how to use AI for personal productivity, business workflows, content ideas, planning, research, and getting more done with less wasted time.</p>
+          <div class="feature-icon">4</div>
+          <h3>Build Financial Confidence</h3>
+          <p>Learn how to manage money, use credit wisely, save, invest, and make better financial decisions.</p>
         </article>
+        <article class="feature scroll-reactive" data-depth="9">
+          <div class="feature-icon">5</div>
+          <h3>Build Leverage</h3>
+          <p>Turn income into assets, systems, and long-term freedom.</p>
+        </article>
+      </div>
+      <div class="btn-row" style="margin-top:30px">
+        <a class="btn btn-primary" href="#signup" data-scroll="#signup">I'm Ready to Build <span aria-hidden="true">&rarr;</span></a>
       </div>
     </div>
   </section>
 
-  <section id="audience">
+  <section id="community">
     <div class="wrap audience-grid">
       <div>
-        <div class="section-eyebrow">Who This Is For</div>
-        <h2 class="section-title">For people close enough to want more, but early enough to need the map.</h2>
-        <p class="section-lede" style="margin-bottom:0">Surplus is built for the person who is not lazy, not helpless, and not waiting for magic. They just need structure, community, and a real example from someone still doing the work.</p>
+        <div class="section-eyebrow">Builder Community</div>
+        <h2 class="section-title">Join the Builder Community</h2>
+        <p class="section-lede" style="margin-bottom:0">Content gives you information. Community gives you accountability. Inside Surplus, members are part of a Builder community designed to keep you moving.</p>
       </div>
 
       <div class="audience-list">
         <article class="audience-item">
           <div class="audience-check">1</div>
           <div>
-            <h3>You are starting from zero or close to it.</h3>
-            <p>You know you need to budget, make more, and get organized, but nobody ever showed you a practical first step.</p>
+            <h3>Weekly challenges</h3>
+            <p>Simple challenges that turn the roadmap into action instead of another thing you saved for later.</p>
           </div>
         </article>
         <article class="audience-item">
           <div class="audience-check">2</div>
           <div>
-            <h3>You work, but your money still feels stuck.</h3>
-            <p>You have income coming in, but it disappears too fast. The goal is to control the flow before trying to scale it.</p>
+            <h3>Assignment accountability</h3>
+            <p>Post progress, ask questions, and stay around people who are actually completing the work.</p>
           </div>
         </article>
         <article class="audience-item">
           <div class="audience-check">3</div>
           <div>
-            <h3>You want to use AI without getting lost.</h3>
-            <p>Not theory. You want prompts, workflows, planning systems, business use cases, and ways to save hours each week.</p>
+            <h3>Member wins and builder discussions</h3>
+            <p>See what others are doing, learn from real attempts, and keep your own standards high.</p>
           </div>
         </article>
         <article class="audience-item">
           <div class="audience-check">4</div>
           <div>
-            <h3>You want people around you who are moving too.</h3>
-            <p>The Discord is for questions, accountability, networking, posting wins, and seeing what other builders are doing.</p>
+            <h3>Discord, live calls, and workshops</h3>
+            <p>A place to ask questions, stay motivated, and join future live sessions as the community grows.</p>
           </div>
         </article>
       </div>
     </div>
     <div class="wrap" style="margin-top:28px">
       <div class="not-box">
-        <h3>This is not for passive watchers.</h3>
-        <p>If someone wants a magic PDF, instant wealth, or a lifestyle fantasy, this is not the pitch. Surplus is for people willing to audit their life, use the tools, ask better questions, and execute weekly.</p>
+        <h3>You are not doing this alone.</h3>
+        <p>You are building with other people who want more too. That matters when the motivation wears off and real life gets loud.</p>
         <ul class="mini-list">
-          <li>No fake guru flexing.</li>
-          <li>No $7,000 mystery course.</li>
-          <li>No pretending the work is easy.</li>
+          <li>Discord community access.</li>
+          <li>Builder challenges and member updates.</li>
+          <li>Future live calls and workshops.</li>
         </ul>
+        <div class="btn-row" style="margin-top:24px">
+          <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the Builders <span aria-hidden="true">&rarr;</span></a>
+        </div>
       </div>
     </div>
   </section>
 
-  <section id="inside">
+  <section id="inside" hidden>
     <div class="wrap course-preview">
       <div>
         <div class="section-eyebrow">Inside Surplus</div>
@@ -2205,7 +2261,7 @@
     </div>
   </section>
 
-  <section id="first-30">
+  <section id="first-30" hidden>
     <div class="wrap">
       <div class="section-eyebrow">First 30 Days</div>
       <h2 class="section-title">What happens after someone joins.</h2>
@@ -2324,7 +2380,7 @@
     </div>
   </section>
 
-  <section id="ladder">
+  <section id="ladder" hidden>
     <div class="wrap">
       <div class="section-eyebrow">The Ladder</div>
       <h2 class="section-title">Seven steps from survival mode to surplus.</h2>
@@ -2372,27 +2428,25 @@
   <section id="pricing">
     <div class="wrap">
       <div class="section-eyebrow">Membership</div>
-      <h2 class="section-title">One price. Everything included.</h2>
+      <h2 class="section-title">Start building for $50/month.</h2>
       <div class="pricing-card">
         <div>
-          <div class="price-note">First 100 founding members</div>
-          <div class="price">$30 <span>/ month</span></div>
-          <div class="price-anchor">Locked for life · no price increases</div>
-          <p class="section-lede" style="margin-bottom:28px">The first 100 members get the full membership for $30/month forever, plus a founding member badge inside the dashboard.</p>
-          <p class="price-close">Join early, lock the rate, and keep every future tool added to Surplus.</p>
-          <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the waitlist <span aria-hidden="true">&rarr;</span></a>
+          <div class="price-note">Monthly Membership</div>
+          <div class="price">$50 <span>/ month</span></div>
+          <div class="price-anchor">First 100 get $30/month for life</div>
+          <p class="section-lede" style="margin-bottom:28px">For less than the cost of a dinner out, you get access to the Surplus framework, assignments, community, and the roadmap to start building income, skills, and financial confidence.</p>
+          <p class="price-close">Founding members lock in $30/month for life, with no price increases and a founding member badge.</p>
+          <a class="btn btn-primary" href="#signup" data-scroll="#signup">Become a Builder <span aria-hidden="true">&rarr;</span></a>
+          <p class="form-note">Cancel anytime.</p>
         </div>
         <ul class="included">
-          <li>Full budget system and setup guide</li>
-          <li>12+ prebuilt spreadsheet templates</li>
-          <li>Video modules unlocked on the website</li>
-          <li>Income playbook with practical tracks</li>
-          <li>AI lessons for life, business, and productivity</li>
-          <li>Private Discord community for questions and networking</li>
+          <li>Full Surplus roadmap</li>
+          <li>Module lessons and practical assignments</li>
+          <li>Discord community access</li>
+          <li>Builder challenges and member updates</li>
+          <li>AI prompts, templates, and future content drops</li>
           <li>Founding member badge for the first 100 members</li>
           <li>Affiliate link: earn one free month for every new member you refer</li>
-          <li>Monthly live Q&A workshop with Rosario</li>
-          <li>New lessons, tools, and prompts added monthly</li>
         </ul>
       </div>
     </div>
@@ -2402,7 +2456,7 @@
     <div class="wrap signup-grid">
       <div>
         <div class="section-eyebrow">Surplus Waitlist</div>
-        <h2 class="section-title">Get early access before the first member wave opens.</h2>
+        <h2 class="section-title">Get early access before the first Builder wave opens.</h2>
         <p class="section-lede">Join the waitlist for the first-100 founding rate: $30/month for life, no price increases, and a founding member badge inside the dashboard.</p>
       </div>
       <form class="signup-card" id="signupForm">
@@ -2419,7 +2473,7 @@
         <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@example.com" />
         <label for="message">What do you want Surplus to help you with first?</label>
         <textarea id="message" name="message" placeholder="Budgeting, debt, earning more, AI, starting a business, getting organized..."></textarea>
-        <button class="btn btn-primary" type="submit" style="width:100%">Join the waitlist <span aria-hidden="true">&rarr;</span></button>
+        <button class="btn btn-primary" type="submit" style="width:100%">Become a Builder <span aria-hidden="true">&rarr;</span></button>
         <p class="form-note">No charge today. Until checkout is connected, this opens an email to Rosario so your waitlist request can be tracked.</p>
         <div class="success" id="formSuccess" role="status">Your waitlist request is ready. If your email app did not open, email hello@surplusbyrosario.com with the subject "Surplus Waitlist".</div>
       </form>
@@ -2432,16 +2486,28 @@
       <h2 class="section-title">Questions before you commit.</h2>
       <div class="faq-list">
         <div class="faq-item">
-          <button class="faq-button" type="button">Is this for me if I am broke or in debt?<span class="faq-plus">+</span></button>
-          <div class="faq-answer">Yes. The Ladder starts at the bottom on purpose. The first moves are clarity, a cash buffer, and a budget rhythm before anything more advanced.</div>
+          <button class="faq-button" type="button">Is Surplus just another online course?<span class="faq-plus">+</span></button>
+          <div class="faq-answer">No. Surplus is a transformation framework and community. The goal is not just to watch videos. The goal is to apply the lessons, complete assignments, and start building.</div>
         </div>
         <div class="faq-item">
-          <button class="faq-button" type="button">Do the spreadsheets work in Excel and Google Sheets?<span class="faq-plus">+</span></button>
-          <div class="faq-answer">Yes. The templates are built to be Google Sheets friendly and Excel compatible, with formulas documented so members can customize them.</div>
+          <button class="faq-button" type="button">Who is Surplus for?<span class="faq-plus">+</span></button>
+          <div class="faq-answer">Surplus is for people who want to build income, improve their money habits, learn valuable skills, and create more options in life.</div>
         </div>
         <div class="faq-item">
-          <button class="faq-button" type="button">Is this financial advice?<span class="faq-plus">+</span></button>
-          <div class="faq-answer">No. Surplus is financial education, frameworks, and tools based on lived experience. Members should consult a licensed professional for personalized financial advice.</div>
+          <button class="faq-button" type="button">Do I need business experience?<span class="faq-plus">+</span></button>
+          <div class="faq-answer">No. Surplus is designed for beginners who want a practical starting point.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-button" type="button">What if I am already working full time?<span class="faq-plus">+</span></button>
+          <div class="faq-answer">That is exactly who this is built for. Surplus is designed to help people build outside of their main job without needing to quit immediately.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-button" type="button">Is this about getting rich quick?<span class="faq-plus">+</span></button>
+          <div class="faq-answer">No. Surplus is about skills, action, income, money systems, and long-term leverage. No fake promises.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-button" type="button">What do I get with the membership?<span class="faq-plus">+</span></button>
+          <div class="faq-answer">You get access to the Surplus roadmap, lessons, assignments, Discord community, challenges, member updates, AI prompts, and future content drops.</div>
         </div>
       </div>
     </div>
@@ -2449,9 +2515,10 @@
 
   <section class="final">
     <div class="wrap">
-      <h2>Your next ten years.<br><em>Decided this month.</em></h2>
-      <p>Budgeting alone will not get you there. Earning more alone will not either. Combine them inside a system you actually run every month, and the math starts changing fast.</p>
-      <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the waitlist <span aria-hidden="true">&rarr;</span></a>
+      <h2>Stop waiting.<br><em>Start building.</em></h2>
+      <p>A year from now, you will either still be thinking about changing your life, or you will already be building it. The difference is action.</p>
+      <a class="btn btn-primary" href="#signup" data-scroll="#signup">Become a Builder <span aria-hidden="true">&rarr;</span></a>
+      <p style="font-size:15px;margin:22px auto 0">Join Surplus today and start building your roadmap from survival to surplus.</p>
     </div>
   </section>
 </main>
@@ -2497,7 +2564,9 @@
       ".section-eyebrow",
       ".section-title",
       ".section-lede",
+      ".fit-card",
       ".story-grid > *",
+      ".framework-card",
       ".feature",
       ".story-card",
       ".proof-stat",
