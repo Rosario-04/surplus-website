@@ -1690,6 +1690,8 @@
     font-size:14px;
   }
   .success.is-visible{display:block}
+  .signup-card.is-submitting{opacity:.78;pointer-events:none}
+  .signup-honeypot{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;overflow:hidden!important}
   .final{text-align:center;padding:128px 0 112px}
   .final h2{font-family:var(--serif);font-weight:400;font-size:clamp(40px,6vw,80px);letter-spacing:-.03em;line-height:1;margin-bottom:24px}
   .final p{font-size:19px;color:var(--ink-dim);max-width:590px;margin:0 auto 38px}
@@ -2471,11 +2473,15 @@
         <input id="name" name="name" autocomplete="name" required placeholder="Your name" />
         <label for="email">Email</label>
         <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@example.com" />
+        <div class="signup-honeypot" aria-hidden="true">
+          <label for="company">Company</label>
+          <input id="company" name="company" tabindex="-1" autocomplete="off" />
+        </div>
         <label for="message">What do you want Surplus to help you with first?</label>
         <textarea id="message" name="message" placeholder="Budgeting, debt, earning more, AI, starting a business, getting organized..."></textarea>
         <button class="btn btn-primary" type="submit" style="width:100%">Become a Builder <span aria-hidden="true">&rarr;</span></button>
-        <p class="form-note">No charge today. Until checkout is connected, this opens an email to Rosario so your waitlist request can be tracked.</p>
-        <div class="success" id="formSuccess" role="status">Your waitlist request is ready. If your email app did not open, email hello@surplusbyrosario.com with the subject "Surplus Waitlist".</div>
+        <p class="form-note">No charge today. We will only email you about Surplus access and launch updates.</p>
+        <div class="success" id="formSuccess" role="status" aria-live="polite"></div>
       </form>
     </div>
   </section>
@@ -2795,12 +2801,15 @@
   });
   window.addEventListener("pagehide", resetStoryThumbnail);
 
-  document.getElementById("signupForm").addEventListener("submit", (event) => {
+  document.getElementById("signupForm").addEventListener("submit", async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
     const name = form.name.value.trim();
     const email = form.email.value.trim();
     const message = form.message.value.trim();
+    const company = form.company.value.trim();
+    const submitButton = form.querySelector('button[type="submit"]');
+    const success = document.getElementById("formSuccess");
     if (!name || !email) {
       showToast("Add your name and email first.");
       return;
@@ -2809,10 +2818,34 @@
       window.location.href = CHECKOUT_URL;
       return;
     }
-    const subject = encodeURIComponent("Surplus Waitlist");
-    const body = encodeURIComponent(`Waitlist request\n\nName: ${name}\nEmail: ${email}\n\nFirst area they want help with:\n${message || "Not provided"}`);
-    document.getElementById("formSuccess").classList.add("is-visible");
-    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
+    form.classList.add("is-submitting");
+    submitButton.disabled = true;
+    submitButton.textContent = "Saving your spot...";
+    success.classList.remove("is-visible");
+
+    try {
+      const response = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, message, company, source: "homepage" })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Unable to join the waitlist.");
+
+      success.textContent = result.duplicate
+        ? "You are already on the Surplus waitlist. Your founding-member interest is saved."
+        : `You're in${result.position ? ` at waitlist spot #${result.position}` : ""}. Watch your inbox for the Surplus launch.`;
+      success.classList.add("is-visible");
+      if (!result.duplicate) form.reset();
+    } catch (error) {
+      success.textContent = error.message || "We could not save your signup. Please try again.";
+      success.classList.add("is-visible");
+      showToast("Waitlist signup was not saved. Please try again.");
+    } finally {
+      form.classList.remove("is-submitting");
+      submitButton.disabled = false;
+      submitButton.innerHTML = 'Become a Builder <span aria-hidden="true">&rarr;</span>';
+    }
   });
 </script>
 </body>
