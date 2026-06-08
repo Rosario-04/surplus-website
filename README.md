@@ -39,6 +39,9 @@ The included `render.yaml` deploys the site as a Render web service:
 - Start command: `npm start`
 - Health check: `/api/health`
 - Required production secrets: `SUPABASE_URL` and `SUPABASE_SECRET_KEY`
+- Optional waitlist email settings: `RESEND_API_KEY`, `RESEND_SEGMENT_ID`, `WAITLIST_FROM_EMAIL`, and `SITE_URL`
+
+When Resend is configured, each new signup receives a confirmation email and is added to the configured audience. Email delivery failures are recorded in Supabase without losing the waitlist signup.
 
 Render must bind the service to `0.0.0.0`, which the Blueprint config sets with `HOST`.
 

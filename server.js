@@ -10,6 +10,10 @@ const port = Number(process.env.PORT || 3000);
 const host = process.env.HOST || "127.0.0.1";
 const supabaseUrl = (process.env.SUPABASE_URL || "").replace(/\/$/, "");
 const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const resendApiKey = process.env.RESEND_API_KEY || "";
+const resendSegmentId = process.env.RESEND_SEGMENT_ID || "";
+const waitlistFromEmail = process.env.WAITLIST_FROM_EMAIL || "Surplus <hello@liveinsurplus.com>";
+const siteUrl = (process.env.SITE_URL || "https://liveinsurplus.com").replace(/\/$/, "");
 const rateLimitWindowMs = 15 * 60 * 1000;
 const rateLimitMax = 5;
 const signupAttempts = new Map();
@@ -115,7 +119,142 @@ async function saveToSupabase(entry) {
     console.error("Supabase waitlist error:", response.status, result);
     throw new Error("Unable to save waitlist signup");
   }
-  return { duplicate: false, record: Array.isArray(result) ? result[0] : result };
+  const record = Array.isArray(result) ? result[0] : result;
+  return { duplicate: false, record, position: record?.waitlist_number || null };
+}
+
+async function findSupabaseWaitlistEntry(email) {
+  const headers = { apikey: supabaseSecretKey };
+  if (!supabaseSecretKey.startsWith("sb_secret_")) {
+    headers.Authorization = `Bearer ${supabaseSecretKey}`;
+  }
+  const params = new URLSearchParams({
+    select: "id,waitlist_number",
+    email: `eq.${email}`,
+    limit: "1"
+  });
+  const response = await fetch(`${supabaseUrl}/rest/v1/waitlist?${params}`, { headers });
+  if (!response.ok) return null;
+  const result = await response.json().catch(() => []);
+  return Array.isArray(result) ? result[0] || null : null;
+}
+
+async function updateSupabaseEmailStatus(id, status) {
+  if (!id) return;
+  const headers = {
+    apikey: supabaseSecretKey,
+    "Content-Type": "application/json",
+    Prefer: "return=minimal"
+  };
+  if (!supabaseSecretKey.startsWith("sb_secret_")) {
+    headers.Authorization = `Bearer ${supabaseSecretKey}`;
+  }
+  await fetch(`${supabaseUrl}/rest/v1/waitlist?id=eq.${id}`, {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify({ email_status: status })
+  });
+}
+
+function splitName(name) {
+  const parts = name.trim().split(/\s+/);
+  return {
+    firstName: parts.shift() || name,
+    lastName: parts.join(" ")
+  };
+}
+
+async function addResendContact(entry) {
+  const { firstName, lastName } = splitName(entry.name);
+  const payload = {
+    email: entry.email,
+    unsubscribed: false,
+    properties: {
+      first_name: firstName,
+      last_name: lastName
+    }
+  };
+  if (resendSegmentId) payload.segments = [{ id: resendSegmentId }];
+
+  const response = await fetch("https://api.resend.com/contacts", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${resendApiKey}`,
+      "Content-Type": "application/json",
+      "User-Agent": "surplus-website/1.0"
+    },
+    body: JSON.stringify(payload)
+  });
+  if (!response.ok && response.status !== 409) {
+    throw new Error(`Resend audience sync failed (${response.status})`);
+  }
+}
+
+async function sendWaitlistEmail(entry, position) {
+  const safeName = entry.name.replace(/[<>&"']/g, "");
+  const positionLine = position
+    ? `<p style="margin:0 0 18px;color:#a8a297">Your waitlist number is <strong style="color:#d4b66a">#${position}</strong>.</p>`
+    : "";
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${resendApiKey}`,
+      "Content-Type": "application/json",
+      "User-Agent": "surplus-website/1.0"
+    },
+    body: JSON.stringify({
+      from: waitlistFromEmail,
+      to: [entry.email],
+      subject: "You're on the Surplus waitlist",
+      html: `<!doctype html>
+<html lang="en">
+<body style="margin:0;background:#0a0a0c;color:#f4efe2;font-family:Arial,sans-serif">
+  <div style="max-width:600px;margin:0 auto;padding:48px 24px">
+    <div style="font-family:Georgia,serif;font-size:30px;margin-bottom:32px;color:#d4b66a">Surplus</div>
+    <h1 style="font-family:Georgia,serif;font-size:38px;line-height:1.1;margin:0 0 18px">You're in, ${safeName}.</h1>
+    ${positionLine}
+    <p style="font-size:17px;line-height:1.65;color:#c8c2b7;margin:0 0 22px">
+      You will be among the first to hear when Surplus opens. Expect practical updates on building income,
+      controlling your money, using AI well, and turning consistent work into more options.
+    </p>
+    <div style="border:1px solid rgba(185,154,85,.28);padding:20px;margin:28px 0;background:#111114">
+      <strong style="color:#d4b66a">Founding offer</strong>
+      <p style="margin:8px 0 0;color:#c8c2b7;line-height:1.55">
+        The first 100 people who complete a paid membership will lock in $30/month for life and receive a founding member badge.
+      </p>
+    </div>
+    <a href="${siteUrl}" style="display:inline-block;background:#c9a957;color:#0a0a0c;text-decoration:none;font-weight:700;padding:14px 22px">
+      Visit Live in Surplus
+    </a>
+    <p style="font-size:12px;line-height:1.5;color:#777168;margin-top:36px">
+      You received this because you joined the Surplus waitlist at ${siteUrl}.
+    </p>
+  </div>
+</body>
+</html>`
+    })
+  });
+  if (!response.ok) {
+    throw new Error(`Resend confirmation failed (${response.status})`);
+  }
+}
+
+async function runWaitlistEmailTasks(entry, position, recordId) {
+  if (!resendApiKey) return;
+  try {
+    await Promise.all([
+      addResendContact(entry),
+      sendWaitlistEmail(entry, position)
+    ]);
+    if (supabaseUrl && supabaseSecretKey) {
+      await updateSupabaseEmailStatus(recordId, "sent");
+    }
+  } catch (error) {
+    console.error("Waitlist email task failed:", error);
+    if (supabaseUrl && supabaseSecretKey) {
+      await updateSupabaseEmailStatus(recordId, "failed").catch(() => {});
+    }
+  }
 }
 
 async function saveLocally(entry) {
@@ -164,12 +303,17 @@ async function handleWaitlist(req, res) {
   const name = normalizeText(body.name, 100);
   const email = normalizeEmail(body.email);
   const message = normalizeText(body.message, 1000);
+  const marketingConsent = body.marketingConsent === true;
   if (name.length < 2) {
     sendJson(res, 400, { error: "Please enter your name." });
     return;
   }
   if (!isValidEmail(email)) {
     sendJson(res, 400, { error: "Please enter a valid email address." });
+    return;
+  }
+  if (!marketingConsent) {
+    sendJson(res, 400, { error: "Please confirm that we may send you Surplus launch updates." });
     return;
   }
 
@@ -179,13 +323,26 @@ async function handleWaitlist(req, res) {
     email,
     message,
     source: normalizeText(body.source, 80) || "homepage",
+    status: "waiting",
+    marketing_consent: true,
+    consent_at: new Date().toISOString(),
+    email_status: resendApiKey ? "pending" : "not_configured",
     created_at: new Date().toISOString()
   };
 
   try {
-    const result = supabaseUrl && supabaseSecretKey
+    let result = supabaseUrl && supabaseSecretKey
       ? await saveToSupabase(entry)
       : await saveLocally(entry);
+
+    if (result.duplicate && supabaseUrl && supabaseSecretKey) {
+      const existing = await findSupabaseWaitlistEntry(email);
+      result = { ...result, position: existing?.waitlist_number || null };
+    }
+
+    if (!result.duplicate) {
+      runWaitlistEmailTasks(entry, result.position, result.record?.id || entry.id);
+    }
 
     sendJson(res, 200, {
       ok: true,

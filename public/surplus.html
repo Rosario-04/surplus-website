@@ -1661,6 +1661,9 @@
   textarea{resize:vertical;min-height:112px}
   input:focus,textarea:focus{border-color:rgba(216,187,112,.62);box-shadow:0 0 0 3px rgba(185,154,85,.12)}
   .form-note{margin-top:14px;color:var(--ink-dim);font-size:13px;line-height:1.5}
+  .consent-row{display:flex;align-items:flex-start;gap:10px;margin-top:16px;color:var(--ink-dim);font-size:13px;line-height:1.5}
+  .consent-row input{width:17px;height:17px;margin-top:2px;accent-color:var(--gold);flex:0 0 auto}
+  .consent-row a{color:var(--gold-bright)}
   .waitlist-perks{display:grid;gap:10px;margin:0 0 18px;list-style:none}
   .waitlist-perks li{
     display:flex;
@@ -2479,6 +2482,10 @@
         </div>
         <label for="message">What do you want Surplus to help you with first?</label>
         <textarea id="message" name="message" placeholder="Budgeting, debt, earning more, AI, starting a business, getting organized..."></textarea>
+        <label class="consent-row" for="marketingConsent">
+          <input id="marketingConsent" name="marketingConsent" type="checkbox" required />
+          <span>I agree to receive Surplus waitlist and launch emails. I can unsubscribe anytime. See the <a href="/privacy.html">Privacy Policy</a>.</span>
+        </label>
         <button class="btn btn-primary" type="submit" style="width:100%">Become a Builder <span aria-hidden="true">&rarr;</span></button>
         <p class="form-note">No charge today. We will only email you about Surplus access and launch updates.</p>
         <div class="success" id="formSuccess" role="status" aria-live="polite"></div>
@@ -2808,10 +2815,11 @@
     const email = form.email.value.trim();
     const message = form.message.value.trim();
     const company = form.company.value.trim();
+    const marketingConsent = form.marketingConsent.checked;
     const submitButton = form.querySelector('button[type="submit"]');
     const success = document.getElementById("formSuccess");
-    if (!name || !email) {
-      showToast("Add your name and email first.");
+    if (!name || !email || !marketingConsent) {
+      showToast("Add your details and confirm email updates first.");
       return;
     }
     if (CHECKOUT_URL) {
@@ -2827,7 +2835,7 @@
       const response = await fetch("/api/waitlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, message, company, source: "homepage" })
+        body: JSON.stringify({ name, email, message, company, marketingConsent, source: "homepage" })
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Unable to join the waitlist.");

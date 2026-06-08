@@ -17,3 +17,11 @@ services:
         sync: false
       - key: SUPABASE_SECRET_KEY
         sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_SEGMENT_ID
+        sync: false
+      - key: WAITLIST_FROM_EMAIL
+        value: Surplus <hello@liveinsurplus.com>
+      - key: SITE_URL
+        value: https://liveinsurplus.com
