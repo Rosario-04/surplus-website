@@ -241,19 +241,25 @@ async function sendWaitlistEmail(entry, position) {
 
 async function runWaitlistEmailTasks(entry, position, recordId) {
   if (!resendApiKey) return;
-  try {
-    await Promise.all([
-      addResendContact(entry),
-      sendWaitlistEmail(entry, position)
-    ]);
-    if (supabaseUrl && supabaseSecretKey) {
-      await updateSupabaseEmailStatus(recordId, "sent");
-    }
-  } catch (error) {
-    console.error("Waitlist email task failed:", error);
-    if (supabaseUrl && supabaseSecretKey) {
-      await updateSupabaseEmailStatus(recordId, "failed").catch(() => {});
-    }
+
+  const [contactResult, emailResult] = await Promise.allSettled([
+    addResendContact(entry),
+    sendWaitlistEmail(entry, position)
+  ]);
+
+  if (contactResult.status === "rejected") {
+    console.warn("Resend audience sync skipped:", contactResult.reason);
+  }
+
+  const emailStatus = emailResult.status === "fulfilled" ? "sent" : "failed";
+  if (emailResult.status === "rejected") {
+    console.error("Waitlist confirmation email failed:", emailResult.reason);
+  }
+
+  if (supabaseUrl && supabaseSecretKey) {
+    await updateSupabaseEmailStatus(recordId, emailStatus).catch((error) => {
+      console.error("Unable to update waitlist email status:", error);
+    });
   }
 }
 
