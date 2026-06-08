@@ -541,7 +541,7 @@
         <h1>A course built like a <em>climb</em>, not a content dump.</h1>
         <p class="lede">Surplus gives members a clear path: fix the money leak, build discipline, grow income, use AI as leverage, and stay around people who are moving too.</p>
         <div class="btn-row">
-          <a class="btn btn-primary" href="/surplus.html#signup">Join the waitlist <span aria-hidden="true">&rarr;</span></a>
+          <a class="btn btn-primary" href="/surplus.html#pricing" data-checkout>Join Surplus <span aria-hidden="true">&rarr;</span></a>
           <a class="btn" href="/surplus-member.html?limited=1">View member portal</a>
         </div>
         <div class="hero-meta">
@@ -721,7 +721,7 @@
       <h2>Ready to start the climb?</h2>
       <p>Join the waitlist for the first-100 founding rate: $30/month for life, no price increases, a founding badge, and referral links that earn free months.</p>
       <div class="btn-row" style="justify-content:center">
-        <a class="btn btn-primary" href="/surplus.html#signup">Join the waitlist <span aria-hidden="true">&rarr;</span></a>
+        <a class="btn btn-primary" href="/surplus.html#pricing" data-checkout>Join Surplus <span aria-hidden="true">&rarr;</span></a>
         <a class="btn" href="/surplus-member.html?limited=1">Preview the portal</a>
       </div>
     </div>
@@ -845,6 +845,30 @@
       const rect = card.getBoundingClientRect();
       card.style.setProperty("--mx", `${((event.clientX - rect.left) / rect.width) * 100}%`);
       card.style.setProperty("--my", `${((event.clientY - rect.top) / rect.height) * 100}%`);
+    });
+  });
+
+  document.querySelectorAll("[data-checkout]").forEach((item) => {
+    item.addEventListener("click", async (event) => {
+      event.preventDefault();
+      if (item.dataset.loading === "true") return;
+      item.dataset.loading = "true";
+      const original = item.innerHTML;
+      item.textContent = "Opening secure checkout...";
+      try {
+        const response = await fetch("/api/checkout", {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({})
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Checkout is unavailable.");
+        window.location.href = result.url;
+      } catch (error) {
+        window.alert(error.message);
+        item.innerHTML = original;
+        item.dataset.loading = "false";
+      }
     });
   });
 </script>

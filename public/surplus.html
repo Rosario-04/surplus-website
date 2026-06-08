@@ -1876,7 +1876,7 @@
         <p class="lede">Surplus is the roadmap for people ready to stop surviving, start building income, and create a life with more options.</p>
         <p class="lede" style="font-size:17px;margin-top:-18px">No hype. No fake guru promises. Just practical lessons, real assignments, and a community built to help you turn skills into income and income into freedom.</p>
         <div class="btn-row">
-          <a class="btn btn-primary" href="#signup" data-scroll="#signup">Start Building Today <span aria-hidden="true">&rarr;</span></a>
+          <a class="btn btn-primary" href="#pricing" data-checkout>Start Building Today <span aria-hidden="true">&rarr;</span></a>
           <a class="btn btn-ghost" href="#build" data-scroll="#build">See What's Inside</a>
         </div>
         <div class="hero-meta" aria-label="Membership highlights">
@@ -2441,7 +2441,7 @@
           <div class="price-anchor">First 100 get $30/month for life</div>
           <p class="section-lede" style="margin-bottom:28px">For less than the cost of a dinner out, you get access to the Surplus framework, assignments, community, and the roadmap to start building income, skills, and financial confidence.</p>
           <p class="price-close">Founding members lock in $30/month for life, with no price increases and a founding member badge.</p>
-          <a class="btn btn-primary" href="#signup" data-scroll="#signup">Become a Builder <span aria-hidden="true">&rarr;</span></a>
+          <a class="btn btn-primary" href="#pricing" data-checkout>Join Surplus <span aria-hidden="true">&rarr;</span></a>
           <p class="form-note">Cancel anytime.</p>
         </div>
         <ul class="included">
@@ -2530,7 +2530,7 @@
     <div class="wrap">
       <h2>Stop waiting.<br><em>Start building.</em></h2>
       <p>A year from now, you will either still be thinking about changing your life, or you will already be building it. The difference is action.</p>
-      <a class="btn btn-primary" href="#signup" data-scroll="#signup">Become a Builder <span aria-hidden="true">&rarr;</span></a>
+      <a class="btn btn-primary" href="#pricing" data-checkout>Join Surplus <span aria-hidden="true">&rarr;</span></a>
       <p style="font-size:15px;margin:22px auto 0">Join Surplus today and start building your roadmap from survival to surplus.</p>
     </div>
   </section>
@@ -2553,7 +2553,6 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
-  const CHECKOUT_URL = "";
   const CONTACT_EMAIL = "hello@surplusbyrosario.com";
   const VIDEO_URL = "https://www.youtube.com/embed/aOQndPlfNhU?autoplay=1&rel=0&enablejsapi=1";
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -2714,11 +2713,27 @@
     });
   });
 
-  document.querySelectorAll('a[href="#signup"]').forEach((item) => {
-    item.addEventListener("click", (event) => {
-      if (!CHECKOUT_URL) return;
+  document.querySelectorAll("[data-checkout]").forEach((item) => {
+    item.addEventListener("click", async (event) => {
       event.preventDefault();
-      window.location.href = CHECKOUT_URL;
+      if (item.dataset.loading === "true") return;
+      item.dataset.loading = "true";
+      const original = item.innerHTML;
+      item.textContent = "Opening secure checkout...";
+      try {
+        const response = await fetch("/api/checkout", {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({})
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Checkout is unavailable.");
+        window.location.href = result.url;
+      } catch (error) {
+        showToast(error.message);
+        item.innerHTML = original;
+        item.dataset.loading = "false";
+      }
     });
   });
 
@@ -2820,10 +2835,6 @@
     const success = document.getElementById("formSuccess");
     if (!name || !email || !marketingConsent) {
       showToast("Add your details and confirm email updates first.");
-      return;
-    }
-    if (CHECKOUT_URL) {
-      window.location.href = CHECKOUT_URL;
       return;
     }
     form.classList.add("is-submitting");

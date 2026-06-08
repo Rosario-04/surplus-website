@@ -2,6 +2,7 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const Stripe = require("stripe");
 
 const publicDir = path.join(__dirname, "public");
 const dataDir = path.join(__dirname, "data");
@@ -14,6 +15,14 @@ const resendApiKey = process.env.RESEND_API_KEY || "";
 const resendSegmentId = process.env.RESEND_SEGMENT_ID || "";
 const waitlistFromEmail = process.env.WAITLIST_FROM_EMAIL || "Surplus <hello@liveinsurplus.com>";
 const siteUrl = (process.env.SITE_URL || "https://liveinsurplus.com").replace(/\/$/, "");
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY || "";
+const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
+const stripeFoundingPriceId = process.env.STRIPE_FOUNDING_PRICE_ID || "";
+const stripeRegularPriceId = process.env.STRIPE_REGULAR_PRICE_ID || "";
+const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
+const sessionCookieName = "surplus_session";
+const memberSessionDays = 30;
+const magicLinkMinutes = 20;
 const rateLimitWindowMs = 15 * 60 * 1000;
 const rateLimitMax = 5;
 const signupAttempts = new Map();
@@ -69,6 +78,24 @@ function readJsonBody(req) {
   });
 }
 
+function readRawBody(req, maxBytes = 100_000) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    let size = 0;
+    req.on("data", (chunk) => {
+      size += chunk.length;
+      if (size > maxBytes) {
+        reject(new Error("Request too large"));
+        req.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on("end", () => resolve(Buffer.concat(chunks)));
+    req.on("error", reject);
+  });
+}
+
 function normalizeText(value, maxLength) {
   return String(value || "").trim().replace(/\s+/g, " ").slice(0, maxLength);
 }
@@ -93,6 +120,109 @@ function isRateLimited(ip) {
   recent.push(now);
   signupAttempts.set(ip, recent);
   return recent.length > rateLimitMax;
+}
+
+function supabaseHeaders(prefer = "") {
+  const headers = {
+    apikey: supabaseSecretKey,
+    "Content-Type": "application/json"
+  };
+  if (prefer) headers.Prefer = prefer;
+  if (!supabaseSecretKey.startsWith("sb_secret_")) {
+    headers.Authorization = `Bearer ${supabaseSecretKey}`;
+  }
+  return headers;
+}
+
+function hashToken(value) {
+  return crypto.createHash("sha256").update(value).digest("hex");
+}
+
+function parseCookies(req) {
+  return String(req.headers.cookie || "")
+    .split(";")
+    .map((part) => part.trim().split("="))
+    .reduce((cookies, [key, ...value]) => {
+      if (key) cookies[key] = decodeURIComponent(value.join("="));
+      return cookies;
+    }, {});
+}
+
+function setSessionCookie(res, token) {
+  const secure = siteUrl.startsWith("https://") ? "; Secure" : "";
+  res.setHeader(
+    "Set-Cookie",
+    `${sessionCookieName}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${memberSessionDays * 86400}${secure}`
+  );
+}
+
+function clearSessionCookie(res) {
+  const secure = siteUrl.startsWith("https://") ? "; Secure" : "";
+  res.setHeader(
+    "Set-Cookie",
+    `${sessionCookieName}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure}`
+  );
+}
+
+async function supabaseSelect(table, params) {
+  const response = await fetch(`${supabaseUrl}/rest/v1/${table}?${new URLSearchParams(params)}`, {
+    headers: supabaseHeaders()
+  });
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Supabase ${table} query failed (${response.status}): ${error}`);
+  }
+  return response.json();
+}
+
+async function supabaseInsert(table, payload, prefer = "return=representation") {
+  const response = await fetch(`${supabaseUrl}/rest/v1/${table}`, {
+    method: "POST",
+    headers: supabaseHeaders(prefer),
+    body: JSON.stringify(payload)
+  });
+  const result = await response.json().catch(() => []);
+  if (!response.ok) {
+    throw new Error(`Supabase ${table} insert failed (${response.status})`);
+  }
+  return Array.isArray(result) ? result[0] || null : result;
+}
+
+async function supabaseUpsert(table, payload, onConflict) {
+  const response = await fetch(`${supabaseUrl}/rest/v1/${table}?on_conflict=${encodeURIComponent(onConflict)}`, {
+    method: "POST",
+    headers: supabaseHeaders("resolution=merge-duplicates,return=representation"),
+    body: JSON.stringify(payload)
+  });
+  const result = await response.json().catch(() => []);
+  if (!response.ok) {
+    console.error(`Supabase ${table} upsert error:`, response.status, result);
+    throw new Error(`Supabase ${table} upsert failed`);
+  }
+  return Array.isArray(result) ? result[0] || null : result;
+}
+
+async function supabasePatch(table, filters, payload) {
+  const response = await fetch(`${supabaseUrl}/rest/v1/${table}?${new URLSearchParams(filters)}`, {
+    method: "PATCH",
+    headers: supabaseHeaders("return=representation"),
+    body: JSON.stringify(payload)
+  });
+  const result = await response.json().catch(() => []);
+  if (!response.ok) {
+    throw new Error(`Supabase ${table} update failed (${response.status})`);
+  }
+  return Array.isArray(result) ? result[0] || null : result;
+}
+
+async function supabaseDelete(table, filters) {
+  const response = await fetch(`${supabaseUrl}/rest/v1/${table}?${new URLSearchParams(filters)}`, {
+    method: "DELETE",
+    headers: supabaseHeaders("return=minimal")
+  });
+  if (!response.ok) {
+    throw new Error(`Supabase ${table} delete failed (${response.status})`);
+  }
 }
 
 async function saveToSupabase(entry) {
@@ -263,6 +393,361 @@ async function runWaitlistEmailTasks(entry, position, recordId) {
   }
 }
 
+function membershipAllowsAccess(status) {
+  return ["active", "trialing"].includes(status);
+}
+
+async function countFoundingMembers() {
+  const rows = await supabaseSelect("members", {
+    select: "id",
+    founding_member: "eq.true",
+    subscription_status: "in.(active,trialing)",
+    limit: "100"
+  });
+  return rows.length;
+}
+
+async function findMemberByEmail(email) {
+  const rows = await supabaseSelect("members", {
+    select: "*",
+    email: `eq.${email}`,
+    limit: "1"
+  });
+  return rows[0] || null;
+}
+
+async function findMemberByCustomer(customerId) {
+  const rows = await supabaseSelect("members", {
+    select: "*",
+    stripe_customer_id: `eq.${customerId}`,
+    limit: "1"
+  });
+  return rows[0] || null;
+}
+
+async function sendMagicLinkEmail(member, token) {
+  if (!resendApiKey) throw new Error("Member email delivery is not configured");
+  const url = `${siteUrl}/api/auth/verify?token=${encodeURIComponent(token)}`;
+  const safeName = String(member.name || "Builder").replace(/[<>&"']/g, "");
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${resendApiKey}`,
+      "Content-Type": "application/json",
+      "User-Agent": "surplus-website/1.0"
+    },
+    body: JSON.stringify({
+      from: waitlistFromEmail,
+      to: [member.email],
+      subject: "Your secure Surplus sign-in link",
+      html: `<!doctype html>
+<html lang="en">
+<body style="margin:0;background:#0a0a0c;color:#f4efe2;font-family:Arial,sans-serif">
+  <div style="max-width:600px;margin:0 auto;padding:48px 24px">
+    <div style="font-family:Georgia,serif;font-size:30px;margin-bottom:32px;color:#d4b66a">Surplus</div>
+    <h1 style="font-family:Georgia,serif;font-size:36px;line-height:1.15;margin:0 0 18px">Welcome back, ${safeName}.</h1>
+    <p style="font-size:17px;line-height:1.65;color:#c8c2b7;margin:0 0 26px">
+      Use the secure button below to enter your member dashboard. This link expires in ${magicLinkMinutes} minutes and can only be used once.
+    </p>
+    <a href="${url}" style="display:inline-block;background:#c9a957;color:#0a0a0c;text-decoration:none;font-weight:700;padding:14px 22px">
+      Open member dashboard
+    </a>
+    <p style="font-size:12px;line-height:1.5;color:#777168;margin-top:36px">
+      If you did not request this link, you can safely ignore this email.
+    </p>
+  </div>
+</body>
+</html>`
+    })
+  });
+  if (!response.ok) {
+    const details = await response.text();
+    throw new Error(`Member sign-in email failed (${response.status}): ${details}`);
+  }
+}
+
+async function issueMagicLink(member) {
+  const token = crypto.randomBytes(32).toString("hex");
+  await supabaseInsert("member_auth_tokens", {
+    id: crypto.randomUUID(),
+    member_id: member.id,
+    token_hash: hashToken(token),
+    expires_at: new Date(Date.now() + magicLinkMinutes * 60_000).toISOString()
+  }, "return=minimal");
+  await sendMagicLinkEmail(member, token);
+}
+
+async function createMemberSession(memberId) {
+  const token = crypto.randomBytes(32).toString("hex");
+  await supabaseInsert("member_sessions", {
+    id: crypto.randomUUID(),
+    member_id: memberId,
+    token_hash: hashToken(token),
+    expires_at: new Date(Date.now() + memberSessionDays * 86400_000).toISOString()
+  }, "return=minimal");
+  return token;
+}
+
+async function getAuthenticatedMember(req) {
+  if (!supabaseUrl || !supabaseSecretKey) return null;
+  const token = parseCookies(req)[sessionCookieName];
+  if (!token) return null;
+  const sessions = await supabaseSelect("member_sessions", {
+    select: "id,member_id,expires_at",
+    token_hash: `eq.${hashToken(token)}`,
+    expires_at: `gt.${new Date().toISOString()}`,
+    limit: "1"
+  });
+  const session = sessions[0];
+  if (!session) return null;
+  const members = await supabaseSelect("members", {
+    select: "*",
+    id: `eq.${session.member_id}`,
+    limit: "1"
+  });
+  return members[0] || null;
+}
+
+async function handleCreateCheckout(req, res) {
+  if (req.method !== "POST") return sendJson(res, 405, { error: "Method not allowed" });
+  if (!stripe || !stripeFoundingPriceId || !stripeRegularPriceId) {
+    return sendJson(res, 503, { error: "Checkout is not configured yet." });
+  }
+  if (!supabaseUrl || !supabaseSecretKey) {
+    return sendJson(res, 503, { error: "Member storage is not configured." });
+  }
+
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch (error) {
+    return sendJson(res, 400, { error: error.message });
+  }
+
+  const email = normalizeEmail(body.email);
+  const name = normalizeText(body.name, 100);
+  if (email && !isValidEmail(email)) {
+    return sendJson(res, 400, { error: "Please enter a valid email address." });
+  }
+
+  try {
+    const founding = (await countFoundingMembers()) < 100;
+    const params = {
+      mode: "subscription",
+      line_items: [{ price: founding ? stripeFoundingPriceId : stripeRegularPriceId, quantity: 1 }],
+      success_url: `${siteUrl}/checkout-success.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${siteUrl}/surplus.html#pricing`,
+      allow_promotion_codes: true,
+      billing_address_collection: "auto",
+      metadata: {
+        founding_member: String(founding),
+        member_name: name
+      },
+      subscription_data: {
+        metadata: {
+          founding_member: String(founding),
+          member_name: name
+        }
+      }
+    };
+    if (email) params.customer_email = email;
+    const session = await stripe.checkout.sessions.create(params);
+    sendJson(res, 200, { url: session.url });
+  } catch (error) {
+    console.error("Stripe checkout creation failed:", error);
+    sendJson(res, 500, { error: "Checkout could not be started. Please try again." });
+  }
+}
+
+async function handleRequestLogin(req, res) {
+  if (req.method !== "POST") return sendJson(res, 405, { error: "Method not allowed" });
+  if (isRateLimited(clientIp(req))) {
+    return sendJson(res, 429, { error: "Too many attempts. Please try again shortly." });
+  }
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch (error) {
+    return sendJson(res, 400, { error: error.message });
+  }
+  const email = normalizeEmail(body.email);
+  if (!isValidEmail(email)) return sendJson(res, 400, { error: "Enter a valid email address." });
+
+  try {
+    const member = await findMemberByEmail(email);
+    if (member && membershipAllowsAccess(member.subscription_status)) {
+      await issueMagicLink(member);
+    }
+    sendJson(res, 200, {
+      ok: true,
+      message: "If that email has active Surplus access, a secure sign-in link is on the way."
+    });
+  } catch (error) {
+    console.error("Member login request failed:", error);
+    sendJson(res, 500, { error: "We could not send the sign-in link. Please try again." });
+  }
+}
+
+async function handleVerifyLogin(req, res) {
+  const url = new URL(req.url, siteUrl);
+  const token = String(url.searchParams.get("token") || "");
+  if (!token) {
+    res.writeHead(302, { Location: "/surplus-member.html?login=invalid" });
+    return res.end();
+  }
+  try {
+    const rows = await supabaseSelect("member_auth_tokens", {
+      select: "id,member_id,expires_at,used_at",
+      token_hash: `eq.${hashToken(token)}`,
+      expires_at: `gt.${new Date().toISOString()}`,
+      used_at: "is.null",
+      limit: "1"
+    });
+    const authToken = rows[0];
+    if (!authToken) throw new Error("Invalid or expired token");
+    const members = await supabaseSelect("members", {
+      select: "*",
+      id: `eq.${authToken.member_id}`,
+      limit: "1"
+    });
+    const member = members[0];
+    if (!member || !membershipAllowsAccess(member.subscription_status)) {
+      throw new Error("Membership is not active");
+    }
+    await supabasePatch("member_auth_tokens", { id: `eq.${authToken.id}` }, {
+      used_at: new Date().toISOString()
+    });
+    const sessionToken = await createMemberSession(member.id);
+    setSessionCookie(res, sessionToken);
+    res.writeHead(302, { Location: "/surplus-member.html" });
+    res.end();
+  } catch (error) {
+    console.warn("Member sign-in verification failed:", error.message);
+    res.writeHead(302, { Location: "/surplus-member.html?login=invalid" });
+    res.end();
+  }
+}
+
+async function handleMemberSession(req, res) {
+  const member = await getAuthenticatedMember(req);
+  if (!member) return sendJson(res, 401, { authenticated: false });
+  sendJson(res, 200, {
+    authenticated: true,
+    member: {
+      name: member.name,
+      email: member.email,
+      subscriptionStatus: member.subscription_status,
+      foundingMember: member.founding_member,
+      currentPeriodEnd: member.current_period_end
+    }
+  });
+}
+
+async function handleLogout(req, res) {
+  if (req.method !== "POST") return sendJson(res, 405, { error: "Method not allowed" });
+  const token = parseCookies(req)[sessionCookieName];
+  if (token && supabaseUrl && supabaseSecretKey) {
+    await supabaseDelete("member_sessions", { token_hash: `eq.${hashToken(token)}` }).catch(() => {});
+  }
+  clearSessionCookie(res);
+  sendJson(res, 200, { ok: true });
+}
+
+async function handleBillingPortal(req, res) {
+  if (req.method !== "POST") return sendJson(res, 405, { error: "Method not allowed" });
+  if (!stripe) return sendJson(res, 503, { error: "Billing is not configured." });
+  const member = await getAuthenticatedMember(req);
+  if (!member || !member.stripe_customer_id) {
+    return sendJson(res, 401, { error: "Sign in to manage billing." });
+  }
+  try {
+    const session = await stripe.billingPortal.sessions.create({
+      customer: member.stripe_customer_id,
+      return_url: `${siteUrl}/surplus-member.html`
+    });
+    sendJson(res, 200, { url: session.url });
+  } catch (error) {
+    console.error("Stripe billing portal failed:", error);
+    sendJson(res, 500, { error: "Billing portal could not be opened." });
+  }
+}
+
+async function syncCheckoutMember(session) {
+  const email = normalizeEmail(session.customer_details?.email || session.customer_email);
+  if (!email) return;
+  const existingMember = await findMemberByEmail(email);
+  const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
+  const subscriptionId = typeof session.subscription === "string" ? session.subscription : session.subscription?.id;
+  const subscription = subscriptionId ? await stripe.subscriptions.retrieve(subscriptionId) : null;
+  const name = normalizeText(session.customer_details?.name || session.metadata?.member_name || "Surplus Member", 100);
+  const member = await supabaseUpsert("members", {
+    email,
+    name,
+    stripe_customer_id: customerId,
+    stripe_subscription_id: subscriptionId,
+    subscription_status: subscription?.status || "active",
+    founding_member: session.metadata?.founding_member === "true",
+    current_period_end: subscription?.items?.data?.[0]?.current_period_end
+      ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
+      : null,
+    updated_at: new Date().toISOString()
+  }, "email");
+  if (
+    (!existingMember || !membershipAllowsAccess(existingMember.subscription_status)) &&
+    member &&
+    membershipAllowsAccess(member.subscription_status)
+  ) {
+    await issueMagicLink(member).catch((error) => {
+      console.error("Unable to send new member access email:", error);
+    });
+  }
+}
+
+async function syncSubscription(subscription) {
+  const customerId = typeof subscription.customer === "string"
+    ? subscription.customer
+    : subscription.customer?.id;
+  if (!customerId) return;
+  const member = await findMemberByCustomer(customerId);
+  if (!member) return;
+  await supabasePatch("members", { id: `eq.${member.id}` }, {
+    stripe_subscription_id: subscription.id,
+    subscription_status: subscription.status,
+    current_period_end: subscription.items?.data?.[0]?.current_period_end
+      ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
+      : null,
+    updated_at: new Date().toISOString()
+  });
+}
+
+async function handleStripeWebhook(req, res) {
+  if (req.method !== "POST") return sendJson(res, 405, { error: "Method not allowed" });
+  if (!stripe || !stripeWebhookSecret) {
+    return sendJson(res, 503, { error: "Stripe webhook is not configured." });
+  }
+  try {
+    const payload = await readRawBody(req);
+    const event = stripe.webhooks.constructEvent(
+      payload,
+      req.headers["stripe-signature"],
+      stripeWebhookSecret
+    );
+    if (event.type === "checkout.session.completed") {
+      await syncCheckoutMember(event.data.object);
+    } else if (
+      event.type === "customer.subscription.created" ||
+      event.type === "customer.subscription.updated" ||
+      event.type === "customer.subscription.deleted"
+    ) {
+      await syncSubscription(event.data.object);
+    }
+    sendJson(res, 200, { received: true });
+  } catch (error) {
+    console.error("Stripe webhook failed:", error);
+    sendJson(res, 400, { error: "Webhook verification failed." });
+  }
+}
+
 async function saveLocally(entry) {
   await fs.promises.mkdir(dataDir, { recursive: true });
   let records = [];
@@ -370,13 +855,50 @@ const server = http.createServer(async (req, res) => {
   if (requestPath === "/api/health") {
     sendJson(res, 200, {
       ok: true,
-      storage: supabaseUrl && supabaseSecretKey ? "supabase" : "local"
+      storage: supabaseUrl && supabaseSecretKey ? "supabase" : "local",
+      email: resendApiKey ? "configured" : "not_configured",
+      stripe: stripe && stripeFoundingPriceId && stripeRegularPriceId ? "configured" : "not_configured"
     });
     return;
   }
 
   if (requestPath === "/api/waitlist") {
     await handleWaitlist(req, res);
+    return;
+  }
+
+  if (requestPath === "/api/checkout") {
+    await handleCreateCheckout(req, res);
+    return;
+  }
+
+  if (requestPath === "/api/auth/request-link") {
+    await handleRequestLogin(req, res);
+    return;
+  }
+
+  if (requestPath === "/api/auth/verify") {
+    await handleVerifyLogin(req, res);
+    return;
+  }
+
+  if (requestPath === "/api/auth/logout") {
+    await handleLogout(req, res);
+    return;
+  }
+
+  if (requestPath === "/api/member/session") {
+    await handleMemberSession(req, res);
+    return;
+  }
+
+  if (requestPath === "/api/billing-portal") {
+    await handleBillingPortal(req, res);
+    return;
+  }
+
+  if (requestPath === "/api/stripe/webhook") {
+    await handleStripeWebhook(req, res);
     return;
   }
 

@@ -1278,10 +1278,11 @@
     color:#0a0a0c; padding:14px 24px; border-radius:100px;
     font-size:14px; font-weight:500;
     box-shadow:0 20px 60px rgba(185,154,85,.4);
-    transition:transform .5s var(--ease); z-index:1000;
+    opacity:0; visibility:hidden;
+    transition:transform .5s var(--ease),opacity .25s,visibility .25s; z-index:1000;
     display:flex; align-items:center; gap:10px;
   }
-  .toast.show{transform:translateX(-50%) translateY(0)}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1;visibility:visible}
 
   /* Hide everything except active section */
   .section{display:none}
@@ -1305,20 +1306,16 @@
 
     <div class="field">
       <label for="email">Email</label>
-      <input type="email" id="email" value="jordan@surplusdemo.com" autocomplete="email">
+      <input type="email" id="email" autocomplete="email" placeholder="you@example.com">
     </div>
-    <div class="field">
-      <label for="password">Password</label>
-      <input type="password" id="password" value="••••••••" autocomplete="current-password">
-    </div>
-    <button class="signin-btn" onclick="signIn()">Sign in</button>
+    <button class="signin-btn" id="signinButton" onclick="signIn()">Email me a secure sign-in link</button>
     <div class="signin-help">
-      <a href="#" onclick="event.preventDefault()">Forgot password?</a>  ·  <a href="/surplus.html#signup">Join Surplus</a>
+      <a href="/surplus.html#pricing">Become a member</a>
       <div style="margin-top:14px"><a href="/surplus.html">← Back to main website</a></div>
     </div>
-    <div class="signin-demo-note">
-      <strong>Prototype mode</strong>
-      Demo credentials are pre-filled. Click "Sign in" to enter the dashboard.
+    <div class="signin-demo-note" id="signinMessage" aria-live="polite">
+      <strong>Passwordless access</strong>
+      Enter the email connected to your active Surplus membership.
     </div>
   </div>
 </div>
@@ -1465,7 +1462,7 @@
       <div class="page-head">
         <div>
           <div class="page-eyebrow" id="homeEyebrow">Wednesday, April 23</div>
-          <h1 class="greet">Welcome back, <em>Jordan.</em></h1>
+          <h1 class="greet">Welcome back, <em id="greetingName">Jordan.</em></h1>
           <p class="greet-sub">Example member: 22, Phoenix, maintenance supervisor, building the first $500/month side-income stream while getting the budget system under control.</p>
         </div>
         <button class="btn btn-primary" onclick="navigateTo('modules')">Continue learning →</button>
@@ -2247,7 +2244,7 @@
         <div class="profile-grid">
           <div class="profile-avatar-lg">J</div>
           <div>
-            <div class="profile-name">Jordan Morales</div>
+            <div class="profile-name" id="profileName">Jordan Morales</div>
             <div class="profile-handle">@jordan-builds · Phoenix, AZ</div>
             <p class="profile-bio">Maintenance supervisor building a first side-income stream while cleaning up the monthly budget. Current target: save the first $1,000 buffer and earn $500/month outside the 9-to-5.</p>
             <div class="profile-badges">
@@ -2336,8 +2333,7 @@
           </div>
         </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap" id="billingActions">
-          <button class="btn btn-ghost btn-sm">Update card</button>
-          <button class="btn btn-ghost btn-sm" onclick="setState('expired')">Cancel subscription</button>
+          <button class="btn btn-ghost btn-sm" onclick="openBillingPortal()">Manage billing</button>
         </div>
       </div>
 
@@ -2354,16 +2350,9 @@
           <div class="setting-row">
             <div>
               <div class="setting-label">Email</div>
-              <div class="setting-value"><strong>jordan@surplusdemo.com</strong></div>
+              <div class="setting-value"><strong id="settingsEmail">jordan@surplusdemo.com</strong></div>
             </div>
-            <button class="btn btn-ghost btn-sm">Change</button>
-          </div>
-          <div class="setting-row">
-            <div>
-              <div class="setting-label">Password</div>
-              <div class="setting-value">Last updated 3 weeks ago</div>
-            </div>
-            <button class="btn btn-ghost btn-sm">Change</button>
+            <button class="btn btn-ghost btn-sm" onclick="logOut()">Switch account</button>
           </div>
           <div class="setting-row">
             <div>
@@ -2391,7 +2380,7 @@
       <div class="card" style="padding:32px; margin-top:20px">
         <h3 class="card-title" style="margin-bottom:8px">Danger zone</h3>
         <p class="card-sub" style="margin-bottom:18px">Cancel your subscription anytime. You'll keep access through the end of your current billing period.</p>
-        <button class="btn btn-ghost" style="color:var(--bad); border-color:rgba(217,112,112,.3)" onclick="setState('expired')">Cancel subscription</button>
+        <button class="btn btn-ghost" style="color:var(--bad); border-color:rgba(217,112,112,.3)" onclick="openBillingPortal()">Manage or cancel subscription</button>
       </div>
     </section>
 
@@ -2688,22 +2677,93 @@ const WIZARD_STAGES = [
 const MEMBER_QUERY = new URLSearchParams(window.location.search);
 const IS_PREVIEW_MODE = MEMBER_QUERY.has('limited') || MEMBER_QUERY.has('preview') || MEMBER_QUERY.has('demo');
 let CURRENT_STATE = 'active';
+let CURRENT_MEMBER = null;
 
 // ---------- AUTH ----------
-function signIn(){
-  document.getElementById('signin').classList.add('hidden');
+async function signIn(){
+  const email = document.getElementById('email').value.trim();
+  const button = document.getElementById('signinButton');
+  const message = document.getElementById('signinMessage');
+  if (!email) {
+    message.innerHTML = '<strong>Email required</strong>Enter the email connected to your membership.';
+    return;
+  }
+  button.disabled = true;
+  button.textContent = 'Sending secure link...';
+  try {
+    const response = await fetch('/api/auth/request-link', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email})
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Unable to send sign-in link.');
+    message.innerHTML = `<strong>Check your inbox</strong>${result.message}`;
+  } catch (error) {
+    message.innerHTML = `<strong>Sign-in unavailable</strong>${error.message}`;
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Email me a secure sign-in link';
+  }
 }
-function logOut(){
+document.getElementById('email')?.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') signIn();
+});
+async function logOut(){
   if (IS_PREVIEW_MODE) {
     window.location.href = '/surplus.html';
     return;
   }
+  await fetch('/api/auth/logout', {method:'POST'}).catch(() => {});
+  CURRENT_MEMBER = null;
   document.getElementById('signin').classList.remove('hidden');
   document.getElementById('wizard')?.classList.remove('open');
   document.getElementById('palette')?.classList.remove('open');
   document.getElementById('notifDropdown')?.classList.remove('open');
   navigateTo('home');
-  showToast('Logged out. Use Back to main website when you are ready.');
+}
+
+function applyMember(member){
+  CURRENT_MEMBER = member;
+  const name = member.name || 'Surplus Member';
+  const firstLetter = name.trim().charAt(0).toUpperCase() || 'S';
+  document.getElementById('userName').textContent = name;
+  document.getElementById('userAvatar').textContent = firstLetter;
+  document.getElementById('greetingName').textContent = `${name.split(/\s+/)[0]}.`;
+  document.getElementById('profileName').textContent = name;
+  document.getElementById('settingsName').textContent = name;
+  document.getElementById('settingsEmail').textContent = member.email;
+  document.getElementById('statusText').textContent = member.foundingMember ? 'Founding member' : 'Active';
+  document.querySelector('.demo-toggle')?.remove();
+  setState(member.subscriptionStatus === 'active' || member.subscriptionStatus === 'trialing' ? 'active' : 'expired');
+}
+
+async function initializeMemberAccess(){
+  if (IS_PREVIEW_MODE) return;
+  try {
+    const response = await fetch('/api/member/session', {headers:{Accept:'application/json'}});
+    if (!response.ok) throw new Error('Not signed in');
+    const result = await response.json();
+    applyMember(result.member);
+    document.getElementById('signin').classList.add('hidden');
+  } catch {
+    document.getElementById('signin').classList.remove('hidden');
+    if (MEMBER_QUERY.get('login') === 'invalid') {
+      document.getElementById('signinMessage').innerHTML =
+        '<strong>That link has expired</strong>Enter your email to request a fresh secure link.';
+    }
+  }
+}
+
+async function openBillingPortal(){
+  try {
+    const response = await fetch('/api/billing-portal', {method:'POST'});
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Unable to open billing.');
+    window.location.href = result.url;
+  } catch (error) {
+    showToast(error.message);
+  }
 }
 
 // ---------- NAVIGATION ----------
@@ -2774,13 +2834,16 @@ function setState(state){
     pill.style.background = '';
     pill.style.borderColor = '';
     pill.style.color = '';
-    head.textContent = '$30 / month · founding member for life';
-    sub.textContent = 'Next charge: May 23, 2026 · Visa ending 6411';
+    head.textContent = CURRENT_MEMBER?.foundingMember
+      ? '$30 / month · founding member for life'
+      : 'Surplus monthly membership';
+    sub.textContent = CURRENT_MEMBER?.currentPeriodEnd
+      ? `Current access through ${new Date(CURRENT_MEMBER.currentPeriodEnd).toLocaleDateString()}`
+      : 'Manage payment details and invoices through Stripe.';
     banner.style.background = '';
     banner.style.borderColor = '';
     acts.innerHTML = `
-      <button class="btn btn-ghost btn-sm">Update card</button>
-      <button class="btn btn-ghost btn-sm" onclick="setState('expired')">Cancel subscription</button>`;
+      <button class="btn btn-ghost btn-sm" onclick="openBillingPortal()">Manage billing</button>`;
   }
 }
 
@@ -3251,15 +3314,6 @@ function openModuleDetail(){
   navigateTo('module-detail');
 }
 
-// ---------- SIGN IN now triggers wizard ----------
-const _originalSignIn = signIn;
-signIn = function(){
-  document.getElementById('signin').classList.add('hidden');
-  if (IS_PREVIEW_MODE) return;
-  // Show wizard on first login (in real app, gated on user.onboarded flag)
-  setTimeout(() => openWizard(), 600);
-};
-
 // ---------- INIT ----------
 renderModules();
 renderSheets();
@@ -3292,6 +3346,8 @@ if (IS_PREVIEW_MODE) {
     button.style.opacity = '.55';
     button.style.cursor = 'not-allowed';
   });
+} else {
+  initializeMemberAccess();
 }
 
 // After module cards render, wire them to open the detail view

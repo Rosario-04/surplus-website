@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Welcome to Surplus</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,400&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#0a0a0c;--ink:#f4efe2;--dim:#aaa398;--gold:#d4b66a;--line:rgba(185,154,85,.24)}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:var(--bg);color:var(--ink);font-family:'Inter Tight',sans-serif}
+    main{width:min(680px,100%);padding:56px;border:1px solid var(--line);background:#111114;text-align:center}
+    .mark{width:58px;height:58px;margin:0 auto 28px;display:grid;place-items:center;background:var(--gold);color:#0a0a0c;font:italic 32px Fraunces,serif;border-radius:8px}
+    h1{margin:0;font:400 clamp(40px,8vw,66px)/1 Fraunces,serif;letter-spacing:0}
+    h1 em{color:var(--gold)}
+    p{max-width:520px;margin:22px auto;color:var(--dim);font-size:18px;line-height:1.6}
+    .actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:30px}
+    a{padding:14px 22px;border:1px solid var(--line);color:var(--ink);text-decoration:none;font-weight:600}
+    a.primary{background:var(--gold);color:#0a0a0c;border-color:var(--gold)}
+    small{display:block;margin-top:28px;color:#756f66}
+    @media(max-width:600px){main{padding:40px 24px}.actions a{width:100%}}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="mark">S</div>
+    <h1>Welcome to <em>Surplus.</em></h1>
+    <p>Your membership is being activated. Check the email you used at checkout for a secure link to enter your dashboard.</p>
+    <div class="actions">
+      <a class="primary" href="/surplus-member.html">Open member sign in</a>
+      <a href="/surplus.html">Return to website</a>
+    </div>
+    <small>The access email normally arrives within a minute.</small>
+  </main>
+</body>
+</html>

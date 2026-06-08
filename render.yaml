@@ -25,3 +25,11 @@ services:
         value: Surplus <hello@liveinsurplus.com>
       - key: SITE_URL
         value: https://liveinsurplus.com
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_FOUNDING_PRICE_ID
+        sync: false
+      - key: STRIPE_REGULAR_PRICE_ID
+        sync: false

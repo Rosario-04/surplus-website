@@ -8,5 +8,8 @@
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js"
+  },
+  "dependencies": {
+    "stripe": "^22.2.0"
   }
 }
