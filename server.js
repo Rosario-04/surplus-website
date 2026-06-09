@@ -425,7 +425,7 @@ async function findMemberByCustomer(customerId) {
   return rows[0] || null;
 }
 
-async function sendMagicLinkEmail(member, token) {
+async function sendMemberAccessEmail(member, token, code) {
   if (!resendApiKey) throw new Error("Member email delivery is not configured");
   const url = `${siteUrl}/api/auth/verify?token=${encodeURIComponent(token)}`;
   const safeName = String(member.name || "Builder").replace(/[<>&"']/g, "");
@@ -439,7 +439,7 @@ async function sendMagicLinkEmail(member, token) {
     body: JSON.stringify({
       from: waitlistFromEmail,
       to: [member.email],
-      subject: "Your secure Surplus sign-in link",
+      subject: `${code} is your Surplus sign-in code`,
       html: `<!doctype html>
 <html lang="en">
 <body style="margin:0;background:#0a0a0c;color:#f4efe2;font-family:Arial,sans-serif">
@@ -447,10 +447,14 @@ async function sendMagicLinkEmail(member, token) {
     <div style="font-family:Georgia,serif;font-size:30px;margin-bottom:32px;color:#d4b66a">Surplus</div>
     <h1 style="font-family:Georgia,serif;font-size:36px;line-height:1.15;margin:0 0 18px">Welcome back, ${safeName}.</h1>
     <p style="font-size:17px;line-height:1.65;color:#c8c2b7;margin:0 0 26px">
-      Use the secure button below to enter your member dashboard. This link expires in ${magicLinkMinutes} minutes and can only be used once.
+      Enter this one-time code on the Surplus sign-in screen. It expires in ${magicLinkMinutes} minutes and can only be used once.
     </p>
-    <a href="${url}" style="display:inline-block;background:#c9a957;color:#0a0a0c;text-decoration:none;font-weight:700;padding:14px 22px">
-      Open member dashboard
+    <div style="margin:0 0 28px;padding:18px 22px;border:1px solid #6f5d35;background:#141310;color:#d4b66a;font-family:Arial,sans-serif;font-size:38px;font-weight:700;letter-spacing:10px;text-align:center">
+      ${code}
+    </div>
+    <p style="font-size:14px;line-height:1.6;color:#8f897f;margin:0 0 18px">Or use the secure button below to sign in immediately.</p>
+    <a href="${url}" style="display:inline-block;background:#c9a957;color:#0a0a0c;text-decoration:none;font-weight:700;padding:14px 22px;border-radius:999px">
+      Sign in to Surplus
     </a>
     <p style="font-size:12px;line-height:1.5;color:#777168;margin-top:36px">
       If you did not request this link, you can safely ignore this email.
@@ -468,13 +472,27 @@ async function sendMagicLinkEmail(member, token) {
 
 async function issueMagicLink(member) {
   const token = crypto.randomBytes(32).toString("hex");
-  await supabaseInsert("member_auth_tokens", {
-    id: crypto.randomUUID(),
-    member_id: member.id,
-    token_hash: hashToken(token),
-    expires_at: new Date(Date.now() + magicLinkMinutes * 60_000).toISOString()
-  }, "return=minimal");
-  await sendMagicLinkEmail(member, token);
+  const code = String(crypto.randomInt(0, 1_000_000)).padStart(6, "0");
+  const expiresAt = new Date(Date.now() + magicLinkMinutes * 60_000).toISOString();
+  await supabaseDelete("member_auth_tokens", {
+    member_id: `eq.${member.id}`,
+    used_at: "is.null"
+  });
+  await Promise.all([
+    supabaseInsert("member_auth_tokens", {
+      id: crypto.randomUUID(),
+      member_id: member.id,
+      token_hash: hashToken(token),
+      expires_at: expiresAt
+    }, "return=minimal"),
+    supabaseInsert("member_auth_tokens", {
+      id: crypto.randomUUID(),
+      member_id: member.id,
+      token_hash: hashToken(`${member.id}:${code}`),
+      expires_at: expiresAt
+    }, "return=minimal")
+  ]);
+  await sendMemberAccessEmail(member, token, code);
 }
 
 async function createMemberSession(memberId) {
@@ -580,11 +598,55 @@ async function handleRequestLogin(req, res) {
     }
     sendJson(res, 200, {
       ok: true,
-      message: "If that email has active Surplus access, a secure sign-in link is on the way."
+      message: "If that email has active Surplus access, a six-digit sign-in code is on the way."
     });
   } catch (error) {
     console.error("Member login request failed:", error);
-    sendJson(res, 500, { error: "We could not send the sign-in link. Please try again." });
+    sendJson(res, 500, { error: "We could not send the sign-in code. Please try again." });
+  }
+}
+
+async function handleVerifyCode(req, res) {
+  if (req.method !== "POST") return sendJson(res, 405, { error: "Method not allowed" });
+  if (isRateLimited(`verify:${clientIp(req)}`)) {
+    return sendJson(res, 429, { error: "Too many attempts. Request a new code and try again shortly." });
+  }
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch (error) {
+    return sendJson(res, 400, { error: error.message });
+  }
+  const email = normalizeEmail(body.email);
+  const code = String(body.code || "").replace(/\D/g, "").slice(0, 6);
+  if (!isValidEmail(email) || code.length !== 6) {
+    return sendJson(res, 400, { error: "Enter the six-digit code from your email." });
+  }
+
+  try {
+    const member = await findMemberByEmail(email);
+    if (!member || !membershipAllowsAccess(member.subscription_status)) {
+      throw new Error("Membership is not active");
+    }
+    const rows = await supabaseSelect("member_auth_tokens", {
+      select: "id,member_id,expires_at,used_at",
+      member_id: `eq.${member.id}`,
+      token_hash: `eq.${hashToken(`${member.id}:${code}`)}`,
+      expires_at: `gt.${new Date().toISOString()}`,
+      used_at: "is.null",
+      limit: "1"
+    });
+    const authToken = rows[0];
+    if (!authToken) throw new Error("Invalid or expired code");
+    await supabasePatch("member_auth_tokens", { id: `eq.${authToken.id}` }, {
+      used_at: new Date().toISOString()
+    });
+    const sessionToken = await createMemberSession(member.id);
+    setSessionCookie(res, sessionToken);
+    sendJson(res, 200, { ok: true });
+  } catch (error) {
+    console.warn("Member code verification failed:", error.message);
+    sendJson(res, 401, { error: "That code is incorrect or has expired. Request a new code and try again." });
   }
 }
 
@@ -874,6 +936,11 @@ const server = http.createServer(async (req, res) => {
 
   if (requestPath === "/api/auth/request-link") {
     await handleRequestLogin(req, res);
+    return;
+  }
+
+  if (requestPath === "/api/auth/verify-code") {
+    await handleVerifyCode(req, res);
     return;
   }
 

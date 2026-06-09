@@ -95,6 +95,23 @@
   .signin-btn:hover{transform:translateY(-1px); box-shadow:0 16px 40px rgba(185,154,85,.4)}
   .signin-help{text-align:center; margin-top:20px; color:var(--ink-faint); font-size:13px}
   .signin-help a{color:var(--gold-bright); text-decoration:none}
+  .signin-help{display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap}
+  .signin-help a:first-child{color:var(--ink-dim)}
+  .signin-help .help-divider{width:3px; height:3px; border-radius:50%; background:var(--ink-faint)}
+  .signin-step[hidden]{display:none}
+  .code-field input{
+    text-align:center; font-size:24px; font-weight:600; letter-spacing:.32em;
+    font-variant-numeric:tabular-nums; padding-left:calc(16px + .32em);
+  }
+  .code-meta{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    margin-top:14px; color:var(--ink-faint); font-size:12px;
+  }
+  .text-action{
+    appearance:none; border:0; padding:0; background:none; cursor:pointer;
+    color:var(--gold-bright); font:inherit;
+  }
+  .signin-btn:disabled{opacity:.58; cursor:wait; transform:none; box-shadow:none}
   .signin-demo-note{
     margin-top:24px; padding:14px; border-radius:12px;
     background:rgba(185,154,85,.06); border:1px solid var(--line);
@@ -1304,18 +1321,38 @@
     <h1>Welcome <em>back.</em></h1>
     <p class="signin-sub">Sign in to your dashboard</p>
 
-    <div class="field">
-      <label for="email">Email</label>
-      <input type="email" id="email" autocomplete="email" placeholder="you@example.com">
+    <div class="signin-step" id="emailStep">
+      <div class="field">
+        <label for="email">Member email</label>
+        <input type="email" id="email" autocomplete="email" placeholder="you@example.com">
+      </div>
+      <button class="signin-btn" id="signinButton" onclick="requestSignInCode()">Continue securely</button>
     </div>
-    <button class="signin-btn" id="signinButton" onclick="signIn()">Email me a secure sign-in link</button>
+
+    <div class="signin-step" id="codeStep" hidden>
+      <div class="field code-field">
+        <label for="signinCode">Six-digit code</label>
+        <input type="text" id="signinCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
+      </div>
+      <button class="signin-btn" id="verifyCodeButton" onclick="verifySignInCode()">Open my dashboard</button>
+      <div class="code-meta">
+        <span id="codeEmail"></span>
+        <span>
+          <button class="text-action" type="button" onclick="requestSignInCode()">Resend code</button>
+          <span aria-hidden="true">&nbsp;·&nbsp;</span>
+          <button class="text-action" type="button" onclick="resetSignIn()">Change email</button>
+        </span>
+      </div>
+    </div>
+
     <div class="signin-help">
-      <a href="/surplus.html#pricing">Become a member</a>
-      <div style="margin-top:14px"><a href="/surplus.html">← Back to main website</a></div>
+      <a href="/surplus.html">Back to website</a>
+      <span class="help-divider" aria-hidden="true"></span>
+      <a href="/surplus.html#pricing">View membership</a>
     </div>
     <div class="signin-demo-note" id="signinMessage" aria-live="polite">
-      <strong>Passwordless access</strong>
-      Enter the email connected to your active Surplus membership.
+      <strong>Secure member access</strong>
+      Enter the email used at checkout. We will send a one-time code.
     </div>
   </div>
 </div>
@@ -2680,7 +2717,7 @@ let CURRENT_STATE = 'active';
 let CURRENT_MEMBER = null;
 
 // ---------- AUTH ----------
-async function signIn(){
+async function requestSignInCode(){
   const email = document.getElementById('email').value.trim();
   const button = document.getElementById('signinButton');
   const message = document.getElementById('signinMessage');
@@ -2689,7 +2726,7 @@ async function signIn(){
     return;
   }
   button.disabled = true;
-  button.textContent = 'Sending secure link...';
+  button.textContent = 'Sending code...';
   try {
     const response = await fetch('/api/auth/request-link', {
       method:'POST',
@@ -2697,17 +2734,69 @@ async function signIn(){
       body:JSON.stringify({email})
     });
     const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Unable to send sign-in link.');
-    message.innerHTML = `<strong>Check your inbox</strong>${result.message}`;
+    if (!response.ok) throw new Error(result.error || 'Unable to send sign-in code.');
+    document.getElementById('emailStep').hidden = true;
+    document.getElementById('codeStep').hidden = false;
+    document.getElementById('codeEmail').textContent = email;
+    document.getElementById('signinCode').focus();
+    message.innerHTML = `<strong>Check your inbox</strong>Enter the six-digit code we sent. It expires in 20 minutes.`;
   } catch (error) {
     message.innerHTML = `<strong>Sign-in unavailable</strong>${error.message}`;
   } finally {
     button.disabled = false;
-    button.textContent = 'Email me a secure sign-in link';
+    button.textContent = 'Continue securely';
   }
 }
+
+async function verifySignInCode(){
+  const email = document.getElementById('email').value.trim();
+  const code = document.getElementById('signinCode').value.replace(/\D/g,'').slice(0,6);
+  const button = document.getElementById('verifyCodeButton');
+  const message = document.getElementById('signinMessage');
+  if (code.length !== 6) {
+    message.innerHTML = '<strong>Code required</strong>Enter all six digits from your email.';
+    return;
+  }
+  button.disabled = true;
+  button.textContent = 'Verifying...';
+  try {
+    const response = await fetch('/api/auth/verify-code', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email, code})
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Unable to verify this code.');
+    const sessionResponse = await fetch('/api/member/session', {headers:{Accept:'application/json'}});
+    if (!sessionResponse.ok) throw new Error('Your session could not be started.');
+    const session = await sessionResponse.json();
+    applyMember(session.member);
+    document.getElementById('signin').classList.add('hidden');
+    resetSignIn();
+  } catch (error) {
+    message.innerHTML = `<strong>Code not accepted</strong>${error.message}`;
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Open my dashboard';
+  }
+}
+
+function resetSignIn(){
+  document.getElementById('emailStep').hidden = false;
+  document.getElementById('codeStep').hidden = true;
+  document.getElementById('signinCode').value = '';
+  document.getElementById('signinMessage').innerHTML =
+    '<strong>Secure member access</strong>Enter the email used at checkout. We will send a one-time code.';
+}
+
 document.getElementById('email')?.addEventListener('keydown', (event) => {
-  if (event.key === 'Enter') signIn();
+  if (event.key === 'Enter') requestSignInCode();
+});
+document.getElementById('signinCode')?.addEventListener('input', (event) => {
+  event.target.value = event.target.value.replace(/\D/g,'').slice(0,6);
+});
+document.getElementById('signinCode')?.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') verifySignInCode();
 });
 async function logOut(){
   if (IS_PREVIEW_MODE) {
