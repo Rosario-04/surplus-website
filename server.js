@@ -493,10 +493,6 @@ async function issueMagicLink(member) {
       expires_at: expiresAt
     }, "return=minimal")
   ]);
-  console.info("Member access code issued", {
-    member: String(member.id).slice(0, 8),
-    hash: codeHash.slice(0, 10)
-  });
   await sendMemberAccessEmail(member, token, code);
 }
 
@@ -641,11 +637,6 @@ async function handleVerifyCode(req, res) {
       expires_at: `gt.${new Date().toISOString()}`,
       used_at: "is.null",
       limit: "1"
-    });
-    console.info("Member access code checked", {
-      member: String(member.id).slice(0, 8),
-      hash: submittedHash.slice(0, 10),
-      matches: rows.length
     });
     const authToken = rows[0];
     if (!authToken) throw new Error("Invalid or expired code");
