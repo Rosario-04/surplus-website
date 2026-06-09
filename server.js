@@ -473,6 +473,7 @@ async function sendMemberAccessEmail(member, token, code) {
 async function issueMagicLink(member) {
   const token = crypto.randomBytes(32).toString("hex");
   const code = String(crypto.randomInt(0, 1_000_000)).padStart(6, "0");
+  const codeHash = hashToken(`${member.id}:${code}`);
   const expiresAt = new Date(Date.now() + magicLinkMinutes * 60_000).toISOString();
   await supabaseDelete("member_auth_tokens", {
     member_id: `eq.${member.id}`,
@@ -488,10 +489,14 @@ async function issueMagicLink(member) {
     supabaseInsert("member_auth_tokens", {
       id: crypto.randomUUID(),
       member_id: member.id,
-      token_hash: hashToken(`${member.id}:${code}`),
+      token_hash: codeHash,
       expires_at: expiresAt
     }, "return=minimal")
   ]);
+  console.info("Member access code issued", {
+    member: String(member.id).slice(0, 8),
+    hash: codeHash.slice(0, 10)
+  });
   await sendMemberAccessEmail(member, token, code);
 }
 
@@ -628,13 +633,19 @@ async function handleVerifyCode(req, res) {
     if (!member || !membershipAllowsAccess(member.subscription_status)) {
       throw new Error("Membership is not active");
     }
+    const submittedHash = hashToken(`${member.id}:${code}`);
     const rows = await supabaseSelect("member_auth_tokens", {
       select: "id,member_id,expires_at,used_at",
       member_id: `eq.${member.id}`,
-      token_hash: `eq.${hashToken(`${member.id}:${code}`)}`,
+      token_hash: `eq.${submittedHash}`,
       expires_at: `gt.${new Date().toISOString()}`,
       used_at: "is.null",
       limit: "1"
+    });
+    console.info("Member access code checked", {
+      member: String(member.id).slice(0, 8),
+      hash: submittedHash.slice(0, 10),
+      matches: rows.length
     });
     const authToken = rows[0];
     if (!authToken) throw new Error("Invalid or expired code");
