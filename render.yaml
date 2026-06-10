@@ -2,7 +2,7 @@ services:
   - type: web
     name: surplus-website
     runtime: node
-    plan: free
+    plan: starter
     branch: main
     autoDeployTrigger: commit
     buildCommand: npm install
