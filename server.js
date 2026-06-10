@@ -104,6 +104,14 @@ function normalizeEmail(value) {
   return String(value || "").trim().toLowerCase().slice(0, 254);
 }
 
+function normalizeCode(value, maxLength = 80) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]/g, "")
+    .slice(0, maxLength);
+}
+
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -425,6 +433,27 @@ async function findMemberByCustomer(customerId) {
   return rows[0] || null;
 }
 
+async function findMemberByReferralCode(referralCode) {
+  if (!referralCode) return null;
+  const rows = await supabaseSelect("members", {
+    select: "*",
+    referral_code: `eq.${referralCode}`,
+    limit: "1"
+  });
+  return rows[0] || null;
+}
+
+async function ensureReferralCode(member) {
+  if (!member || member.referral_code) return member;
+  const nameSlug = normalizeCode(member.name).replace(/_+/g, "-").slice(0, 18) || "builder";
+  const referralCode = `${nameSlug}-${String(member.id).replace(/-/g, "").slice(0, 6)}`;
+  const updated = await supabasePatch("members", { id: `eq.${member.id}` }, {
+    referral_code: referralCode,
+    updated_at: new Date().toISOString()
+  });
+  return updated || { ...member, referral_code: referralCode };
+}
+
 async function sendMemberAccessEmail(member, token, code) {
   if (!resendApiKey) throw new Error("Member email delivery is not configured");
   const url = `${siteUrl}/api/auth/verify?token=${encodeURIComponent(token)}`;
@@ -545,6 +574,7 @@ async function handleCreateCheckout(req, res) {
 
   const email = normalizeEmail(body.email);
   const name = normalizeText(body.name, 100);
+  const referralCode = normalizeCode(body.referralCode);
   if (email && !isValidEmail(email)) {
     return sendJson(res, 400, { error: "Please enter a valid email address." });
   }
@@ -560,12 +590,14 @@ async function handleCreateCheckout(req, res) {
       billing_address_collection: "auto",
       metadata: {
         founding_member: String(founding),
-        member_name: name
+        member_name: name,
+        referral_code: referralCode
       },
       subscription_data: {
         metadata: {
           founding_member: String(founding),
-          member_name: name
+          member_name: name,
+          referral_code: referralCode
         }
       }
     };
@@ -693,8 +725,9 @@ async function handleVerifyLogin(req, res) {
 }
 
 async function handleMemberSession(req, res) {
-  const member = await getAuthenticatedMember(req);
+  let member = await getAuthenticatedMember(req);
   if (!member) return sendJson(res, 401, { authenticated: false });
+  member = await ensureReferralCode(member);
   sendJson(res, 200, {
     authenticated: true,
     member: {
@@ -702,9 +735,87 @@ async function handleMemberSession(req, res) {
       email: member.email,
       subscriptionStatus: member.subscription_status,
       foundingMember: member.founding_member,
-      currentPeriodEnd: member.current_period_end
+      currentPeriodEnd: member.current_period_end,
+      onboarding: member.onboarding || {},
+      progress: member.progress || {},
+      referralCode: member.referral_code,
+      referralCount: member.referral_count || 0,
+      referralCredits: member.referral_credits || 0
     }
   });
+}
+
+async function handleMemberState(req, res) {
+  let member = await getAuthenticatedMember(req);
+  if (!member) return sendJson(res, 401, { error: "Sign in to update your dashboard." });
+  member = await ensureReferralCode(member);
+  if (req.method === "GET") {
+    return sendJson(res, 200, {
+      onboarding: member.onboarding || {},
+      progress: member.progress || {},
+      referralCode: member.referral_code,
+      referralCount: member.referral_count || 0,
+      referralCredits: member.referral_credits || 0
+    });
+  }
+  if (req.method !== "PATCH") return sendJson(res, 405, { error: "Method not allowed" });
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch (error) {
+    return sendJson(res, 400, { error: error.message });
+  }
+  const update = { updated_at: new Date().toISOString() };
+  if (body.onboarding && typeof body.onboarding === "object" && !Array.isArray(body.onboarding)) {
+    update.onboarding = body.onboarding;
+  }
+  if (body.progress && typeof body.progress === "object" && !Array.isArray(body.progress)) {
+    update.progress = body.progress;
+  }
+  if (body.name) update.name = normalizeText(body.name, 100);
+  try {
+    const updated = await supabasePatch("members", { id: `eq.${member.id}` }, update);
+    sendJson(res, 200, {
+      ok: true,
+      onboarding: updated?.onboarding || member.onboarding || {},
+      progress: updated?.progress || member.progress || {}
+    });
+  } catch (error) {
+    console.error("Member state update failed:", error);
+    sendJson(res, 500, { error: "Your progress could not be saved. Please try again." });
+  }
+}
+
+async function handleAnalytics(req, res) {
+  if (req.method !== "POST") return sendJson(res, 405, { error: "Method not allowed" });
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch (error) {
+    return sendJson(res, 400, { error: error.message });
+  }
+  const eventName = normalizeCode(body.eventName, 60);
+  if (!eventName) return sendJson(res, 400, { error: "Event name is required." });
+  const member = await getAuthenticatedMember(req);
+  const metadata = body.metadata && typeof body.metadata === "object" && !Array.isArray(body.metadata)
+    ? Object.fromEntries(Object.entries(body.metadata).slice(0, 12).map(([key, value]) => [
+      normalizeCode(key, 40),
+      typeof value === "string" ? value.slice(0, 160) : value
+    ]))
+    : {};
+  try {
+    await supabaseInsert("analytics_events", {
+      member_id: member?.id || null,
+      event_name: eventName,
+      page: normalizeText(body.page, 160),
+      source: normalizeText(body.source, 100),
+      session_id: normalizeCode(body.sessionId, 80),
+      metadata
+    }, "return=minimal");
+  } catch (error) {
+    console.warn("Analytics event was not saved:", error.message);
+  }
+  sendJson(res, 202, { ok: true });
 }
 
 async function handleLogout(req, res) {
@@ -744,6 +855,8 @@ async function syncCheckoutMember(session) {
   const subscriptionId = typeof session.subscription === "string" ? session.subscription : session.subscription?.id;
   const subscription = subscriptionId ? await stripe.subscriptions.retrieve(subscriptionId) : null;
   const name = normalizeText(session.customer_details?.name || session.metadata?.member_name || "Surplus Member", 100);
+  const referralCode = normalizeCode(session.metadata?.referral_code);
+  const referrer = !existingMember && referralCode ? await findMemberByReferralCode(referralCode) : null;
   const member = await supabaseUpsert("members", {
     email,
     name,
@@ -751,11 +864,29 @@ async function syncCheckoutMember(session) {
     stripe_subscription_id: subscriptionId,
     subscription_status: subscription?.status || "active",
     founding_member: session.metadata?.founding_member === "true",
+    referred_by: existingMember?.referred_by || referrer?.referral_code || null,
     current_period_end: subscription?.items?.data?.[0]?.current_period_end
       ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
       : null,
     updated_at: new Date().toISOString()
   }, "email");
+  if (!existingMember && member && referrer && referrer.id !== member.id) {
+    try {
+      await supabaseInsert("referral_events", {
+        referrer_member_id: referrer.id,
+        referred_member_id: member.id,
+        referral_code: referrer.referral_code,
+        status: "qualified"
+      }, "return=minimal");
+      await supabasePatch("members", { id: `eq.${referrer.id}` }, {
+        referral_count: Number(referrer.referral_count || 0) + 1,
+        referral_credits: Number(referrer.referral_credits || 0) + 1,
+        updated_at: new Date().toISOString()
+      });
+    } catch (error) {
+      console.warn("Referral attribution was not saved:", error.message);
+    }
+  }
   if (
     (!existingMember || !membershipAllowsAccess(existingMember.subscription_status)) &&
     member &&
@@ -958,6 +1089,16 @@ const server = http.createServer(async (req, res) => {
 
   if (requestPath === "/api/member/session") {
     await handleMemberSession(req, res);
+    return;
+  }
+
+  if (requestPath === "/api/member/state") {
+    await handleMemberState(req, res);
+    return;
+  }
+
+  if (requestPath === "/api/analytics") {
+    await handleAnalytics(req, res);
     return;
   }
 

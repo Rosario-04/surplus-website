@@ -734,12 +734,38 @@
       <span class="logo-mark" style="width:28px;height:28px;border-radius:8px;font-size:16px">S</span>
       <span>&copy; 2026 Surplus by Rosario. All rights reserved.</span>
     </div>
-    <a style="color:var(--ink-faint);text-decoration:none" href="/surplus.html">Back to homepage</a>
+    <div style="display:flex;gap:18px;flex-wrap:wrap">
+      <a style="color:var(--ink-faint);text-decoration:none" href="/terms.html">Terms</a>
+      <a style="color:var(--ink-faint);text-decoration:none" href="/privacy.html">Privacy</a>
+      <a style="color:var(--ink-faint);text-decoration:none" href="/refund-policy.html">Refunds</a>
+      <a style="color:var(--ink-faint);text-decoration:none" href="/disclaimer.html">Disclaimer</a>
+      <a style="color:var(--ink-faint);text-decoration:none" href="/surplus.html">Homepage</a>
+    </div>
   </div>
 </footer>
 
 <script>
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const query = new URLSearchParams(location.search);
+  const incomingReferral = (query.get("ref") || "").trim().toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0,80);
+  if (incomingReferral) localStorage.setItem("surplusReferralCode", incomingReferral);
+  const referralCode = localStorage.getItem("surplusReferralCode") || "";
+  const analyticsSession = sessionStorage.getItem("surplusAnalyticsSession") || crypto.randomUUID();
+  sessionStorage.setItem("surplusAnalyticsSession", analyticsSession);
+  const trackEvent = (eventName, metadata = {}) => {
+    fetch("/api/analytics", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      keepalive:true,
+      body:JSON.stringify({
+        eventName,
+        page:location.pathname,
+        source:document.referrer || "direct",
+        sessionId:analyticsSession,
+        metadata
+      })
+    }).catch(() => {});
+  };
   const root = document.documentElement;
   const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
   let ticking = false;
@@ -859,10 +885,11 @@
         const response = await fetch("/api/checkout", {
           method:"POST",
           headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({})
+          body:JSON.stringify({referralCode})
         });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || "Checkout is unavailable.");
+        trackEvent("checkout_started",{referral:referralCode ? "present" : "none"});
         window.location.href = result.url;
       } catch (error) {
         window.alert(error.message);
@@ -871,6 +898,7 @@
       }
     });
   });
+  trackEvent("page_view");
 </script>
 </body>
 </html>

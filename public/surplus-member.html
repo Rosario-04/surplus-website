@@ -143,7 +143,6 @@
   body.preview-mode .preview-banner{display:flex}
   body.preview-mode .nav-section-label,
   body.preview-mode .demo-toggle,
-  body.preview-mode .mobile-nav,
   body.preview-mode .topbar-search,
   body.preview-mode .topbar,
   body.preview-mode .notif-wrap,
@@ -159,14 +158,28 @@
   body.preview-mode #section-home .page-head .btn-primary{display:none !important}
   body.preview-mode .toast{display:none !important}
   body.preview-mode .nav-item:not([data-section="home"]){
-    opacity:.58;
-    cursor:not-allowed;
+    opacity:.72;
+    cursor:pointer;
   }
   body.preview-mode .nav-item:not([data-section="home"]):hover{
-    background:transparent;
-    color:var(--ink-dim);
-    border-color:transparent;
+    opacity:1;
+    background:var(--glass);
+    color:var(--ink);
+    border-color:var(--line);
   }
+  body.preview-mode .preview-locked-section{position:relative;min-height:620px;max-height:760px;overflow:hidden}
+  body.preview-mode .preview-locked-section::after{
+    content:'';position:absolute;inset:120px 0 0;z-index:20;pointer-events:none;
+    background:linear-gradient(180deg,transparent 0%,rgba(10,10,12,.74) 44%,var(--bg) 82%);
+  }
+  .preview-section-gate{
+    display:none;position:sticky;top:26px;z-index:30;width:min(520px,calc(100% - 32px));
+    margin:0 auto 24px;padding:22px 24px;border:1px solid var(--line-gold);border-radius:14px;
+    background:rgba(14,14,17,.94);box-shadow:0 24px 70px rgba(0,0,0,.48);text-align:center;
+  }
+  body.preview-mode .preview-section-gate{display:block}
+  .preview-section-gate strong{display:block;font-family:var(--serif);font-size:22px;font-weight:500;margin-bottom:5px}
+  .preview-section-gate span{display:block;color:var(--ink-dim);font-size:13px;line-height:1.5;margin-bottom:15px}
   .nav-meta{
     margin-left:auto;
     display:inline-flex;
@@ -1361,7 +1374,7 @@
 <div class="app">
   <div class="preview-banner" id="previewBanner">
     <strong>Limited access</strong>
-    <span>You are viewing the dashboard home page only.</span>
+    <span>Explore what is included. Member tools remain locked.</span>
     <a href="/surplus.html">Return to website</a>
   </div>
 
@@ -1500,7 +1513,7 @@
         <div>
           <div class="page-eyebrow" id="homeEyebrow">Wednesday, April 23</div>
           <h1 class="greet">Welcome back, <em id="greetingName">Jordan.</em></h1>
-          <p class="greet-sub">Example member: 22, Phoenix, maintenance supervisor, building the first $500/month side-income stream while getting the budget system under control.</p>
+          <p class="greet-sub" id="personalizedSummary">Start with onboarding so Surplus can place you on the right path.</p>
         </div>
         <button class="btn btn-primary" onclick="navigateTo('modules')">Continue learning →</button>
       </div>
@@ -1512,15 +1525,15 @@
             <div>
               <div class="expired-eyebrow">Membership lapsed · Welcome back any time</div>
               <h2 class="expired-title">Your <em>spot</em> is still here.</h2>
-              <p class="expired-body">Your subscription ended on <strong style="color:var(--ink)">April 20</strong>. Re-join in 30 seconds to keep your progress, your spreadsheets, and your locked-in $50 rate. Everything below is preserved exactly where you left it.</p>
+              <p class="expired-body">Your membership is inactive. Rejoin to restore the course, tools, community, and the progress already saved to your account.</p>
               <div class="expired-cta-group">
                 <button class="btn btn-primary" onclick="resubscribe()">Resubscribe — $50/mo →</button>
                 <button class="btn btn-ghost" onclick="navigateTo('settings')">View billing</button>
               </div>
               <div class="expired-mini-savings">
-                <span>Progress saved · <strong>Rung 3 of 7</strong></span>
-                <span>Modules completed · <strong>4 of 12</strong></span>
-                <span>Spreadsheets used · <strong>6 of 12+</strong></span>
+                <span>Onboarding · <strong>Saved</strong></span>
+                <span>Module progress · <strong>Saved</strong></span>
+                <span>Goals · <strong>Saved</strong></span>
               </div>
             </div>
           </div>
@@ -1530,49 +1543,49 @@
       <div class="stats-grid">
         <div class="card stat-card">
           <div class="stat-label">Current rung</div>
-          <div class="stat-value">3 / 7</div>
-          <div class="stat-meta">Discipline · install the budget system</div>
+          <div class="stat-value" id="homeCurrentRung">1 / 7</div>
+          <div class="stat-meta" id="homeCurrentStage">Foundation · establish the baseline</div>
         </div>
         <div class="card stat-card">
           <div class="stat-label">Modules complete</div>
-          <div class="stat-value">4 / 12</div>
-          <div class="stat-meta"><strong>+1</strong> this week</div>
+          <div class="stat-value" id="homeModuleCount">0 / 6</div>
+          <div class="stat-meta">Saved to your account</div>
         </div>
         <div class="card stat-card">
           <div class="stat-label">Found in budget audit</div>
-          <div class="stat-value">$842</div>
-          <div class="stat-meta">Monthly leaks identified</div>
+          <div class="stat-value">Not set</div>
+          <div class="stat-meta">Complete the money audit</div>
         </div>
         <div class="card stat-card">
           <div class="stat-label">Streak</div>
-          <div class="stat-value">12 days</div>
-          <div class="stat-meta">Personal best · keep going</div>
+          <div class="stat-value">Day 1</div>
+          <div class="stat-meta">Complete one real action today</div>
         </div>
       </div>
 
       <div class="wins-head">
-        <h3>Member wins this week</h3>
-        <span class="meta">Live from the Surplus community</span>
+        <h3>Milestones worth sharing</h3>
+        <span class="meta">The outcomes Surplus is built to create</span>
       </div>
       <div class="wins-strip" id="winsStrip"></div>
 
       <div class="home-grid">
         <div class="card continue-card">
           <div class="continue-thumb">
-            <div class="module-badge">Module 5 · Discipline</div>
+            <div class="module-badge" id="continueModuleBadge">Module 1 · Foundation</div>
           </div>
           <div class="continue-body">
-            <h3 class="card-title">Install the monthly budget system</h3>
+            <h3 class="card-title" id="continueModuleTitle">The Wake-Up</h3>
             <div class="continue-meta">
-              <span>📺 22 min remaining</span>
-              <span>📄 Worksheet included</span>
-              <span>📊 Sheet linked</span>
+              <span id="continueModuleDuration">38 min</span>
+              <span>Assignment included</span>
+              <span>Progress saved</span>
             </div>
-            <p class="card-sub" style="margin-bottom:14px">You paused 8 minutes in. Pick up where you left off — this is the rung that changes everything.</p>
-            <div class="progress-bar"><div class="progress-fill" style="width:32%"></div></div>
+            <p class="card-sub" id="continueModuleDescription" style="margin-bottom:14px">Set the standard, define the target, and build a schedule you can actually hold.</p>
+            <div class="progress-bar"><div class="progress-fill" id="continueModuleProgressBar" style="width:0"></div></div>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px">
-              <span style="font-size:12px; color:var(--ink-dim)">32% complete</span>
-              <button class="btn btn-primary btn-sm" onclick="navigateTo('modules')">Resume →</button>
+              <span id="continueModuleProgressText" style="font-size:12px; color:var(--ink-dim)">0% complete</span>
+              <button class="btn btn-primary btn-sm" id="continueModuleButton" onclick="openModuleDetail(1)">Start →</button>
             </div>
           </div>
         </div>
@@ -1583,22 +1596,22 @@
             <div class="next-item" onclick="navigateTo('workshops')">
               <div class="next-icon">L</div>
               <div class="next-text">
-                <div class="next-title">Live: Killing high-interest debt</div>
-                <div class="next-sub">Thursday · 7:00 PM PT</div>
+                <div class="next-title">Next live member workshop</div>
+                <div class="next-sub">Schedule announced in Discord</div>
               </div>
             </div>
             <div class="next-item" onclick="navigateTo('spreadsheets')">
               <div class="next-icon">$</div>
               <div class="next-text">
-                <div class="next-title">Debt snowball spreadsheet</div>
-                <div class="next-sub">Used by module 8 — get a head start</div>
+                <div class="next-title">Monthly money system</div>
+                <div class="next-sub">Open the first action-ready spreadsheet</div>
               </div>
             </div>
             <div class="next-item" onclick="navigateTo('ladder')">
               <div class="next-icon">↗</div>
               <div class="next-text">
-                <div class="next-title">Rung 4: Offense</div>
-                <div class="next-sub">Side income · unlocks after rung 3</div>
+                <div class="next-title">The seven-rung roadmap</div>
+                <div class="next-sub">See where your current stage leads next</div>
               </div>
             </div>
           </div>
@@ -1612,7 +1625,7 @@
         <div>
           <div class="page-eyebrow">Course Library</div>
           <h1 class="page-title">Modules &amp; <em>lessons.</em></h1>
-          <p class="page-sub">Twelve modules across the four pillars. Work through them in order or jump to what you need.</p>
+          <p class="page-sub">Six core modules, each built around a real action, worksheet, and measurable outcome.</p>
         </div>
       </div>
 
@@ -1621,8 +1634,8 @@
           <div class="expired-hero-grid">
             <div>
               <div class="expired-eyebrow">Library locked · 30 seconds to unlock</div>
-              <h2 class="expired-title">Twelve modules. <em>Yours again</em> in one click.</h2>
-              <p class="expired-body">You've completed <strong style="color:var(--ink)">4 modules</strong> already. Your progress is saved — resume right where you left off the moment you resubscribe.</p>
+              <h2 class="expired-title">Your course progress is <em>saved.</em></h2>
+              <p class="expired-body">Your completed modules, onboarding path, and weekly goals remain attached to your account.</p>
               <button class="btn btn-primary" onclick="resubscribe()">Unlock for $50/mo →</button>
             </div>
           </div>
@@ -2010,10 +2023,10 @@
         <div class="module-detail-stage" id="modDetailStage">Discipline</div>
         <h1 class="module-detail-title" id="modDetailTitle">Install the monthly <em>budget system.</em></h1>
         <div class="module-detail-meta">
-          <span>📺 32 min</span>
-          <span>📄 Worksheet included</span>
-          <span>📊 Spreadsheet linked</span>
-          <span>✓ 32% complete</span>
+          <span>Video module</span>
+          <span>Assignment included</span>
+          <span>Progress saved</span>
+          <span>0% complete</span>
         </div>
       </div>
 
@@ -2083,12 +2096,12 @@
             <h4>Your progress</h4>
             <div style="margin-bottom:12px">
               <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px">
-                <span>32% complete</span>
-                <span style="color:var(--gold-bright)">11:24 / 32:00</span>
+                <span id="moduleDetailProgressText">0% complete</span>
+                <span id="moduleDetailDuration" style="color:var(--gold-bright)">Start when ready</span>
               </div>
-              <div class="progress-bar"><div class="progress-fill" style="width:32%"></div></div>
+              <div class="progress-bar"><div class="progress-fill" id="moduleDetailProgressBar" style="width:0"></div></div>
             </div>
-            <button class="btn btn-primary btn-sm" style="width:100%; justify-content:center" onclick="showToast('Lesson marked complete!')">Mark as complete</button>
+            <button class="btn btn-primary btn-sm" style="width:100%; justify-content:center" onclick="markCurrentModuleComplete()">Mark module complete</button>
           </div>
         </div>
       </div>
@@ -2223,21 +2236,21 @@
             <div style="font-family:var(--serif); font-weight:500; font-size:24px; letter-spacing:-.01em; margin-bottom:6px">Share Surplus, get rewarded.</div>
             <div style="color:var(--ink-dim); font-size:14px; line-height:1.5">Every new member who joins through your affiliate link gives you one free month. No cap. Stack months and stop paying entirely if you refer enough people.</div>
             <div class="refer-link-box">
-              <span class="refer-link" id="referLink">surplus.com/join/alex-r3y3s</span>
+              <span class="refer-link" id="referLink">liveinsurplus.com/?ref=your-code</span>
               <button class="btn btn-primary btn-sm" onclick="copyReferLink()">Copy</button>
             </div>
             <div class="refer-stats">
               <div>
-                <div class="refer-stat-num">3</div>
+                <div class="refer-stat-num" id="referralCount">0</div>
                 <div class="refer-stat-lbl">Friends joined</div>
               </div>
               <div>
-                <div class="refer-stat-num">3</div>
+                <div class="refer-stat-num" id="referralCredits">0</div>
                 <div class="refer-stat-lbl">Free months earned</div>
               </div>
               <div>
-                <div class="refer-stat-num">$150</div>
-                <div class="refer-stat-lbl">Total saved</div>
+                <div class="refer-stat-num" id="referralSavings">$0</div>
+                <div class="refer-stat-lbl">Future credits</div>
               </div>
             </div>
           </div>
@@ -2279,16 +2292,13 @@
 
       <div class="profile-hero">
         <div class="profile-grid">
-          <div class="profile-avatar-lg">J</div>
+          <div class="profile-avatar-lg" id="profileAvatar">J</div>
           <div>
             <div class="profile-name" id="profileName">Jordan Morales</div>
-            <div class="profile-handle">@jordan-builds · Phoenix, AZ</div>
-            <p class="profile-bio">Maintenance supervisor building a first side-income stream while cleaning up the monthly budget. Current target: save the first $1,000 buffer and earn $500/month outside the 9-to-5.</p>
-            <div class="profile-badges">
-              <span class="profile-badge">🏠 Real Estate</span>
-              <span class="profile-badge">🤖 AI Builder</span>
-              <span class="profile-badge">🎯 Accountability</span>
-              <span class="profile-badge">💰 Founding Member</span>
+            <div class="profile-handle" id="profileHandle">Surplus member</div>
+            <p class="profile-bio" id="profileBio">Complete onboarding to personalize your current path and primary goal.</p>
+            <div class="profile-badges" id="profileBadges">
+              <span class="profile-badge">Surplus member</span>
             </div>
           </div>
           <div class="profile-cta">
@@ -2301,48 +2311,48 @@
       <div class="stats-grid">
         <div class="card stat-card">
           <div class="stat-label">Modules complete</div>
-          <div class="stat-value">4 / 12</div>
-          <div class="stat-meta"><strong>+1</strong> this week</div>
+          <div class="stat-value" id="profileModuleCount">0 / 6</div>
+          <div class="stat-meta">Saved progress</div>
         </div>
         <div class="card stat-card">
           <div class="stat-label">Current rung</div>
-          <div class="stat-value">3 / 7</div>
-          <div class="stat-meta">Discipline</div>
+          <div class="stat-value" id="profileCurrentRung">1 / 7</div>
+          <div class="stat-meta" id="profileCurrentStage">Foundation</div>
         </div>
         <div class="card stat-card">
           <div class="stat-label">Streak</div>
-          <div class="stat-value">🔥 12</div>
-          <div class="stat-meta">Days in a row</div>
+          <div class="stat-value">Day 1</div>
+          <div class="stat-meta">Build the habit</div>
         </div>
         <div class="card stat-card">
           <div class="stat-label">Wins shared</div>
-          <div class="stat-value">7</div>
-          <div class="stat-meta">In the community</div>
+          <div class="stat-value">0</div>
+          <div class="stat-meta">Share your first win</div>
         </div>
       </div>
 
       <div class="card" style="padding:28px">
-        <h3 class="card-title" style="margin-bottom:14px">Your recent wins</h3>
+        <h3 class="card-title" style="margin-bottom:14px">Your next wins</h3>
         <div class="next-up">
           <div class="next-item">
             <div class="next-icon">$</div>
             <div class="next-text">
-              <div class="next-title">Found $842 in monthly leaks</div>
-              <div class="next-sub">From the expense audit · 2 weeks ago</div>
+              <div class="next-title">Complete your first money audit</div>
+              <div class="next-sub">Turn assumptions into a real baseline</div>
             </div>
           </div>
           <div class="next-item">
             <div class="next-icon">🎯</div>
             <div class="next-text">
-              <div class="next-title">Completed Module 4 — Zero-based budgeting</div>
-              <div class="next-sub">3 weeks ago</div>
+              <div class="next-title">Finish your first module assignment</div>
+              <div class="next-sub">Progress is measured by action, not watch time</div>
             </div>
           </div>
           <div class="next-item">
             <div class="next-icon">↗</div>
             <div class="next-text">
-              <div class="next-title">First $1,000 in emergency fund</div>
-              <div class="next-sub">1 month ago</div>
+              <div class="next-title">Post your first accountability check-in</div>
+              <div class="next-sub">Make one commitment visible to the room</div>
             </div>
           </div>
         </div>
@@ -2518,18 +2528,12 @@
 
 // ---------- DATA ----------
 const MODULES = [
-  { n:1,  stage:'Rock Bottom',  title:'Find your true number',           desc:'Run the audit. Map every dollar in, every dollar out, and the real gap.', status:'complete', progress:100 },
-  { n:2,  stage:'Stability',    title:'Build the $1,000 buffer',         desc:'The single most important early move. Cut the panic loop in 30 days or less.', status:'complete', progress:100 },
-  { n:3,  stage:'Stability',    title:'Stop the credit-card cycle',      desc:'Replace your "oh no" credit card with a working emergency system.', status:'complete', progress:100 },
-  { n:4,  stage:'Discipline',   title:'Zero-based budget setup',         desc:'Set the budget spreadsheet up the right way. Every dollar gets a job.', status:'complete', progress:100 },
-  { n:5,  stage:'Discipline',   title:'Install the monthly system',      desc:'Run it for 30 days. Track everything. Spot the leaks. The big shift starts here.', status:'in-progress', progress:32 },
-  { n:6,  stage:'Discipline',   title:'Expense audit & trimming',        desc:'Find $300–$1,200 of leaks. Cut what doesn\'t serve you. Keep what does.', status:'available', progress:0 },
-  { n:7,  stage:'Offense',      title:'Your first $500 in side income',  desc:'Pick from six income tracks. By 60 days you have an extra check coming in.', status:'available', progress:0 },
-  { n:8,  stage:'Cleanup',      title:'Snowball vs avalanche',           desc:'Pick the right debt strategy. Watch the math. Win in 1–3 years.', status:'available', progress:0 },
-  { n:9,  stage:'Cleanup',      title:'Negotiating rates & balances',    desc:'Scripts and call templates to lower your APRs by 5–15%.', status:'available', progress:0 },
-  { n:10, stage:'Acceleration', title:'Salary negotiation playbook',     desc:'Get the raise. The exact phrasing, leverage, and timing.', status:'available', progress:0 },
-  { n:11, stage:'Acceleration', title:'Stacking income streams',         desc:'Layer a second income without burning out. Sustainable, scalable.', status:'available', progress:0 },
-  { n:12, stage:'Surplus',      title:'Deploying capital',               desc:'Tax-advantaged accounts, real estate basics, longer-term plays.', status:'available', progress:0 },
+  { n:1, stage:'Foundation', title:'The Wake-Up', desc:'Your story, standards, schedule, and the “nobody is coming to save you” operating system.', duration:'38 min', assignment:'Write your 12-month target and non-negotiable weekly schedule.', lessons:['Why your current system keeps repeating','The standard that changes the trajectory','Build a schedule you can actually hold'] },
+  { n:2, stage:'Money Control', title:'Control the Number', desc:'Audit cash flow, install a simple budget, build a buffer, and stop reacting to every expense.', duration:'64 min', assignment:'Complete the money audit and build next month’s zero-based plan.', lessons:['Know your true number','Build the first $1,000 buffer','Run the monthly money system'] },
+  { n:3, stage:'Income', title:'Build the Income Ladder', desc:'Turn your current job, trade, service, or skill into the next $500 and then the next level.', duration:'72 min', assignment:'Choose one income play and make ten real offers this week.', lessons:['Pick a skill people already pay for','Package your first useful offer','Price, pitch, and improve through reps'] },
+  { n:4, stage:'Leverage', title:'AI as a Daily Tool', desc:'Use AI for planning, research, communication, operations, and producing better work faster.', duration:'55 min', assignment:'Build three reusable prompts around your real weekly workload.', lessons:['AI fundamentals without the hype','Your personal AI operating system','Business workflows and reusable prompts'] },
+  { n:5, stage:'Operator', title:'Business and Trades', desc:'Lessons from learning the trades, working a full-time job, earning trust, and building a service company.', duration:'61 min', assignment:'Create your offer, quality checklist, and first-customer plan.', lessons:['Starting before you feel ready','Standards, estimates, and customer trust','From helper to owner-operator'] },
+  { n:6, stage:'Surplus', title:'Property and Wealth Basics', desc:'Make better first-property decisions and learn what to do with the gap once income exceeds lifestyle.', duration:'58 min', assignment:'Write your capital order: buffer, debt, investing, property, and business.', lessons:['Buying a home with an investment lens','Renovation math and risk','Deploying surplus for the long term'] },
 ];
 
 const SHEETS = [
@@ -2555,32 +2559,25 @@ const LADDER = [
 ];
 
 const EVENTS = [
-  { day:'Thu', num:'24', month:'Apr', title:'Killing high-interest debt — rung 5 deep-dive', meta:['Live · 7pm PT','75 min','Q&A included'] },
-  { day:'Mon', num:'28', month:'Apr', title:'Office hours: ask Rosario anything',            meta:['Live · 7pm PT','60 min','Open Q&A'] },
-  { day:'Thu', num:'08', month:'May', title:'Building your first side income (rung 4)',     meta:['Live · 7pm PT','75 min','Worksheet included'] },
-  { day:'Thu', num:'15', month:'May', title:'Member spotlight: from $42K debt to surplus',  meta:['Live · 7pm PT','45 min','Member story'] },
-  { day:'Thu', num:'22', month:'May', title:'Spreadsheet workshop: net worth tracker',       meta:['Live · 7pm PT','60 min','Hands-on'] },
+  { day:'New', num:'01', month:'Drop', title:'Monthly money reset', meta:['Schedule announced in Discord','Live Q&A','Replay included'] },
+  { day:'New', num:'02', month:'Drop', title:'Build your first useful offer', meta:['Member workshop','Action worksheet','Replay included'] },
+  { day:'New', num:'03', month:'Drop', title:'AI workflows for real work', meta:['Live build','Reusable prompts','Replay included'] },
 ];
 
 const WINS = [
-  { name:'Marcus T.',  initial:'M', amount:'$8,200', label:'First wholesale assignment fee · real estate',  time:'2h ago' },
-  { name:'Sarah K.',   initial:'S', amount:'$5K MRR', label:'AI SaaS hit recurring revenue milestone',       time:'4h ago' },
-  { name:'Priya R.',   initial:'P', amount:'+$3,400', label:'First side-business client closed',             time:'6h ago' },
-  { name:'Jordan L.',  initial:'J', amount:'$76K',    label:'Salary negotiated up from $68K offer',          time:'1d ago' },
-  { name:'Alex W.',    initial:'A', amount:'1st deal', label:'House hack closed in Phoenix',                 time:'1d ago' },
-  { name:'Devon M.',   initial:'D', amount:'+$1,840', label:'Freelance AI agent build · paid in full',       time:'2d ago' },
-  { name:'Casey B.',   initial:'C', amount:'$42K',    label:'Last consumer debt paid off',                   time:'3d ago' },
+  { name:'Money control', initial:'1', amount:'Baseline', label:'Know exactly what comes in, what leaves, and what remains.', time:'Module 2' },
+  { name:'First buffer', initial:'2', amount:'$1,000', label:'Break the cycle of putting every surprise on a card.', time:'Ladder rung 2' },
+  { name:'Income move', initial:'3', amount:'+$500/mo', label:'Prove you can create income outside your current paycheck.', time:'Module 3' },
+  { name:'Better systems', initial:'4', amount:'3 workflows', label:'Use AI to reduce repeated work and improve output.', time:'Module 4' },
+  { name:'First offer', initial:'5', amount:'10 asks', label:'Put a real service or skill in front of potential customers.', time:'Module 5' },
+  { name:'Capital plan', initial:'6', amount:'Written', label:'Know the order your future surplus will follow.', time:'Module 6' },
 ];
 
 const ACTIVITY = [
-  { initial:'R', name:'Rosario',  meta:'#announcements · 18m ago', text:'New episode dropping tomorrow — full breakdown of the Chandler property numbers. <strong>Including what I would do differently.</strong>' },
-  { initial:'M', name:'Marcus T.', meta:'#wins · 32m ago', text:'Closed my first wholesale deal today. <strong>$8,200 assignment fee.</strong> Six months ago I didn\'t know what wholesaling was.' },
-  { initial:'P', name:'Priya R.',  meta:'#ask-rosario · 1h ago', text:'Question on the BRRRR strategy — at what cap rate do you typically pull the trigger in your market?' },
-  { initial:'R', name:'Rosario',   meta:'#ask-rosario · 47m ago', text:'@priya: I want at least an 8% cap on paper before refi, but in this market I\'ll go to 7% if the rehab numbers are bulletproof and the area is appreciating.' },
-  { initial:'J', name:'Jordan L.', meta:'#accountability · 2h ago', text:'<strong>Today\'s goal:</strong> ship landing page. <strong>This week:</strong> 10 cold outreach DMs. <strong>Win:</strong> finally registered the LLC.' },
-  { initial:'S', name:'Sarah K.',  meta:'#wins · 3h ago', text:'Just hit <strong>$5K MRR</strong> on the AI SaaS. Took me 9 months. The roadmap inside this server is what kept me from quitting at month 4.' },
-  { initial:'D', name:'Devon M.',  meta:'#introductions · 4h ago', text:'New here — software engineer in Austin. Looking at house-hacking my first duplex this year. Picked Real Estate + AI Builder paths.' },
-  { initial:'C', name:'Casey B.',  meta:'#accountability · 5h ago', text:'Day 12 of the daily check-in streak. Goals got smaller, results got bigger. The reps are real.' },
+  { initial:'1', name:'Introduce yourself', meta:'#introductions', text:'Share where you are starting, what you are building, and the result you want in the next 12 months.' },
+  { initial:'2', name:'Make a public commitment', meta:'#accountability', text:'Post one action you will complete this week. Make it specific enough that the room can hold you to it.' },
+  { initial:'3', name:'Ask a useful question', meta:'#ask-rosario', text:'Bring the real numbers and context. Better questions create better answers.' },
+  { initial:'4', name:'Share the lesson', meta:'#wins', text:'A win can be money, clarity, a finished assignment, a hard conversation, or a useful mistake.' },
 ];
 
 const PATHS = [
@@ -2616,19 +2613,15 @@ const RESOURCES = [
 ];
 
 const REPLAYS = [
-  { date:'APR 17', name:'Building a side income in 60 days', duration:'1:14:32', meta:'73 attendees · Q&A included' },
-  { date:'APR 10', name:'Real estate market check — Q2 outlook', duration:'58:14', meta:'112 attendees · Charts + slides' },
-  { date:'APR 03', name:'AI builders Q&A — what to ship first', duration:'1:02:09', meta:'89 attendees · Live demos' },
-  { date:'MAR 27', name:'Negotiating your first $10K raise', duration:'47:21', meta:'94 attendees · Role-play included' },
-  { date:'MAR 20', name:'The Ladder — rung 3 deep dive', duration:'1:08:45', meta:'126 attendees · Most-rewatched' },
-  { date:'MAR 13', name:'Member spotlight — from $40K debt to $20K saved', duration:'42:18', meta:'81 attendees · Member story' },
+  { date:'COMING', name:'Monthly money reset', duration:'Live', meta:'Recording and worksheet will appear here' },
+  { date:'COMING', name:'Build your first useful offer', duration:'Live', meta:'Workshop replay and action guide' },
+  { date:'COMING', name:'AI workflows for real work', duration:'Live', meta:'Live build and reusable prompts' },
 ];
 
 const TODAY_GOALS = [
-  { text:'Ship landing page revisions', done:true,  meta:'Today' },
-  { text:'Cold outreach: 10 DMs',       done:true,  meta:'Today' },
-  { text:'Review Module 5 notes',       done:false, meta:'Today' },
-  { text:'Post weekly accountability in Discord', done:false, meta:'Today' },
+  { text:'Complete the onboarding path', done:false, meta:'Start here' },
+  { text:'Open Module 1 and write the assignment', done:false, meta:'Today' },
+  { text:'Post one commitment in Discord', done:false, meta:'This week' },
 ];
 
 const LEADERBOARD = [
@@ -2715,6 +2708,36 @@ const MEMBER_QUERY = new URLSearchParams(window.location.search);
 const IS_PREVIEW_MODE = MEMBER_QUERY.has('limited') || MEMBER_QUERY.has('preview') || MEMBER_QUERY.has('demo');
 let CURRENT_STATE = 'active';
 let CURRENT_MEMBER = null;
+let MEMBER_ONBOARDING = {};
+let MEMBER_PROGRESS = { completedModules:[], moduleProgress:{}, goals:[] };
+let ACTIVE_MODULE = 1;
+
+function analytics(eventName, metadata = {}){
+  const sessionId = sessionStorage.getItem('surplusAnalyticsSession') || crypto.randomUUID();
+  sessionStorage.setItem('surplusAnalyticsSession', sessionId);
+  fetch('/api/analytics', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    keepalive:true,
+    body:JSON.stringify({
+      eventName,
+      page:location.pathname,
+      source:document.referrer || 'direct',
+      sessionId,
+      metadata
+    })
+  }).catch(() => {});
+}
+
+async function saveMemberState(){
+  if (IS_PREVIEW_MODE || !CURRENT_MEMBER) return;
+  const response = await fetch('/api/member/state', {
+    method:'PATCH',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({onboarding:MEMBER_ONBOARDING, progress:MEMBER_PROGRESS})
+  });
+  if (!response.ok) throw new Error('Your dashboard changes could not be saved.');
+}
 
 // ---------- AUTH ----------
 async function requestSignInCode(){
@@ -2814,17 +2837,56 @@ async function logOut(){
 
 function applyMember(member){
   CURRENT_MEMBER = member;
+  MEMBER_ONBOARDING = member.onboarding || {};
+  MEMBER_PROGRESS = {
+    completedModules:Array.isArray(member.progress?.completedModules) ? member.progress.completedModules : [],
+    moduleProgress:member.progress?.moduleProgress || {},
+    goals:Array.isArray(member.progress?.goals) ? member.progress.goals : []
+  };
   const name = member.name || 'Surplus Member';
   const firstLetter = name.trim().charAt(0).toUpperCase() || 'S';
   document.getElementById('userName').textContent = name;
   document.getElementById('userAvatar').textContent = firstLetter;
+  document.getElementById('profileAvatar').textContent = firstLetter;
   document.getElementById('greetingName').textContent = `${name.split(/\s+/)[0]}.`;
   document.getElementById('profileName').textContent = name;
   document.getElementById('settingsName').textContent = name;
   document.getElementById('settingsEmail').textContent = member.email;
   document.getElementById('statusText').textContent = member.foundingMember ? 'Founding member' : 'Active';
+  const referralLink = `${location.origin}/?ref=${member.referralCode || 'member'}`;
+  document.getElementById('referLink').textContent = referralLink;
+  document.getElementById('referralCount').textContent = member.referralCount || 0;
+  document.getElementById('referralCredits').textContent = member.referralCredits || 0;
+  document.getElementById('referralSavings').textContent = `$${(member.referralCredits || 0) * 30}`;
+  const completedCount = MEMBER_PROGRESS.completedModules.length;
+  const stageIndex = Math.max(0, WIZARD_STAGES.findIndex(item => item.title === MEMBER_ONBOARDING.stage));
+  const currentRung = Math.min(stageIndex + 1, 7);
+  const stageName = MEMBER_ONBOARDING.stage || 'Foundation';
+  const primaryGoal = MEMBER_ONBOARDING.goal || 'Complete onboarding and choose your first target';
+  const paths = Array.isArray(MEMBER_ONBOARDING.paths) ? MEMBER_ONBOARDING.paths : [];
+  document.getElementById('personalizedSummary').textContent = MEMBER_ONBOARDING.completed
+    ? `Your current focus is ${primaryGoal.toLowerCase()}. Start with the next unfinished module and turn it into one real action.`
+    : 'Start with onboarding so Surplus can place you on the right path.';
+  document.getElementById('homeModuleCount').textContent = `${completedCount} / ${MODULES.length}`;
+  document.getElementById('profileModuleCount').textContent = `${completedCount} / ${MODULES.length}`;
+  document.getElementById('homeCurrentRung').textContent = `${currentRung} / 7`;
+  document.getElementById('profileCurrentRung').textContent = `${currentRung} / 7`;
+  document.getElementById('homeCurrentStage').textContent = `${stageName} · ${primaryGoal}`;
+  document.getElementById('profileCurrentStage').textContent = stageName;
+  document.getElementById('profileHandle').textContent = member.foundingMember ? 'Founding Surplus member' : 'Surplus member';
+  document.getElementById('profileBio').textContent = MEMBER_ONBOARDING.completed
+    ? `Building toward ${primaryGoal.toLowerCase()} through ${paths.length ? paths.join(', ') : 'the Surplus roadmap'}.`
+    : 'Complete onboarding to personalize your current path and primary goal.';
+  document.getElementById('profileBadges').innerHTML = [
+    ...paths.map(path => `<span class="profile-badge">${path}</span>`),
+    member.foundingMember ? '<span class="profile-badge">Founding Member</span>' : '<span class="profile-badge">Surplus Member</span>'
+  ].join('');
   document.querySelector('.demo-toggle')?.remove();
   setState(member.subscriptionStatus === 'active' || member.subscriptionStatus === 'trialing' ? 'active' : 'expired');
+  renderModules();
+  renderContinueCard();
+  renderGoals();
+  if (!MEMBER_ONBOARDING.completed) setTimeout(openWizard, 250);
 }
 
 async function initializeMemberAccess(){
@@ -2857,18 +2919,11 @@ async function openBillingPortal(){
 
 // ---------- NAVIGATION ----------
 function navigateTo(id){
-  if (IS_PREVIEW_MODE && id !== 'home') {
-    document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.section === 'home'));
-    document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.toggle('active', el.dataset.section === 'home'));
-    document.querySelectorAll('.section').forEach(el => el.classList.toggle('active', el.id === 'section-home'));
-    window.scrollTo({top:0, behavior:'smooth'});
-    closePalette();
-    return;
-  }
   document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.section === id));
   document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.toggle('active', el.dataset.section === id));
   document.querySelectorAll('.section').forEach(el => el.classList.toggle('active', el.id === `section-${id}`));
   window.scrollTo({top:0, behavior:'smooth'});
+  analytics('dashboard_section_viewed',{section:id});
   closePalette();
 }
 document.querySelectorAll('.nav-item').forEach(el => {
@@ -2878,8 +2933,8 @@ document.querySelectorAll('.nav-item').forEach(el => {
 // ---------- STATE TOGGLING ----------
 function setState(state){
   CURRENT_STATE = state;
-  document.getElementById('btnActive').classList.toggle('active', state === 'active');
-  document.getElementById('btnExpired').classList.toggle('active', state === 'expired');
+  document.getElementById('btnActive')?.classList.toggle('active', state === 'active');
+  document.getElementById('btnExpired')?.classList.toggle('active', state === 'expired');
 
   const dot = document.getElementById('statusDot');
   const txt = document.getElementById('statusText');
@@ -2913,7 +2968,7 @@ function setState(state){
     pill.style.borderColor = 'rgba(217,112,112,.3)';
     pill.style.color = 'var(--bad)';
     pill.querySelector('::before');
-    head.textContent = 'Subscription ended · April 20, 2026';
+    head.textContent = 'Your Surplus membership is inactive';
     sub.textContent = 'Resubscribe to restore full access. Your progress and content are preserved.';
     banner.style.background = 'linear-gradient(135deg,rgba(217,112,112,.10),rgba(217,112,112,.02))';
     banner.style.borderColor = 'rgba(217,112,112,.3)';
@@ -2946,11 +3001,14 @@ function resubscribe(){
 function renderModules(){
   const grid = document.getElementById('modulesGrid');
   grid.innerHTML = MODULES.map(m => {
-    const statusClass = m.status; // complete | in-progress | available
-    const statusLabel = m.status === 'complete' ? 'Complete' : m.status === 'in-progress' ? 'In progress' : 'Available';
-    const cta = m.status === 'complete' ? 'Review →' : m.status === 'in-progress' ? 'Resume →' : 'Start →';
+    const progress = MEMBER_PROGRESS.completedModules.includes(m.n)
+      ? 100
+      : Number(MEMBER_PROGRESS.moduleProgress[m.n] || 0);
+    const statusClass = progress === 100 ? 'complete' : progress > 0 ? 'in-progress' : 'available';
+    const statusLabel = progress === 100 ? 'Complete' : progress > 0 ? 'In progress' : 'Available';
+    const cta = progress === 100 ? 'Review →' : progress > 0 ? 'Resume →' : 'Start →';
     return `
-    <div class="card module-card hover-lift">
+    <div class="card module-card hover-lift" data-module-id="${m.n}" onclick="openModuleDetail(${m.n})">
       <div class="module-thumb">
         <div class="module-number">${m.n.toString().padStart(2,'0')}</div>
         <div class="module-thumb-status ${statusClass}">${statusLabel}</div>
@@ -2959,16 +3017,33 @@ function renderModules(){
         <div class="module-stage">${m.stage}</div>
         <h3 class="module-title">${m.title}</h3>
         <p class="module-desc">${m.desc}</p>
+        <div style="font-size:11px;color:var(--ink-faint);margin-bottom:12px">${m.lessons.length} lessons · ${m.duration}</div>
         <div class="module-foot">
           <div class="module-progress">
-            <div class="module-progress-label"><span>Progress</span><strong>${m.progress}%</strong></div>
-            <div class="progress-bar"><div class="progress-fill" style="width:${m.progress}%"></div></div>
+            <div class="module-progress-label"><span>Progress</span><strong>${progress}%</strong></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
           </div>
-          <button class="btn btn-primary btn-sm" style="flex-shrink:0">${cta}</button>
+          <button class="btn btn-primary btn-sm" style="flex-shrink:0" onclick="event.stopPropagation();openModuleDetail(${m.n})">${cta}</button>
         </div>
       </div>
     </div>`;
   }).join('');
+}
+
+function renderContinueCard(){
+  const nextModule = MODULES.find(module => !MEMBER_PROGRESS.completedModules.includes(module.n)) || MODULES[MODULES.length - 1];
+  const progress = MEMBER_PROGRESS.completedModules.includes(nextModule.n)
+    ? 100
+    : Number(MEMBER_PROGRESS.moduleProgress[nextModule.n] || 0);
+  document.getElementById('continueModuleBadge').textContent = `Module ${nextModule.n} · ${nextModule.stage}`;
+  document.getElementById('continueModuleTitle').textContent = nextModule.title;
+  document.getElementById('continueModuleDuration').textContent = nextModule.duration;
+  document.getElementById('continueModuleDescription').textContent = nextModule.desc;
+  document.getElementById('continueModuleProgressBar').style.width = `${progress}%`;
+  document.getElementById('continueModuleProgressText').textContent = `${progress}% complete`;
+  const button = document.getElementById('continueModuleButton');
+  button.textContent = progress > 0 ? 'Resume →' : 'Start →';
+  button.onclick = () => openModuleDetail(nextModule.n);
 }
 
 // ---------- RENDER SHEETS ----------
@@ -3079,9 +3154,7 @@ function renderOnboard(){
 
 // ---------- DISCORD JOIN TRACKER ----------
 function trackDiscordJoin(){
-  // In a real build, this would POST to your analytics endpoint
-  // For prototype, just visual feedback
-  console.log('Discord join clicked');
+  analytics('discord_join_clicked');
 }
 
 // ---------- RENDER CALENDAR ----------
@@ -3230,13 +3303,31 @@ function wizardBack(){ showWizardStep(wizardStep - 1); }
 function skipWizard(){
   document.getElementById('wizard').classList.remove('open');
 }
-function finishWizard(){
-  document.getElementById('wizard').classList.remove('open');
-  showToast('Welcome to Surplus, Alex. Your dashboard is personalized.');
+async function finishWizard(){
+  if (wizardData.paths.length === 0 || wizardData.goal === null || wizardData.stage === null) {
+    showToast('Choose your path, goal, and current stage first.');
+    return;
+  }
+  MEMBER_ONBOARDING = {
+    completed:true,
+    paths:wizardData.paths.map(index => WIZARD_PATHS[index].title),
+    goal:WIZARD_GOALS[wizardData.goal].title,
+    stage:WIZARD_STAGES[wizardData.stage].title,
+    completedAt:new Date().toISOString()
+  };
+  try {
+    await saveMemberState();
+    document.getElementById('wizard').classList.remove('open');
+    applyMember({...CURRENT_MEMBER,onboarding:MEMBER_ONBOARDING,progress:MEMBER_PROGRESS});
+    analytics('onboarding_completed',{stage:MEMBER_ONBOARDING.stage,goal:MEMBER_ONBOARDING.goal});
+    showToast(`Welcome to Surplus, ${CURRENT_MEMBER?.name?.split(' ')[0] || 'Builder'}. Your path is saved.`);
+  } catch (error) {
+    showToast(error.message);
+  }
 }
 function renderWizardOptions(){
   document.getElementById('wizardPaths').innerHTML = WIZARD_PATHS.map((p,i) => `
-    <div class="wizard-opt" onclick="togglePath(${i}, this)">
+    <div class="wizard-opt" data-index="${i}" onclick="togglePath(${i}, this)">
       <div class="wizard-opt-emoji">${p.emoji}</div>
       <div class="wizard-opt-text">
         <div class="wizard-opt-title">${p.title}</div>
@@ -3272,6 +3363,8 @@ function renderWizardOptions(){
 function togglePath(i, el){
   el.classList.toggle('selected');
   el.querySelector('svg').style.display = el.classList.contains('selected') ? '' : 'none';
+  wizardData.paths = Array.from(document.querySelectorAll('#wizardPaths .wizard-opt.selected'))
+    .map(option => Number(option.dataset.index));
 }
 function selectGoal(i, el){
   el.parentNode.querySelectorAll('.wizard-opt').forEach(o => {
@@ -3280,8 +3373,17 @@ function selectGoal(i, el){
   });
   el.classList.add('selected');
   el.querySelector('svg').style.display = '';
+  wizardData.goal = i;
 }
-function selectStage(i, el){ selectGoal(i, el); }
+function selectStage(i, el){
+  el.parentNode.querySelectorAll('.wizard-opt').forEach(o => {
+    o.classList.remove('selected');
+    o.querySelector('svg').style.display = 'none';
+  });
+  el.classList.add('selected');
+  el.querySelector('svg').style.display = '';
+  wizardData.stage = i;
+}
 
 // ---------- RENDER RESOURCES ----------
 function renderResources(){
@@ -3321,7 +3423,8 @@ function renderReplays(){
 function renderGoals(){
   const cont = document.getElementById('todayGoals');
   if (!cont) return;
-  cont.innerHTML = TODAY_GOALS.map((g,i) => `
+  const goals = MEMBER_PROGRESS.goals.length ? MEMBER_PROGRESS.goals : TODAY_GOALS;
+  cont.innerHTML = goals.map((g,i) => `
     <div class="goal-row">
       <button class="goal-check${g.done ? ' done' : ''}" onclick="toggleGoal(${i}, this)">
         ${g.done ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
@@ -3352,15 +3455,23 @@ function renderGoals(){
   }
 }
 function toggleGoal(i, btn){
-  TODAY_GOALS[i].done = !TODAY_GOALS[i].done;
+  if (!MEMBER_PROGRESS.goals.length) MEMBER_PROGRESS.goals = TODAY_GOALS.map(goal => ({...goal}));
+  MEMBER_PROGRESS.goals[i].done = !MEMBER_PROGRESS.goals[i].done;
   renderGoals();
-  if (TODAY_GOALS[i].done) showToast('Goal checked off. Keep the streak alive.');
+  saveMemberState().catch(error => showToast(error.message));
+  if (MEMBER_PROGRESS.goals[i].done) {
+    analytics('daily_goal_completed');
+    showToast('Goal checked off. Keep the streak alive.');
+  }
 }
 function addGoal(){
   const text = prompt('What\'s your next goal for today?');
   if (text && text.trim()){
-    TODAY_GOALS.push({ text:text.trim(), done:false, meta:'Today' });
+    if (!MEMBER_PROGRESS.goals.length) MEMBER_PROGRESS.goals = TODAY_GOALS.map(goal => ({...goal}));
+    MEMBER_PROGRESS.goals.push({ text:text.trim().slice(0,120), done:false, meta:'Today' });
     renderGoals();
+    saveMemberState().catch(error => showToast(error.message));
+    analytics('daily_goal_added');
     showToast('Goal added. Commit to it.');
   }
 }
@@ -3394,13 +3505,56 @@ function switchLessonTab(btn, tab){
 
 // ---------- REFER LINK ----------
 function copyReferLink(){
-  navigator.clipboard?.writeText('https://surplus.com/join/alex-r3y3s').catch(() => {});
+  const link = document.getElementById('referLink').textContent;
+  navigator.clipboard?.writeText(link).catch(() => {});
+  analytics('referral_link_copied');
   showToast('Link copied. Now go share it.');
 }
 
 // ---------- MODULE CLICK -> DETAIL ----------
-function openModuleDetail(){
+function openModuleDetail(moduleId = 1){
+  ACTIVE_MODULE = moduleId;
+  const module = MODULES.find(item => item.n === moduleId) || MODULES[0];
+  const progress = MEMBER_PROGRESS.completedModules.includes(module.n)
+    ? 100
+    : Number(MEMBER_PROGRESS.moduleProgress[module.n] || 0);
+  document.getElementById('modDetailStage').textContent = module.stage;
+  document.getElementById('modDetailTitle').innerHTML = `${module.title}.`;
+  document.querySelector('.module-detail-meta').innerHTML = `
+    <span>Video · ${module.duration}</span>
+    <span>${module.lessons.length} lessons</span>
+    <span>Assignment included</span>
+    <span>${progress}% complete</span>`;
+  document.getElementById('lessonContent').innerHTML = `
+    <h3>What this module changes</h3>
+    <p>${module.desc}</p>
+    <h3>Lessons</h3>
+    <ul>${module.lessons.map(lesson => `<li>${lesson}</li>`).join('')}</ul>
+    <h3>Your assignment</h3>
+    <p><strong>${module.assignment}</strong></p>
+    <p>This module is complete when the assignment is done in your real life, not when the video ends.</p>`;
+  document.getElementById('moduleDetailProgressBar').style.width = `${progress}%`;
+  document.getElementById('moduleDetailProgressText').textContent = `${progress}% complete`;
+  document.getElementById('moduleDetailDuration').textContent = module.duration;
+  analytics('module_opened',{module:module.n,title:module.title});
   navigateTo('module-detail');
+}
+
+async function markCurrentModuleComplete(){
+  if (!MEMBER_PROGRESS.completedModules.includes(ACTIVE_MODULE)) {
+    MEMBER_PROGRESS.completedModules.push(ACTIVE_MODULE);
+  }
+  MEMBER_PROGRESS.moduleProgress[ACTIVE_MODULE] = 100;
+  try {
+    await saveMemberState();
+    renderModules();
+    renderContinueCard();
+    openModuleDetail(ACTIVE_MODULE);
+    analytics('module_completed',{module:ACTIVE_MODULE});
+    showToast('Module complete. Progress saved.');
+  } catch (error) {
+    showToast(error.message);
+  }
 }
 
 // ---------- INIT ----------
@@ -3424,6 +3578,15 @@ if (IS_PREVIEW_MODE) {
   document.getElementById('wizard')?.classList.remove('open');
   document.getElementById('statusText').textContent = 'Limited access';
   document.getElementById('settingsName').textContent = 'Jordan Morales';
+  document.querySelectorAll('.section:not(#section-home)').forEach((section) => {
+    section.classList.add('preview-locked-section');
+    section.insertAdjacentHTML('afterbegin', `
+      <div class="preview-section-gate">
+        <strong>Included with membership</strong>
+        <span>This preview shows the structure. Join Surplus to use the lessons, downloads, community, and saved progress.</span>
+        <a class="btn btn-primary btn-sm" href="/surplus.html#pricing">View membership →</a>
+      </div>`);
+  });
   const homeCta = document.querySelector('#section-home .page-head .btn-primary');
   if (homeCta) {
     homeCta.textContent = 'Return to website';
@@ -3439,17 +3602,7 @@ if (IS_PREVIEW_MODE) {
   initializeMemberAccess();
 }
 
-// After module cards render, wire them to open the detail view
-document.querySelectorAll('.module-card').forEach(card => {
-  card.addEventListener('click', e => {
-    if (e.target.closest('button')) return; // let button handle its own click
-    navigateTo('module-detail');
-  });
-});
-// Make module buttons also open detail
-document.querySelectorAll('.module-card .btn-primary').forEach(btn => {
-  btn.addEventListener('click', e => { e.stopPropagation(); navigateTo('module-detail'); });
-});
+analytics('member_dashboard_viewed',{preview:IS_PREVIEW_MODE});
 </script>
 
 </body>

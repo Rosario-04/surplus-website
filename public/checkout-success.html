@@ -34,5 +34,20 @@
     </div>
     <small>The access email normally arrives within a minute.</small>
   </main>
+  <script>
+    const sessionId = sessionStorage.getItem("surplusAnalyticsSession") || crypto.randomUUID();
+    sessionStorage.setItem("surplusAnalyticsSession", sessionId);
+    fetch("/api/analytics", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      keepalive:true,
+      body:JSON.stringify({
+        eventName:"checkout_success_viewed",
+        page:location.pathname,
+        source:document.referrer || "stripe",
+        sessionId
+      })
+    }).catch(() => {});
+  </script>
 </body>
 </html>

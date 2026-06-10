@@ -2545,7 +2545,9 @@
     <div class="footer-links">
       <a href="/terms.html">Terms</a>
       <a href="/privacy.html">Privacy</a>
-      <a href="mailto:hello@surplusbyrosario.com?subject=Surplus%20Question">Contact</a>
+      <a href="/refund-policy.html">Refunds</a>
+      <a href="/disclaimer.html">Disclaimer</a>
+      <a href="mailto:hello@liveinsurplus.com?subject=Surplus%20Question">Contact</a>
     </div>
   </div>
 </footer>
@@ -2553,10 +2555,30 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
-  const CONTACT_EMAIL = "hello@surplusbyrosario.com";
+  const CONTACT_EMAIL = "hello@liveinsurplus.com";
   const VIDEO_URL = "https://www.youtube.com/embed/aOQndPlfNhU?autoplay=1&rel=0&enablejsapi=1";
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const PAGE_TRANSITION_MS = 0;
+  const query = new URLSearchParams(location.search);
+  const incomingReferral = (query.get("ref") || "").trim().toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0,80);
+  if (incomingReferral) localStorage.setItem("surplusReferralCode", incomingReferral);
+  const referralCode = localStorage.getItem("surplusReferralCode") || "";
+  const analyticsSession = sessionStorage.getItem("surplusAnalyticsSession") || crypto.randomUUID();
+  sessionStorage.setItem("surplusAnalyticsSession", analyticsSession);
+  const trackEvent = (eventName, metadata = {}) => {
+    fetch("/api/analytics", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      keepalive:true,
+      body:JSON.stringify({
+        eventName,
+        page:location.pathname,
+        source:document.referrer || "direct",
+        sessionId:analyticsSession,
+        metadata
+      })
+    }).catch(() => {});
+  };
 
   const toast = document.getElementById("toast");
   sessionStorage.removeItem("surplusIrisTransition");
@@ -2724,10 +2746,11 @@
         const response = await fetch("/api/checkout", {
           method:"POST",
           headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({})
+          body:JSON.stringify({referralCode})
         });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || "Checkout is unavailable.");
+        trackEvent("checkout_started",{referral:referralCode ? "present" : "none"});
         window.location.href = result.url;
       } catch (error) {
         showToast(error.message);
@@ -2803,6 +2826,7 @@
       return;
     }
     poster.classList.add("is-hidden");
+    trackEvent("story_video_started");
     if (video.tagName === "IFRAME") {
       video.src = getStoryEmbedUrl();
       attachStoryPlayer();
@@ -2856,6 +2880,7 @@
         : `You're in${result.position ? ` at waitlist spot #${result.position}` : ""}. Watch your inbox for the Surplus launch.`;
       success.classList.add("is-visible");
       if (!result.duplicate) form.reset();
+      trackEvent("waitlist_submitted",{duplicate:Boolean(result.duplicate),source:"homepage"});
     } catch (error) {
       success.textContent = error.message || "We could not save your signup. Please try again.";
       success.classList.add("is-visible");
@@ -2866,6 +2891,7 @@
       submitButton.innerHTML = 'Become a Builder <span aria-hidden="true">&rarr;</span>';
     }
   });
+  trackEvent("page_view");
 </script>
 </body>
 </html>

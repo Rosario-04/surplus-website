@@ -37,6 +37,47 @@ create index if not exists member_auth_tokens_member_idx
 create index if not exists member_sessions_member_idx
   on public.member_sessions (member_id, expires_at desc);
 
+alter table public.members
+  add column if not exists onboarding jsonb not null default '{}'::jsonb,
+  add column if not exists progress jsonb not null default '{}'::jsonb,
+  add column if not exists referral_code text,
+  add column if not exists referred_by text,
+  add column if not exists referral_count integer not null default 0,
+  add column if not exists referral_credits integer not null default 0;
+
+create unique index if not exists members_referral_code_idx
+  on public.members (referral_code)
+  where referral_code is not null;
+
+create table if not exists public.referral_events (
+  id uuid primary key default gen_random_uuid(),
+  referrer_member_id uuid not null references public.members(id) on delete cascade,
+  referred_member_id uuid not null references public.members(id) on delete cascade,
+  referral_code text not null,
+  status text not null default 'qualified',
+  created_at timestamptz not null default now(),
+  unique (referred_member_id)
+);
+
+create table if not exists public.analytics_events (
+  id uuid primary key default gen_random_uuid(),
+  member_id uuid references public.members(id) on delete set null,
+  event_name text not null,
+  page text,
+  source text,
+  session_id text,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists analytics_events_created_idx
+  on public.analytics_events (created_at desc);
+
+create index if not exists analytics_events_name_idx
+  on public.analytics_events (event_name, created_at desc);
+
 alter table public.members enable row level security;
 alter table public.member_auth_tokens enable row level security;
 alter table public.member_sessions enable row level security;
+alter table public.referral_events enable row level security;
+alter table public.analytics_events enable row level security;
