@@ -66,6 +66,25 @@ Subscribe it to `checkout.session.completed`, `customer.subscription.created`, `
 
 Configure Stripe's Customer Portal so members can update payment methods, view invoices, and cancel subscriptions. Members sign in at `/surplus-member.html` with an email magic link. Only active or trialing subscriptions receive access.
 
+## Discord Membership
+
+Create a Discord application with a bot, add this redirect URL:
+
+```text
+https://liveinsurplus.com/api/discord/callback
+```
+
+Install the bot in the Surplus server with the **Manage Roles** permission. Move the bot's role above the Member and Founding Member roles, then configure:
+
+- `DISCORD_CLIENT_ID`
+- `DISCORD_CLIENT_SECRET`
+- `DISCORD_BOT_TOKEN`
+- `DISCORD_GUILD_ID`
+- `DISCORD_MEMBER_ROLE_ID`
+- `DISCORD_FOUNDING_ROLE_ID`
+
+Members connect from their dashboard using Discord OAuth scopes `identify` and `guilds.join`. Active Stripe subscriptions receive the Member role; founding members also receive the Founding Member role. Subscription cancellation removes both access roles automatically.
+
 Render must bind the service to `0.0.0.0`, which the Blueprint config sets with `HOST`.
 
 ## Windows Setup

@@ -33,3 +33,15 @@ services:
         sync: false
       - key: STRIPE_REGULAR_PRICE_ID
         sync: false
+      - key: DISCORD_CLIENT_ID
+        sync: false
+      - key: DISCORD_CLIENT_SECRET
+        sync: false
+      - key: DISCORD_BOT_TOKEN
+        sync: false
+      - key: DISCORD_GUILD_ID
+        value: "1509952620801032361"
+      - key: DISCORD_MEMBER_ROLE_ID
+        sync: false
+      - key: DISCORD_FOUNDING_ROLE_ID
+        sync: false

@@ -664,6 +664,23 @@
     padding:13px 24px; font-size:14px;
   }
   .btn-discord:hover{background:#4752d1; transform:translateY(-1px); box-shadow:0 12px 28px rgba(88,101,242,.4)}
+  .discord-connect-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  .discord-disconnect{
+    border:1px solid var(--line); background:transparent; color:var(--ink-dim);
+    padding:12px 16px; border-radius:999px; font:inherit; font-size:13px;
+    cursor:pointer; transition:color .2s, border-color .2s, background .2s;
+  }
+  .discord-disconnect:hover{color:var(--ink); border-color:rgba(185,154,85,.38); background:var(--glass)}
+  .discord-connection{
+    display:flex; align-items:center; gap:8px; margin-top:14px;
+    color:var(--ink-faint); font-size:12px;
+  }
+  .discord-connection::before{
+    content:''; width:7px; height:7px; border-radius:50%;
+    background:var(--ink-faint); flex-shrink:0;
+  }
+  .discord-connection.connected{color:var(--good)}
+  .discord-connection.connected::before{background:var(--good); box-shadow:0 0 10px rgba(126,196,134,.6)}
   .discord-mark{
     width:200px; height:200px; border-radius:48px; flex-shrink:0;
     background:linear-gradient(135deg, #5865f2, #4752d1);
@@ -1821,13 +1838,16 @@
                 <div class="lbl">Access to Rosario</div>
               </div>
             </div>
-            <a href="https://discord.gg/surplus" target="_blank" rel="noopener" class="btn btn-discord" onclick="trackDiscordJoin()">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px">
-                <path d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09c-.01-.02-.04-.03-.07-.03c-1.5.26-2.93.71-4.27 1.33c-.01 0-.02.01-.03.02c-2.72 4.07-3.47 8.03-3.1 11.95c0 .02.01.04.03.05c1.8 1.32 3.53 2.12 5.24 2.65c.03.01.06 0 .07-.02c.4-.55.76-1.13 1.07-1.74c.02-.04 0-.08-.04-.09c-.57-.22-1.11-.48-1.64-.78c-.04-.02-.04-.08-.01-.11c.11-.08.22-.17.33-.25c.02-.02.05-.02.07-.01c3.44 1.57 7.15 1.57 10.55 0c.02-.01.05-.01.07.01c.11.09.22.17.33.26c.04.03.04.09-.01.11c-.52.31-1.07.56-1.64.78c-.04.01-.05.06-.04.09c.32.61.68 1.19 1.07 1.74c.03.01.06.02.09.01c1.72-.53 3.45-1.33 5.25-2.65c.02-.01.03-.03.03-.05c.44-4.53-.73-8.46-3.1-11.95c-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.83 2.12-1.89 2.12z"/>
-              </svg>
-              Join the Discord
-            </a>
-            <p style="font-size:12px; color:var(--ink-faint); margin-top:14px">Free with your membership. Onboarding auto-assigns your role and path.</p>
+            <div class="discord-connect-row">
+              <a href="/api/discord/connect" class="btn btn-discord" data-discord-action onclick="trackDiscordJoin()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px">
+                  <path d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09c-.01-.02-.04-.03-.07-.03c-1.5.26-2.93.71-4.27 1.33c-.01 0-.02.01-.03.02c-2.72 4.07-3.47 8.03-3.1 11.95c0 .02.01.04.03.05c1.8 1.32 3.53 2.12 5.24 2.65c.03.01.06 0 .07-.02c.4-.55.76-1.13 1.07-1.74c.02-.04 0-.08-.04-.09c-.57-.22-1.11-.48-1.64-.78c-.04-.02-.04-.08-.01-.11c.11-.08.22-.17.33-.25c.02-.02.05-.02.07-.01c3.44 1.57 7.15 1.57 10.55 0c.02-.01.05-.01.07.01c.11.09.22.17.33.26c.04.03.04.09-.01.11c-.52.31-1.07.56-1.64.78c-.04.01-.05.06-.04.09c.32.61.68 1.19 1.07 1.74c.03.01.06.02.09.01c1.72-.53 3.45-1.33 5.25-2.65c.02-.01.03-.03.03-.05c.44-4.53-.73-8.46-3.1-11.95c-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.83 2.12-1.89 2.12z"/>
+                </svg>
+                <span data-discord-label>Connect Discord</span>
+              </a>
+              <button class="discord-disconnect" data-discord-disconnect hidden onclick="disconnectDiscord()">Disconnect</button>
+            </div>
+            <p class="discord-connection" data-discord-status>Connect once to join the server and receive your member role automatically.</p>
           </div>
           <div class="discord-mark">
             <svg viewBox="0 0 24 24"><path d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09c-.01-.02-.04-.03-.07-.03c-1.5.26-2.93.71-4.27 1.33c-.01 0-.02.01-.03.02c-2.72 4.07-3.47 8.03-3.1 11.95c0 .02.01.04.03.05c1.8 1.32 3.53 2.12 5.24 2.65c.03.01.06 0 .07-.02c.4-.55.76-1.13 1.07-1.74c.02-.04 0-.08-.04-.09c-.57-.22-1.11-.48-1.64-.78c-.04-.02-.04-.08-.01-.11c.11-.08.22-.17.33-.25c.02-.02.05-.02.07-.01c3.44 1.57 7.15 1.57 10.55 0c.02-.01.05-.01.07.01c.11.09.22.17.33.26c.04.03.04.09-.01.11c-.52.31-1.07.56-1.64.78c-.04.01-.05.06-.04.09c.32.61.68 1.19 1.07 1.74c.03.01.06.02.09.01c1.72-.53 3.45-1.33 5.25-2.65c.02-.01.03-.03.03-.05c.44-4.53-.73-8.46-3.1-11.95c-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.83 2.12-1.89 2.12z"/></svg>
@@ -2006,9 +2026,9 @@
       <div class="tagline-strip">
         <div class="tagline-quote">"Nobody is coming <em>to save you.</em>"</div>
         <div class="tagline-sub">Let's build. — Surplus</div>
-        <a href="https://discord.gg/surplus" target="_blank" rel="noopener" class="btn btn-discord" style="margin-top:18px" onclick="trackDiscordJoin()">
+        <a href="/api/discord/connect" class="btn btn-discord" data-discord-action style="margin-top:18px" onclick="trackDiscordJoin()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px"><path d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09c-.01-.02-.04-.03-.07-.03c-1.5.26-2.93.71-4.27 1.33c-.01 0-.02.01-.03.02c-2.72 4.07-3.47 8.03-3.1 11.95c0 .02.01.04.03.05c1.8 1.32 3.53 2.12 5.24 2.65c.03.01.06 0 .07-.02c.4-.55.76-1.13 1.07-1.74c.02-.04 0-.08-.04-.09c-.57-.22-1.11-.48-1.64-.78c-.04-.02-.04-.08-.01-.11c.11-.08.22-.17.33-.25c.02-.02.05-.02.07-.01c3.44 1.57 7.15 1.57 10.55 0c.02-.01.05-.01.07.01c.11.09.22.17.33.26c.04.03.04.09-.01.11c-.52.31-1.07.56-1.64.78c-.04.01-.05.06-.04.09c.32.61.68 1.19 1.07 1.74c.03.01.06.02.09.01c1.72-.53 3.45-1.33 5.25-2.65c.02-.01.03-.03.03-.05c.44-4.53-.73-8.46-3.1-11.95c-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.83 2.12-1.89 2.12z"/></svg>
-          Step inside
+          <span data-discord-label>Connect Discord</span>
         </a>
       </div>
     </section>
@@ -2881,6 +2901,7 @@ function applyMember(member){
     ...paths.map(path => `<span class="profile-badge">${path}</span>`),
     member.foundingMember ? '<span class="profile-badge">Founding Member</span>' : '<span class="profile-badge">Surplus Member</span>'
   ].join('');
+  updateDiscordConnection(member.discord);
   document.querySelector('.demo-toggle')?.remove();
   setState(member.subscriptionStatus === 'active' || member.subscriptionStatus === 'trialing' ? 'active' : 'expired');
   renderModules();
@@ -2897,12 +2918,59 @@ async function initializeMemberAccess(){
     const result = await response.json();
     applyMember(result.member);
     document.getElementById('signin').classList.add('hidden');
+    const discordResult = MEMBER_QUERY.get('discord');
+    if (discordResult === 'connected') showToast('Discord connected. Your member role is active.');
+    if (discordResult === 'failed') showToast('Discord could not be connected. Please try again.');
+    if (discordResult === 'invalid') showToast('That Discord connection expired. Please try again.');
+    if (discordResult === 'not-configured') showToast('Discord connection is being configured.');
   } catch {
     document.getElementById('signin').classList.remove('hidden');
     if (MEMBER_QUERY.get('login') === 'invalid') {
       document.getElementById('signinMessage').innerHTML =
         '<strong>That link has expired</strong>Enter your email to request a fresh secure link.';
     }
+  }
+}
+
+function updateDiscordConnection(discord = {}){
+  const connected = Boolean(discord?.connected);
+  document.querySelectorAll('[data-discord-action]').forEach((link) => {
+    link.href = connected
+      ? 'https://discord.com/channels/1509952620801032361'
+      : (IS_PREVIEW_MODE ? '/surplus.html#pricing' : '/api/discord/connect');
+    if (connected) {
+      link.target = '_blank';
+      link.rel = 'noopener';
+    } else {
+      link.removeAttribute('target');
+      link.removeAttribute('rel');
+    }
+  });
+  document.querySelectorAll('[data-discord-label]').forEach((label) => {
+    label.textContent = connected ? 'Open Discord' : (IS_PREVIEW_MODE ? 'Join Surplus' : 'Connect Discord');
+  });
+  document.querySelectorAll('[data-discord-status]').forEach((status) => {
+    status.textContent = connected
+      ? `Connected as ${discord.username || 'your Discord account'}. Your access role stays synced with your membership.`
+      : 'Connect once to join the server and receive your member role automatically.';
+    status.classList.toggle('connected', connected);
+  });
+  document.querySelectorAll('[data-discord-disconnect]').forEach((button) => {
+    button.hidden = !connected;
+  });
+}
+
+async function disconnectDiscord(){
+  if (!CURRENT_MEMBER || IS_PREVIEW_MODE) return;
+  try {
+    const response = await fetch('/api/discord/disconnect', {method:'POST'});
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Discord could not be disconnected.');
+    CURRENT_MEMBER.discord = {connected:false, username:null, connectedAt:null};
+    updateDiscordConnection(CURRENT_MEMBER.discord);
+    showToast('Discord disconnected.');
+  } catch (error) {
+    showToast(error.message);
   }
 }
 
@@ -3154,7 +3222,7 @@ function renderOnboard(){
 
 // ---------- DISCORD JOIN TRACKER ----------
 function trackDiscordJoin(){
-  analytics('discord_join_clicked');
+  analytics(CURRENT_MEMBER?.discord?.connected ? 'discord_open_clicked' : 'discord_connect_clicked');
 }
 
 // ---------- RENDER CALENDAR ----------
@@ -3601,6 +3669,8 @@ if (IS_PREVIEW_MODE) {
 } else {
   initializeMemberAccess();
 }
+
+if (IS_PREVIEW_MODE) updateDiscordConnection({connected:false});
 
 analytics('member_dashboard_viewed',{preview:IS_PREVIEW_MODE});
 </script>

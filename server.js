@@ -20,7 +20,14 @@ const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
 const stripeFoundingPriceId = process.env.STRIPE_FOUNDING_PRICE_ID || "";
 const stripeRegularPriceId = process.env.STRIPE_REGULAR_PRICE_ID || "";
 const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
+const discordClientId = process.env.DISCORD_CLIENT_ID || "";
+const discordClientSecret = process.env.DISCORD_CLIENT_SECRET || "";
+const discordBotToken = process.env.DISCORD_BOT_TOKEN || "";
+const discordGuildId = process.env.DISCORD_GUILD_ID || "";
+const discordMemberRoleId = process.env.DISCORD_MEMBER_ROLE_ID || "";
+const discordFoundingRoleId = process.env.DISCORD_FOUNDING_ROLE_ID || "";
 const sessionCookieName = "surplus_session";
+const discordStateCookieName = "surplus_discord_state";
 const memberSessionDays = 30;
 const magicLinkMinutes = 20;
 const rateLimitWindowMs = 15 * 60 * 1000;
@@ -169,6 +176,22 @@ function clearSessionCookie(res) {
   res.setHeader(
     "Set-Cookie",
     `${sessionCookieName}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure}`
+  );
+}
+
+function setDiscordStateCookie(res, state) {
+  const secure = siteUrl.startsWith("https://") ? "; Secure" : "";
+  res.setHeader(
+    "Set-Cookie",
+    `${discordStateCookieName}=${encodeURIComponent(state)}; Path=/api/discord; HttpOnly; SameSite=Lax; Max-Age=600${secure}`
+  );
+}
+
+function clearDiscordStateCookie(res) {
+  const secure = siteUrl.startsWith("https://") ? "; Secure" : "";
+  res.setHeader(
+    "Set-Cookie",
+    `${discordStateCookieName}=; Path=/api/discord; HttpOnly; SameSite=Lax; Max-Age=0${secure}`
   );
 }
 
@@ -403,6 +426,58 @@ async function runWaitlistEmailTasks(entry, position, recordId) {
 
 function membershipAllowsAccess(status) {
   return ["active", "trialing"].includes(status);
+}
+
+function discordConfigured() {
+  return Boolean(
+    discordClientId &&
+    discordClientSecret &&
+    discordBotToken &&
+    discordGuildId &&
+    discordMemberRoleId
+  );
+}
+
+async function discordRequest(endpoint, options = {}) {
+  const response = await fetch(`https://discord.com/api/v10${endpoint}`, {
+    method: options.method || "GET",
+    headers: {
+      Authorization: options.authorization || `Bot ${discordBotToken}`,
+      ...(options.body ? { "Content-Type": "application/json" } : {})
+    },
+    body: options.body ? JSON.stringify(options.body) : undefined
+  });
+  if (!response.ok) {
+    const details = await response.text();
+    throw new Error(`Discord API ${response.status}: ${details}`);
+  }
+  if (response.status === 204) return null;
+  return response.json().catch(() => null);
+}
+
+async function setDiscordRole(discordUserId, roleId, enabled) {
+  if (!discordUserId || !roleId) return;
+  await discordRequest(
+    `/guilds/${discordGuildId}/members/${discordUserId}/roles/${roleId}`,
+    { method: enabled ? "PUT" : "DELETE" }
+  );
+}
+
+async function syncDiscordRoles(member) {
+  if (!discordConfigured() || !member?.discord_user_id) return;
+  const hasAccess = membershipAllowsAccess(member.subscription_status);
+  await setDiscordRole(member.discord_user_id, discordMemberRoleId, hasAccess);
+  if (discordFoundingRoleId) {
+    await setDiscordRole(
+      member.discord_user_id,
+      discordFoundingRoleId,
+      hasAccess && member.founding_member
+    );
+  }
+  await supabasePatch("members", { id: `eq.${member.id}` }, {
+    discord_role_synced_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  });
 }
 
 async function countFoundingMembers() {
@@ -740,9 +815,123 @@ async function handleMemberSession(req, res) {
       progress: member.progress || {},
       referralCode: member.referral_code,
       referralCount: member.referral_count || 0,
-      referralCredits: member.referral_credits || 0
+      referralCredits: member.referral_credits || 0,
+      discord: {
+        connected: Boolean(member.discord_user_id),
+        username: member.discord_username || null,
+        connectedAt: member.discord_connected_at || null
+      }
     }
   });
+}
+
+async function handleDiscordConnect(req, res) {
+  if (req.method !== "GET") return sendJson(res, 405, { error: "Method not allowed" });
+  if (!discordConfigured()) {
+    res.writeHead(302, { Location: "/surplus-member.html?discord=not-configured#community" });
+    return res.end();
+  }
+  const member = await getAuthenticatedMember(req);
+  if (!member || !membershipAllowsAccess(member.subscription_status)) {
+    res.writeHead(302, { Location: "/surplus-member.html?discord=sign-in#community" });
+    return res.end();
+  }
+  const state = crypto.randomBytes(24).toString("hex");
+  setDiscordStateCookie(res, state);
+  const redirectUri = `${siteUrl}/api/discord/callback`;
+  const authorizeUrl = new URL("https://discord.com/oauth2/authorize");
+  authorizeUrl.search = new URLSearchParams({
+    response_type: "code",
+    client_id: discordClientId,
+    scope: "identify guilds.join",
+    redirect_uri: redirectUri,
+    state,
+    prompt: "consent"
+  }).toString();
+  res.writeHead(302, { Location: authorizeUrl.toString() });
+  res.end();
+}
+
+async function handleDiscordCallback(req, res) {
+  if (req.method !== "GET") return sendJson(res, 405, { error: "Method not allowed" });
+  const url = new URL(req.url, siteUrl);
+  const code = String(url.searchParams.get("code") || "");
+  const state = String(url.searchParams.get("state") || "");
+  const expectedState = parseCookies(req)[discordStateCookieName];
+  clearDiscordStateCookie(res);
+  if (!code || !state || !expectedState || state !== expectedState) {
+    res.writeHead(302, { Location: "/surplus-member.html?discord=invalid#community" });
+    return res.end();
+  }
+  const member = await getAuthenticatedMember(req);
+  if (!member || !membershipAllowsAccess(member.subscription_status)) {
+    res.writeHead(302, { Location: "/surplus-member.html?discord=sign-in#community" });
+    return res.end();
+  }
+  try {
+    const redirectUri = `${siteUrl}/api/discord/callback`;
+    const tokenResponse = await fetch("https://discord.com/api/v10/oauth2/token", {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${discordClientId}:${discordClientSecret}`).toString("base64")}`,
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: new URLSearchParams({
+        grant_type: "authorization_code",
+        code,
+        redirect_uri: redirectUri
+      })
+    });
+    const token = await tokenResponse.json();
+    if (!tokenResponse.ok || !token.access_token) {
+      throw new Error(`Discord token exchange failed (${tokenResponse.status})`);
+    }
+    const discordUser = await discordRequest("/users/@me", {
+      authorization: `Bearer ${token.access_token}`
+    });
+    await discordRequest(`/guilds/${discordGuildId}/members/${discordUser.id}`, {
+      method: "PUT",
+      body: { access_token: token.access_token }
+    });
+    const updated = await supabasePatch("members", { id: `eq.${member.id}` }, {
+      discord_user_id: discordUser.id,
+      discord_username: discordUser.global_name || discordUser.username,
+      discord_connected_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    });
+    await syncDiscordRoles(updated || { ...member, discord_user_id: discordUser.id });
+    res.writeHead(302, { Location: "/surplus-member.html?discord=connected#community" });
+    res.end();
+  } catch (error) {
+    console.error("Discord connection failed:", error);
+    res.writeHead(302, { Location: "/surplus-member.html?discord=failed#community" });
+    res.end();
+  }
+}
+
+async function handleDiscordDisconnect(req, res) {
+  if (req.method !== "POST") return sendJson(res, 405, { error: "Method not allowed" });
+  const member = await getAuthenticatedMember(req);
+  if (!member) return sendJson(res, 401, { error: "Sign in to manage Discord." });
+  try {
+    if (discordConfigured() && member.discord_user_id) {
+      await setDiscordRole(member.discord_user_id, discordMemberRoleId, false).catch(() => {});
+      if (discordFoundingRoleId) {
+        await setDiscordRole(member.discord_user_id, discordFoundingRoleId, false).catch(() => {});
+      }
+    }
+    await supabasePatch("members", { id: `eq.${member.id}` }, {
+      discord_user_id: null,
+      discord_username: null,
+      discord_connected_at: null,
+      discord_role_synced_at: null,
+      updated_at: new Date().toISOString()
+    });
+    sendJson(res, 200, { ok: true });
+  } catch (error) {
+    console.error("Discord disconnect failed:", error);
+    sendJson(res, 500, { error: "Discord could not be disconnected." });
+  }
 }
 
 async function handleMemberState(req, res) {
@@ -896,6 +1085,9 @@ async function syncCheckoutMember(session) {
       console.error("Unable to send new member access email:", error);
     });
   }
+  await syncDiscordRoles(member).catch((error) => {
+    console.error("Unable to sync Discord roles after checkout:", error);
+  });
 }
 
 async function syncSubscription(subscription) {
@@ -905,13 +1097,16 @@ async function syncSubscription(subscription) {
   if (!customerId) return;
   const member = await findMemberByCustomer(customerId);
   if (!member) return;
-  await supabasePatch("members", { id: `eq.${member.id}` }, {
+  const updated = await supabasePatch("members", { id: `eq.${member.id}` }, {
     stripe_subscription_id: subscription.id,
     subscription_status: subscription.status,
     current_period_end: subscription.items?.data?.[0]?.current_period_end
       ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
       : null,
     updated_at: new Date().toISOString()
+  });
+  await syncDiscordRoles(updated || { ...member, subscription_status: subscription.status }).catch((error) => {
+    console.error("Unable to sync Discord roles after subscription update:", error);
   });
 }
 
@@ -1052,7 +1247,8 @@ const server = http.createServer(async (req, res) => {
       ok: true,
       storage: supabaseUrl && supabaseSecretKey ? "supabase" : "local",
       email: resendApiKey ? "configured" : "not_configured",
-      stripe: stripe && stripeFoundingPriceId && stripeRegularPriceId ? "configured" : "not_configured"
+      stripe: stripe && stripeFoundingPriceId && stripeRegularPriceId ? "configured" : "not_configured",
+      discord: discordConfigured() ? "configured" : "not_configured"
     });
     return;
   }
@@ -1094,6 +1290,21 @@ const server = http.createServer(async (req, res) => {
 
   if (requestPath === "/api/member/state") {
     await handleMemberState(req, res);
+    return;
+  }
+
+  if (requestPath === "/api/discord/connect") {
+    await handleDiscordConnect(req, res);
+    return;
+  }
+
+  if (requestPath === "/api/discord/callback") {
+    await handleDiscordCallback(req, res);
+    return;
+  }
+
+  if (requestPath === "/api/discord/disconnect") {
+    await handleDiscordDisconnect(req, res);
     return;
   }
 

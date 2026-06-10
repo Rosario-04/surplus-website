@@ -43,7 +43,15 @@ alter table public.members
   add column if not exists referral_code text,
   add column if not exists referred_by text,
   add column if not exists referral_count integer not null default 0,
-  add column if not exists referral_credits integer not null default 0;
+  add column if not exists referral_credits integer not null default 0,
+  add column if not exists discord_user_id text,
+  add column if not exists discord_username text,
+  add column if not exists discord_connected_at timestamptz,
+  add column if not exists discord_role_synced_at timestamptz;
+
+create unique index if not exists members_discord_user_id_idx
+  on public.members (discord_user_id)
+  where discord_user_id is not null;
 
 create unique index if not exists members_referral_code_idx
   on public.members (referral_code)
