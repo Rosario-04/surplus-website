@@ -45,3 +45,5 @@ services:
         sync: false
       - key: DISCORD_FOUNDING_ROLE_ID
         sync: false
+      - key: ADMIN_EMAILS
+        sync: false

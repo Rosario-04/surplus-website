@@ -26,6 +26,12 @@ const discordBotToken = process.env.DISCORD_BOT_TOKEN || "";
 const discordGuildId = process.env.DISCORD_GUILD_ID || "";
 const discordMemberRoleId = process.env.DISCORD_MEMBER_ROLE_ID || "";
 const discordFoundingRoleId = process.env.DISCORD_FOUNDING_ROLE_ID || "";
+const adminEmails = new Set(
+  String(process.env.ADMIN_EMAILS || "")
+    .split(",")
+    .map((email) => normalizeEmail(email))
+    .filter(Boolean)
+);
 const sessionCookieName = "surplus_session";
 const discordStateCookieName = "surplus_discord_state";
 const memberSessionDays = 30;
@@ -325,6 +331,51 @@ function splitName(name) {
   };
 }
 
+function buildEmailHtml(content) {
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+  <style>
+    :root { color-scheme: light dark; supported-color-schemes: light dark; }
+    body, .email-bg { margin:0 !important; background:#f5f4f0 !important; color:#171717 !important; font-family:Arial,sans-serif !important; }
+    .shell { max-width:600px; margin:0 auto; padding:48px 24px; }
+    .brand { color:#8a7340; font-family:Georgia,serif; font-size:30px; margin-bottom:32px; }
+    h1 { color:#171717; font-family:Georgia,serif; font-size:36px; line-height:1.15; margin:0 0 18px; }
+    p { color:#4f4a43; font-size:17px; line-height:1.65; margin:0 0 22px; }
+    .supporting { color:#655f57; font-size:14px; }
+    .code, .offer { border:1px solid #c9b482; background:#ebe6da; color:#765e25; }
+    .code { margin:0 0 28px; padding:18px 22px; font-size:38px; font-weight:700; letter-spacing:10px; text-align:center; }
+    .offer { padding:20px; margin:28px 0; }
+    .offer strong { color:#765e25; }
+    .offer p { color:#4f4a43; font-size:15px; margin:8px 0 0; }
+    .button { display:inline-block; background:#b99a55; color:#0a0a0c !important; text-decoration:none; font-weight:700; padding:14px 22px; border-radius:999px; }
+    .footnote { color:#777168; font-size:12px; line-height:1.5; margin-top:36px; }
+    .position { color:#655f57; font-size:15px; }
+    .position strong { color:#8a7340; }
+    @media (prefers-color-scheme: dark) {
+      body, .email-bg { background:#0a0a0c !important; color:#f4efe2 !important; }
+      .brand { color:#d4b66a !important; }
+      h1 { color:#f4efe2 !important; }
+      p { color:#c8c2b7 !important; }
+      .supporting { color:#a8a297 !important; }
+      .code, .offer { background:#141310 !important; border-color:#6f5d35 !important; color:#d4b66a !important; }
+      .offer strong { color:#d4b66a !important; }
+      .offer p { color:#c8c2b7 !important; }
+      .footnote { color:#8f897f !important; }
+      .position { color:#a8a297 !important; }
+      .position strong { color:#d4b66a !important; }
+    }
+  </style>
+</head>
+<body class="email-bg" bgcolor="#f5f4f0">
+  <div class="shell">${content}</div>
+</body>
+</html>`;
+}
+
 async function addResendContact(entry) {
   const { firstName, lastName } = splitName(entry.name);
   const payload = {
@@ -354,7 +405,7 @@ async function addResendContact(entry) {
 async function sendWaitlistEmail(entry, position) {
   const safeName = entry.name.replace(/[<>&"']/g, "");
   const positionLine = position
-    ? `<p style="margin:0 0 18px;color:#a8a297">Your waitlist number is <strong style="color:#d4b66a">#${position}</strong>.</p>`
+    ? `<p class="position">Your waitlist number is <strong>#${position}</strong>.</p>`
     : "";
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -367,32 +418,18 @@ async function sendWaitlistEmail(entry, position) {
       from: waitlistFromEmail,
       to: [entry.email],
       subject: "You're on the Surplus waitlist",
-      html: `<!doctype html>
-<html lang="en">
-<body style="margin:0;background:#0a0a0c;color:#f4efe2;font-family:Arial,sans-serif">
-  <div style="max-width:600px;margin:0 auto;padding:48px 24px">
-    <div style="font-family:Georgia,serif;font-size:30px;margin-bottom:32px;color:#d4b66a">Surplus</div>
-    <h1 style="font-family:Georgia,serif;font-size:38px;line-height:1.1;margin:0 0 18px">You're in, ${safeName}.</h1>
-    ${positionLine}
-    <p style="font-size:17px;line-height:1.65;color:#c8c2b7;margin:0 0 22px">
-      You will be among the first to hear when Surplus opens. Expect practical updates on building income,
-      controlling your money, using AI well, and turning consistent work into more options.
-    </p>
-    <div style="border:1px solid rgba(185,154,85,.28);padding:20px;margin:28px 0;background:#111114">
-      <strong style="color:#d4b66a">Founding offer</strong>
-      <p style="margin:8px 0 0;color:#c8c2b7;line-height:1.55">
-        The first 100 people who complete a paid membership will lock in $30/month for life and receive a founding member badge.
-      </p>
-    </div>
-    <a href="${siteUrl}" style="display:inline-block;background:#c9a957;color:#0a0a0c;text-decoration:none;font-weight:700;padding:14px 22px">
-      Visit Live in Surplus
-    </a>
-    <p style="font-size:12px;line-height:1.5;color:#777168;margin-top:36px">
-      You received this because you joined the Surplus waitlist at ${siteUrl}.
-    </p>
-  </div>
-</body>
-</html>`
+      html: buildEmailHtml(`
+        <div class="brand">Surplus</div>
+        <h1>You're in, ${safeName}.</h1>
+        ${positionLine}
+        <p>You will be among the first to hear when Surplus opens. Expect practical updates on building income, controlling your money, using AI well, and turning consistent work into more options.</p>
+        <div class="offer">
+          <strong>Founding offer</strong>
+          <p>The first 100 people who complete a paid membership will lock in $30/month for life and receive a founding member badge.</p>
+        </div>
+        <a href="${siteUrl}" class="button">Visit Live in Surplus</a>
+        <p class="footnote">You received this because you joined the Surplus waitlist at ${siteUrl}.</p>
+      `)
     })
   });
   if (!response.ok) {
@@ -426,6 +463,10 @@ async function runWaitlistEmailTasks(entry, position, recordId) {
 
 function membershipAllowsAccess(status) {
   return ["active", "trialing"].includes(status);
+}
+
+function isAdminMember(member) {
+  return Boolean(member && adminEmails.has(normalizeEmail(member.email)));
 }
 
 function discordConfigured() {
@@ -544,28 +585,15 @@ async function sendMemberAccessEmail(member, token, code) {
       from: waitlistFromEmail,
       to: [member.email],
       subject: `${code} is your Surplus sign-in code`,
-      html: `<!doctype html>
-<html lang="en">
-<body style="margin:0;background:#0a0a0c;color:#f4efe2;font-family:Arial,sans-serif">
-  <div style="max-width:600px;margin:0 auto;padding:48px 24px">
-    <div style="font-family:Georgia,serif;font-size:30px;margin-bottom:32px;color:#d4b66a">Surplus</div>
-    <h1 style="font-family:Georgia,serif;font-size:36px;line-height:1.15;margin:0 0 18px">Welcome back, ${safeName}.</h1>
-    <p style="font-size:17px;line-height:1.65;color:#c8c2b7;margin:0 0 26px">
-      Enter this one-time code on the Surplus sign-in screen. It expires in ${magicLinkMinutes} minutes and can only be used once.
-    </p>
-    <div style="margin:0 0 28px;padding:18px 22px;border:1px solid #6f5d35;background:#141310;color:#d4b66a;font-family:Arial,sans-serif;font-size:38px;font-weight:700;letter-spacing:10px;text-align:center">
-      ${code}
-    </div>
-    <p style="font-size:14px;line-height:1.6;color:#8f897f;margin:0 0 18px">Or use the secure button below to sign in immediately.</p>
-    <a href="${url}" style="display:inline-block;background:#c9a957;color:#0a0a0c;text-decoration:none;font-weight:700;padding:14px 22px;border-radius:999px">
-      Sign in to Surplus
-    </a>
-    <p style="font-size:12px;line-height:1.5;color:#777168;margin-top:36px">
-      If you did not request this link, you can safely ignore this email.
-    </p>
-  </div>
-</body>
-</html>`
+      html: buildEmailHtml(`
+        <div class="brand">Surplus</div>
+        <h1>Welcome back, ${safeName}.</h1>
+        <p>Enter this one-time code on the Surplus sign-in screen. It expires in ${magicLinkMinutes} minutes and can only be used once.</p>
+        <div class="code">${code}</div>
+        <p class="supporting">Or use the secure button below to sign in immediately.</p>
+        <a href="${url}" class="button">Sign in to Surplus</a>
+        <p class="footnote">If you did not request this link, you can safely ignore this email.</p>
+      `)
     })
   });
   if (!response.ok) {
@@ -701,7 +729,7 @@ async function handleRequestLogin(req, res) {
 
   try {
     const member = await findMemberByEmail(email);
-    if (member && membershipAllowsAccess(member.subscription_status)) {
+    if (member && (membershipAllowsAccess(member.subscription_status) || isAdminMember(member))) {
       await issueMagicLink(member);
     }
     sendJson(res, 200, {
@@ -733,7 +761,7 @@ async function handleVerifyCode(req, res) {
 
   try {
     const member = await findMemberByEmail(email);
-    if (!member || !membershipAllowsAccess(member.subscription_status)) {
+    if (!member || !(membershipAllowsAccess(member.subscription_status) || isAdminMember(member))) {
       throw new Error("Membership is not active");
     }
     const submittedHash = hashToken(`${member.id}:${code}`);
@@ -782,7 +810,7 @@ async function handleVerifyLogin(req, res) {
       limit: "1"
     });
     const member = members[0];
-    if (!member || !membershipAllowsAccess(member.subscription_status)) {
+    if (!member || !(membershipAllowsAccess(member.subscription_status) || isAdminMember(member))) {
       throw new Error("Membership is not active");
     }
     await supabasePatch("member_auth_tokens", { id: `eq.${authToken.id}` }, {
@@ -816,6 +844,7 @@ async function handleMemberSession(req, res) {
       referralCode: member.referral_code,
       referralCount: member.referral_count || 0,
       referralCredits: member.referral_credits || 0,
+      isAdmin: isAdminMember(member),
       discord: {
         connected: Boolean(member.discord_user_id),
         username: member.discord_username || null,
@@ -823,6 +852,122 @@ async function handleMemberSession(req, res) {
       }
     }
   });
+}
+
+function dateDaysAgo(days) {
+  return new Date(Date.now() - days * 86400_000).toISOString();
+}
+
+function cleanTrafficSource(source) {
+  if (!source || source === "direct") return "Direct";
+  try {
+    const hostname = new URL(source).hostname.replace(/^www\./, "");
+    const siteHostname = new URL(siteUrl).hostname.replace(/^www\./, "");
+    return hostname === siteHostname ? "On-site" : hostname || "Direct";
+  } catch {
+    return "Other";
+  }
+}
+
+function summarizeCounts(items, getKey, limit = 6) {
+  const totals = new Map();
+  items.forEach((item) => {
+    const key = getKey(item);
+    if (!key) return;
+    totals.set(key, (totals.get(key) || 0) + 1);
+  });
+  return [...totals.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([label, value]) => ({ label, value }));
+}
+
+async function handleAdminOverview(req, res) {
+  if (req.method !== "GET") return sendJson(res, 405, { error: "Method not allowed" });
+  const admin = await getAuthenticatedMember(req);
+  if (!isAdminMember(admin)) return sendJson(res, 403, { error: "Administrator access is required." });
+
+  try {
+    const since = dateDaysAgo(30);
+    const [members, trafficEvents, waitlistEntries] = await Promise.all([
+      supabaseSelect("members", {
+        select: "id,name,email,subscription_status,founding_member,created_at,current_period_end,onboarding,progress,discord_username,referral_count,referral_credits",
+        order: "created_at.desc",
+        limit: "1000"
+      }),
+      supabaseSelect("analytics_events", {
+        select: "event_name,page,source,session_id,created_at",
+        created_at: `gte.${since}`,
+        order: "created_at.desc",
+        limit: "5000"
+      }),
+      supabaseSelect("waitlist", {
+        select: "id,created_at",
+        order: "created_at.desc",
+        limit: "1000"
+      }).catch(() => [])
+    ]);
+
+    const activeMembers = members.filter((member) => membershipAllowsAccess(member.subscription_status));
+    const foundingMembers = activeMembers.filter((member) => member.founding_member);
+    const onboardingComplete = members.filter((member) => member.onboarding?.completed).length;
+    const discordConnected = members.filter((member) => member.discord_username).length;
+    const moduleTotals = members.reduce((total, member) => {
+      const completed = Array.isArray(member.progress?.completedModules) ? member.progress.completedModules.length : 0;
+      return total + completed;
+    }, 0);
+    const visitorSessions = new Set(trafficEvents.map((event) => event.session_id).filter(Boolean));
+    const pageViews = trafficEvents.filter((event) => event.event_name === "page_view");
+    const pageViewSessions = new Set(pageViews.map((event) => event.session_id).filter(Boolean));
+    const checkoutStarts = trafficEvents.filter((event) => event.event_name === "checkout_started").length;
+    const waitlistSubmitted = trafficEvents.filter((event) => event.event_name === "waitlist_submitted").length;
+    const successViews = trafficEvents.filter((event) => event.event_name === "checkout_success_viewed").length;
+    const newWaitlist = waitlistEntries.filter((entry) => new Date(entry.created_at).getTime() >= Date.now() - 30 * 86400_000).length;
+
+    sendJson(res, 200, {
+      generatedAt: new Date().toISOString(),
+      members: {
+        total: members.length,
+        active: activeMembers.length,
+        inactive: members.length - activeMembers.length,
+        founding: foundingMembers.length,
+        foundingRemaining: Math.max(0, 100 - foundingMembers.length),
+        discordConnected,
+        onboardingComplete,
+        averageModulesComplete: members.length ? Number((moduleTotals / members.length).toFixed(1)) : 0,
+        projectedMrr: foundingMembers.length * 30 + (activeMembers.length - foundingMembers.length) * 50
+      },
+      traffic: {
+        windowDays: 30,
+        events: trafficEvents.length,
+        uniqueVisitors: visitorSessions.size || pageViewSessions.size,
+        pageViews: pageViews.length,
+        checkoutStarts,
+        checkoutSuccessViews: successViews,
+        waitlistSubmitted,
+        waitlistTotal: waitlistEntries.length,
+        waitlistNew: newWaitlist,
+        topPages: summarizeCounts(pageViews, (event) => event.page || "/"),
+        topSources: summarizeCounts(trafficEvents, (event) => cleanTrafficSource(event.source))
+      },
+      students: members.slice(0, 100).map((member) => ({
+        name: member.name,
+        email: member.email,
+        status: member.subscription_status,
+        founding: Boolean(member.founding_member),
+        joinedAt: member.created_at,
+        currentPeriodEnd: member.current_period_end,
+        onboardingComplete: Boolean(member.onboarding?.completed),
+        modulesComplete: Array.isArray(member.progress?.completedModules) ? member.progress.completedModules.length : 0,
+        discordConnected: Boolean(member.discord_username),
+        referralCount: member.referral_count || 0,
+        referralCredits: member.referral_credits || 0
+      }))
+    });
+  } catch (error) {
+    console.error("Admin overview failed:", error.message);
+    sendJson(res, 500, { error: "Admin reporting could not be loaded." });
+  }
 }
 
 async function handleDiscordConnect(req, res) {
@@ -1285,6 +1430,11 @@ const server = http.createServer(async (req, res) => {
 
   if (requestPath === "/api/member/session") {
     await handleMemberSession(req, res);
+    return;
+  }
+
+  if (requestPath === "/api/admin/overview") {
+    await handleAdminOverview(req, res);
     return;
   }
 

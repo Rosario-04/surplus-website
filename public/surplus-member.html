@@ -1511,6 +1511,7 @@
         </div>
       </div>
       <div class="account-links">
+        <a class="account-link primary" id="memberAdminLink" href="/surplus-admin.html" hidden>Owner dashboard</a>
         <a class="account-link primary" href="/surplus.html">Back to website</a>
         <button class="account-link" type="button" onclick="logOut()">Log out</button>
       </div>
@@ -1528,6 +1529,7 @@
         <span class="topbar-search-kbd"><kbd>⌘</kbd><kbd>K</kbd></span>
       </div>
       <div class="topbar-spacer"></div>
+      <a class="topbar-link" id="topbarAdminLink" href="/surplus-admin.html" hidden>Owner dashboard</a>
       <a class="topbar-link primary" href="/surplus.html">Return to website</a>
       <button class="topbar-link" type="button" onclick="logOut()">Log out</button>
       <button class="topbar-icon-btn" onclick="toggleTheme()" title="Toggle theme">
@@ -3004,6 +3006,8 @@ function applyMember(member){
   document.getElementById('profileName').textContent = name;
   document.getElementById('settingsName').textContent = name;
   document.getElementById('settingsEmail').textContent = member.email;
+  document.getElementById('memberAdminLink').hidden = !member.isAdmin;
+  document.getElementById('topbarAdminLink').hidden = !member.isAdmin;
   document.getElementById('statusText').textContent = member.foundingMember ? 'Founding member' : 'Active';
   const referralLink = `${location.origin}/?ref=${member.referralCode || 'member'}`;
   document.getElementById('referLink').textContent = referralLink;
