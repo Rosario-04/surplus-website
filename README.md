@@ -64,7 +64,7 @@ Create a Stripe webhook endpoint at:
 https://liveinsurplus.com/api/stripe/webhook
 ```
 
-Subscribe it to `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, and `customer.subscription.deleted`. Save its signing secret as `STRIPE_WEBHOOK_SECRET`.
+Subscribe it to `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`, and `invoice.paid`. Save its signing secret as `STRIPE_WEBHOOK_SECRET`.
 
 Configure Stripe's Customer Portal so members can update payment methods, view invoices, and cancel subscriptions. Members sign in at `/surplus-member.html` with an email magic link. Only active or trialing subscriptions receive access.
 

@@ -1255,6 +1255,15 @@ async function syncSubscription(subscription) {
   });
 }
 
+async function syncInvoiceSubscription(invoice) {
+  const subscriptionId = typeof invoice.subscription === "string"
+    ? invoice.subscription
+    : invoice.subscription?.id || invoice.parent?.subscription_details?.subscription;
+  if (!subscriptionId) return;
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  await syncSubscription(subscription);
+}
+
 async function handleStripeWebhook(req, res) {
   if (req.method !== "POST") return sendJson(res, 405, { error: "Method not allowed" });
   if (!stripe || !stripeWebhookSecret) {
@@ -1275,6 +1284,11 @@ async function handleStripeWebhook(req, res) {
       event.type === "customer.subscription.deleted"
     ) {
       await syncSubscription(event.data.object);
+    } else if (
+      event.type === "invoice.payment_failed" ||
+      event.type === "invoice.paid"
+    ) {
+      await syncInvoiceSubscription(event.data.object);
     }
     sendJson(res, 200, { received: true });
   } catch (error) {
