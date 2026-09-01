@@ -590,7 +590,7 @@ async function sendMemberAccessEmail(member, token, code) {
         <h1>Welcome back, ${safeName}.</h1>
         <p>Enter this one-time code on the Surplus sign-in screen. It expires in ${magicLinkMinutes} minutes and can only be used once.</p>
         <div class="code">${code}</div>
-        <p class="supporting">Or use the secure button below to sign in immediately.</p>
+        <p class="supporting">Or use the secure button below to sign in immediately. If the button ever looks expired, use the code above instead.</p>
         <a href="${url}" class="button">Sign in to Surplus</a>
         <p class="footnote">If you did not request this link, you can safely ignore this email.</p>
       `)

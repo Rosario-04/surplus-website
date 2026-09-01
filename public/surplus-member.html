@@ -111,6 +111,7 @@
     appearance:none; border:0; padding:0; background:none; cursor:pointer;
     color:var(--gold-bright); font:inherit;
   }
+  .text-action:disabled{color:var(--ink-faint); cursor:not-allowed}
   .signin-btn:disabled{opacity:.58; cursor:wait; transform:none; box-shadow:none}
   .signin-demo-note{
     margin-top:24px; padding:14px; border-radius:12px;
@@ -118,6 +119,7 @@
     font-size:12px; color:var(--ink-dim); text-align:center; line-height:1.5;
   }
   .signin-demo-note strong{color:var(--gold-bright); display:block; margin-bottom:4px; font-family:var(--serif); font-style:italic}
+  .signin-demo-note a{color:var(--gold-bright); font-weight:500}
 
   /* ---------- APP SHELL ---------- */
   .app{display:flex; min-height:100vh; position:relative; z-index:1}
@@ -1375,40 +1377,42 @@
       <div class="signin-brand-text">Surplus<small>BY ROSARIO</small></div>
     </div>
     <h1>Welcome <em>back.</em></h1>
-    <p class="signin-sub">Sign in to your dashboard</p>
+    <p class="signin-sub">Use the email connected to your membership</p>
 
-    <div class="signin-step" id="emailStep">
+    <form class="signin-step" id="emailStep" novalidate>
       <div class="field">
         <label for="email">Member email</label>
-        <input type="email" id="email" autocomplete="email" placeholder="you@example.com">
+        <input type="email" id="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required>
       </div>
-      <button class="signin-btn" id="signinButton" onclick="requestSignInCode()">Continue securely</button>
-    </div>
+      <button class="signin-btn" id="signinButton" type="submit">Continue securely</button>
+    </form>
 
-    <div class="signin-step" id="codeStep" hidden>
+    <form class="signin-step" id="codeStep" hidden novalidate>
       <div class="field code-field">
         <label for="signinCode">Six-digit code</label>
-        <input type="text" id="signinCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
+        <input type="text" id="signinCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" required>
       </div>
-      <button class="signin-btn" id="verifyCodeButton" onclick="verifySignInCode()">Open my dashboard</button>
+      <button class="signin-btn" id="verifyCodeButton" type="submit">Open my dashboard</button>
       <div class="code-meta">
         <span id="codeEmail"></span>
         <span>
-          <button class="text-action" type="button" onclick="requestSignInCode()">Resend code</button>
+          <button class="text-action" id="resendCodeButton" type="button" onclick="requestSignInCode(true)">Resend code</button>
           <span aria-hidden="true">&nbsp;·&nbsp;</span>
           <button class="text-action" type="button" onclick="resetSignIn()">Change email</button>
         </span>
       </div>
-    </div>
+    </form>
 
     <div class="signin-help">
       <a href="/surplus.html">Back to website</a>
       <span class="help-divider" aria-hidden="true"></span>
       <a href="/surplus.html#pricing">View membership</a>
+      <span class="help-divider" aria-hidden="true"></span>
+      <a href="mailto:hello@liveinsurplus.com?subject=Surplus%20member%20access">Need help?</a>
     </div>
     <div class="signin-demo-note" id="signinMessage" aria-live="polite">
       <strong>Secure member access</strong>
-      Enter the email used at checkout. We will send a one-time code.
+      Enter the email used at checkout. We will send a code and a secure sign-in button.
     </div>
   </div>
 </div>
@@ -2800,16 +2804,51 @@ async function saveMemberState(){
 }
 
 // ---------- AUTH ----------
-async function requestSignInCode(){
+const LIVE_MEMBER_PORTAL_URL = 'https://liveinsurplus.com/surplus-member.html';
+let resendCooldownTimer = null;
+
+function setSignInMessage(title, copy){
+  document.getElementById('signinMessage').innerHTML = `<strong>${title}</strong>${copy}`;
+}
+
+function startResendCooldown(seconds = 60){
+  const button = document.getElementById('resendCodeButton');
+  if (!button) return;
+  clearInterval(resendCooldownTimer);
+  let remaining = seconds;
+  button.disabled = true;
+  button.textContent = `Resend in ${remaining}s`;
+  resendCooldownTimer = window.setInterval(() => {
+    remaining -= 1;
+    if (remaining <= 0) {
+      clearInterval(resendCooldownTimer);
+      button.disabled = false;
+      button.textContent = 'Resend code';
+      return;
+    }
+    button.textContent = `Resend in ${remaining}s`;
+  }, 1000);
+}
+
+async function requestSignInCode(isResend = false){
   const email = document.getElementById('email').value.trim();
   const button = document.getElementById('signinButton');
   const message = document.getElementById('signinMessage');
-  if (!email) {
-    message.innerHTML = '<strong>Email required</strong>Enter the email connected to your membership.';
+  if (window.location.protocol === 'file:') {
+    message.innerHTML = `<strong>Open the live member portal</strong>This local preview cannot securely sign members in. <a href="${LIVE_MEMBER_PORTAL_URL}">Open liveinsurplus.com</a>.`;
     return;
   }
-  button.disabled = true;
-  button.textContent = 'Sending code...';
+  if (!email) {
+    setSignInMessage('Email required', 'Enter the email connected to your membership.');
+    return;
+  }
+  if (!document.getElementById('email').checkValidity()) {
+    setSignInMessage('Check your email', 'Enter a valid email address to continue.');
+    return;
+  }
+  const actionButton = isResend ? document.getElementById('resendCodeButton') : button;
+  actionButton.disabled = true;
+  actionButton.textContent = isResend ? 'Sending...' : 'Sending code...';
   try {
     const response = await fetch('/api/auth/request-link', {
       method:'POST',
@@ -2822,12 +2861,15 @@ async function requestSignInCode(){
     document.getElementById('codeStep').hidden = false;
     document.getElementById('codeEmail').textContent = email;
     document.getElementById('signinCode').focus();
-    message.innerHTML = `<strong>Check your inbox</strong>Enter the six-digit code we sent. It expires in 20 minutes.`;
+    setSignInMessage('Check your inbox', 'If you have active Surplus access, enter the six-digit code we sent. It expires in 20 minutes. If the sign-in button in the email looks expired, use the code instead.');
+    startResendCooldown();
   } catch (error) {
-    message.innerHTML = `<strong>Sign-in unavailable</strong>${error.message}`;
+    setSignInMessage('Sign-in unavailable', `${error.message} Need a hand? Email <a href="mailto:hello@liveinsurplus.com?subject=Surplus%20member%20access">support</a>.`);
   } finally {
-    button.disabled = false;
-    button.textContent = 'Continue securely';
+    if (!isResend) {
+      button.disabled = false;
+      button.textContent = 'Continue securely';
+    }
   }
 }
 
@@ -2837,7 +2879,7 @@ async function verifySignInCode(){
   const button = document.getElementById('verifyCodeButton');
   const message = document.getElementById('signinMessage');
   if (code.length !== 6) {
-    message.innerHTML = '<strong>Code required</strong>Enter all six digits from your email.';
+    setSignInMessage('Code required', 'Enter all six digits from your email.');
     return;
   }
   button.disabled = true;
@@ -2857,7 +2899,7 @@ async function verifySignInCode(){
     document.getElementById('signin').classList.add('hidden');
     resetSignIn();
   } catch (error) {
-    message.innerHTML = `<strong>Code not accepted</strong>${error.message}`;
+    setSignInMessage('Code not accepted', `${error.message} You can request a new code or <a href="mailto:hello@liveinsurplus.com?subject=Surplus%20member%20access">contact support</a>.`);
   } finally {
     button.disabled = false;
     button.textContent = 'Open my dashboard';
@@ -2865,21 +2907,28 @@ async function verifySignInCode(){
 }
 
 function resetSignIn(){
+  clearInterval(resendCooldownTimer);
   document.getElementById('emailStep').hidden = false;
   document.getElementById('codeStep').hidden = true;
   document.getElementById('signinCode').value = '';
-  document.getElementById('signinMessage').innerHTML =
-    '<strong>Secure member access</strong>Enter the email used at checkout. We will send a one-time code.';
+  const resendButton = document.getElementById('resendCodeButton');
+  if (resendButton) {
+    resendButton.disabled = false;
+    resendButton.textContent = 'Resend code';
+  }
+  setSignInMessage('Secure member access', 'Enter the email used at checkout. We will send a code and a secure sign-in button.');
 }
 
-document.getElementById('email')?.addEventListener('keydown', (event) => {
-  if (event.key === 'Enter') requestSignInCode();
+document.getElementById('emailStep')?.addEventListener('submit', (event) => {
+  event.preventDefault();
+  requestSignInCode();
 });
 document.getElementById('signinCode')?.addEventListener('input', (event) => {
   event.target.value = event.target.value.replace(/\D/g,'').slice(0,6);
 });
-document.getElementById('signinCode')?.addEventListener('keydown', (event) => {
-  if (event.key === 'Enter') verifySignInCode();
+document.getElementById('codeStep')?.addEventListener('submit', (event) => {
+  event.preventDefault();
+  verifySignInCode();
 });
 async function logOut(){
   if (IS_PREVIEW_MODE) {
