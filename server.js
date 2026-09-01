@@ -541,12 +541,131 @@ async function findMemberByEmail(email) {
 }
 
 async function findMemberByCustomer(customerId) {
+  if (!customerId) return null;
   const rows = await supabaseSelect("members", {
     select: "*",
     stripe_customer_id: `eq.${customerId}`,
     limit: "1"
   });
   return rows[0] || null;
+}
+
+async function findMemberBySubscription(subscriptionId) {
+  if (!subscriptionId) return null;
+  const rows = await supabaseSelect("members", {
+    select: "*",
+    stripe_subscription_id: `eq.${subscriptionId}`,
+    limit: "1"
+  });
+  return rows[0] || null;
+}
+
+function stripeObjectId(value) {
+  return typeof value === "string" ? value : value?.id || null;
+}
+
+function stripeTimestampToIso(timestamp) {
+  return Number.isFinite(Number(timestamp))
+    ? new Date(Number(timestamp) * 1000).toISOString()
+    : null;
+}
+
+function invoiceSubscriptionId(invoice) {
+  return stripeObjectId(invoice.subscription) ||
+    stripeObjectId(invoice.parent?.subscription_details?.subscription);
+}
+
+function subscriptionBillingFields(subscription) {
+  const item = subscription?.items?.data?.[0];
+  const unitAmount = item?.price?.unit_amount;
+  const quantity = Number(item?.quantity || 1);
+  const interval = item?.price?.recurring?.interval;
+  if (!Number.isInteger(unitAmount) || !Number.isFinite(quantity) || quantity < 1 || !interval) {
+    return {};
+  }
+  return {
+    recurring_amount: unitAmount * quantity,
+    recurring_interval: interval
+  };
+}
+
+async function findStripeInvoice(stripeInvoiceId) {
+  if (!stripeInvoiceId) return null;
+  const rows = await supabaseSelect("stripe_invoices", {
+    select: "*",
+    stripe_invoice_id: `eq.${stripeInvoiceId}`,
+    limit: "1"
+  });
+  return rows[0] || null;
+}
+
+async function resolveInvoiceMember(invoice) {
+  const customerId = stripeObjectId(invoice.customer);
+  const subscriptionId = invoiceSubscriptionId(invoice);
+  return (await findMemberByCustomer(customerId)) || await findMemberBySubscription(subscriptionId);
+}
+
+async function persistStripeInvoice(invoice, event, eventType, member) {
+  const stripeInvoiceId = invoice.id;
+  if (!stripeInvoiceId) return null;
+
+  const existing = await findStripeInvoice(stripeInvoiceId);
+  const eventAt = stripeTimestampToIso(event.created) || new Date().toISOString();
+  const eventAtMs = new Date(eventAt).getTime();
+  const existingEventAtMs = existing?.last_stripe_event_at
+    ? new Date(existing.last_stripe_event_at).getTime()
+    : Number.NEGATIVE_INFINITY;
+  const isPaid = eventType === "invoice.paid" || invoice.status === "paid";
+
+  // A paid invoice is terminal for this foundation. Do not let stale failure retries regress it.
+  if (existing?.paid_at && !isPaid) return existing;
+  if (existing && eventAtMs < existingEventAtMs && !isPaid) return existing;
+
+  const subscriptionId = invoiceSubscriptionId(invoice) || existing?.stripe_subscription_id || null;
+  const customerId = stripeObjectId(invoice.customer) || existing?.stripe_customer_id || null;
+  const invoiceCreatedAt = stripeTimestampToIso(invoice.created) || existing?.invoice_created_at || null;
+  const paidAt = isPaid
+    ? stripeTimestampToIso(invoice.status_transitions?.paid_at) || eventAt || existing?.paid_at || null
+    : existing?.paid_at || null;
+  const payload = {
+    stripe_invoice_id: stripeInvoiceId,
+    member_id: member?.id || existing?.member_id || null,
+    stripe_customer_id: customerId,
+    stripe_subscription_id: subscriptionId,
+    status: isPaid ? "paid" : invoice.status || existing?.status || "open",
+    amount_due: Number.isInteger(invoice.amount_due) ? invoice.amount_due : existing?.amount_due || 0,
+    amount_paid: Number.isInteger(invoice.amount_paid) ? invoice.amount_paid : existing?.amount_paid || 0,
+    currency: invoice.currency || existing?.currency || null,
+    billing_reason: invoice.billing_reason || existing?.billing_reason || null,
+    invoice_created_at: invoiceCreatedAt,
+    paid_at: paidAt,
+    last_failed_at: eventType === "invoice.payment_failed" ? eventAt : existing?.last_failed_at || null,
+    last_stripe_event_at: existingEventAtMs > eventAtMs ? existing.last_stripe_event_at : eventAt,
+    updated_at: new Date().toISOString()
+  };
+
+  if (existing) {
+    return supabasePatch("stripe_invoices", { stripe_invoice_id: `eq.${stripeInvoiceId}` }, payload);
+  }
+  try {
+    return await supabaseInsert("stripe_invoices", payload);
+  } catch (error) {
+    // Concurrent Stripe retries can both observe a missing invoice before one insert wins.
+    const racedInvoice = await findStripeInvoice(stripeInvoiceId);
+    if (!racedInvoice) throw error;
+    return persistStripeInvoice(invoice, event, eventType, member);
+  }
+}
+
+async function recordSubscriptionLifecycle(event, eventType, member, subscriptionId) {
+  if (!event?.id || !subscriptionId) return;
+  await supabaseUpsert("subscription_lifecycle_events", {
+    stripe_event_id: event.id,
+    member_id: member?.id || null,
+    stripe_subscription_id: subscriptionId,
+    event_type: eventType,
+    occurred_at: stripeTimestampToIso(event.created) || new Date().toISOString()
+  }, "stripe_event_id");
 }
 
 async function findMemberByReferralCode(referralCode) {
@@ -1204,6 +1323,7 @@ async function syncCheckoutMember(session) {
     subscription_status: subscription?.status || "active",
     founding_member: session.metadata?.founding_member === "true",
     referred_by: existingMember?.referred_by || referrer?.referral_code || null,
+    ...subscriptionBillingFields(subscription),
     current_period_end: subscription?.items?.data?.[0]?.current_period_end
       ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
       : null,
@@ -1241,15 +1361,14 @@ async function syncCheckoutMember(session) {
 }
 
 async function syncSubscription(subscription) {
-  const customerId = typeof subscription.customer === "string"
-    ? subscription.customer
-    : subscription.customer?.id;
+  const customerId = stripeObjectId(subscription.customer);
   if (!customerId) return;
   const member = await findMemberByCustomer(customerId);
   if (!member) return;
   const updated = await supabasePatch("members", { id: `eq.${member.id}` }, {
     stripe_subscription_id: subscription.id,
     subscription_status: subscription.status,
+    ...subscriptionBillingFields(subscription),
     current_period_end: subscription.items?.data?.[0]?.current_period_end
       ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
       : null,
@@ -1258,12 +1377,34 @@ async function syncSubscription(subscription) {
   await syncDiscordRoles(updated || { ...member, subscription_status: subscription.status }).catch((error) => {
     console.error("Unable to sync Discord roles after subscription update:", error);
   });
+  return updated || { ...member, subscription_status: subscription.status };
 }
 
-async function syncInvoiceSubscription(invoice) {
-  const subscriptionId = typeof invoice.subscription === "string"
-    ? invoice.subscription
-    : invoice.subscription?.id || invoice.parent?.subscription_details?.subscription;
+async function syncInvoiceSubscription(invoice, event) {
+  const subscriptionId = invoiceSubscriptionId(invoice);
+  const member = await resolveInvoiceMember(invoice);
+  const persistedInvoice = await persistStripeInvoice(invoice, event, event.type, member);
+
+  if (
+    event.type === "invoice.paid" &&
+    member &&
+    subscriptionId &&
+    Number(persistedInvoice?.amount_paid || 0) > 0 &&
+    !member.first_paid_at
+  ) {
+    const firstPaidAt = persistedInvoice.paid_at || stripeTimestampToIso(event.created) || new Date().toISOString();
+    const updatedMember = await supabasePatch("members", {
+      id: `eq.${member.id}`,
+      first_paid_at: "is.null"
+    }, {
+      first_paid_at: firstPaidAt,
+      updated_at: new Date().toISOString()
+    });
+    if (updatedMember) {
+      await recordSubscriptionLifecycle(event, "started", updatedMember, subscriptionId);
+    }
+  }
+
   if (!subscriptionId) return;
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
   await syncSubscription(subscription);
@@ -1283,17 +1424,17 @@ async function handleStripeWebhook(req, res) {
     );
     if (event.type === "checkout.session.completed") {
       await syncCheckoutMember(event.data.object);
-    } else if (
-      event.type === "customer.subscription.created" ||
-      event.type === "customer.subscription.updated" ||
-      event.type === "customer.subscription.deleted"
-    ) {
+    } else if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated") {
       await syncSubscription(event.data.object);
+    } else if (event.type === "customer.subscription.deleted") {
+      const subscription = event.data.object;
+      const member = await syncSubscription(subscription);
+      await recordSubscriptionLifecycle(event, "canceled", member, subscription.id);
     } else if (
       event.type === "invoice.payment_failed" ||
       event.type === "invoice.paid"
     ) {
-      await syncInvoiceSubscription(event.data.object);
+      await syncInvoiceSubscription(event.data.object, event);
     }
     sendJson(res, 200, { received: true });
   } catch (error) {

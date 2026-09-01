@@ -47,7 +47,10 @@ alter table public.members
   add column if not exists discord_user_id text,
   add column if not exists discord_username text,
   add column if not exists discord_connected_at timestamptz,
-  add column if not exists discord_role_synced_at timestamptz;
+  add column if not exists discord_role_synced_at timestamptz,
+  add column if not exists first_paid_at timestamptz,
+  add column if not exists recurring_amount integer,
+  add column if not exists recurring_interval text;
 
 create unique index if not exists members_discord_user_id_idx
   on public.members (discord_user_id)
@@ -84,8 +87,53 @@ create index if not exists analytics_events_created_idx
 create index if not exists analytics_events_name_idx
   on public.analytics_events (event_name, created_at desc);
 
+create table if not exists public.stripe_invoices (
+  id uuid primary key default gen_random_uuid(),
+  stripe_invoice_id text not null unique,
+  member_id uuid references public.members(id) on delete set null,
+  stripe_customer_id text,
+  stripe_subscription_id text,
+  status text,
+  amount_due integer,
+  amount_paid integer,
+  currency text,
+  billing_reason text,
+  invoice_created_at timestamptz,
+  paid_at timestamptz,
+  last_failed_at timestamptz,
+  last_stripe_event_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists stripe_invoices_member_idx
+  on public.stripe_invoices (member_id);
+
+create index if not exists stripe_invoices_paid_at_idx
+  on public.stripe_invoices (paid_at desc);
+
+create index if not exists stripe_invoices_subscription_idx
+  on public.stripe_invoices (stripe_subscription_id)
+  where stripe_subscription_id is not null;
+
+create table if not exists public.subscription_lifecycle_events (
+  stripe_event_id text primary key,
+  member_id uuid references public.members(id) on delete set null,
+  stripe_subscription_id text not null,
+  event_type text not null check (event_type in ('started', 'canceled')),
+  occurred_at timestamptz not null
+);
+
+create index if not exists subscription_lifecycle_events_member_idx
+  on public.subscription_lifecycle_events (member_id, occurred_at desc);
+
+create index if not exists subscription_lifecycle_events_subscription_idx
+  on public.subscription_lifecycle_events (stripe_subscription_id, occurred_at desc);
+
 alter table public.members enable row level security;
 alter table public.member_auth_tokens enable row level security;
 alter table public.member_sessions enable row level security;
 alter table public.referral_events enable row level security;
 alter table public.analytics_events enable row level security;
+alter table public.stripe_invoices enable row level security;
+alter table public.subscription_lifecycle_events enable row level security;
