@@ -869,6 +869,13 @@ function cleanTrafficSource(source) {
   }
 }
 
+function isPublicWebsiteEvent(event) {
+  const page = String(event.page || "");
+  return !event.member_id &&
+    !page.startsWith("/surplus-member") &&
+    !page.startsWith("/surplus-admin");
+}
+
 function summarizeCounts(items, getKey, limit = 6) {
   const totals = new Map();
   items.forEach((item) => {
@@ -896,7 +903,7 @@ async function handleAdminOverview(req, res) {
         limit: "1000"
       }),
       supabaseSelect("analytics_events", {
-        select: "event_name,page,source,session_id,created_at",
+        select: "member_id,event_name,page,source,session_id,created_at",
         created_at: `gte.${since}`,
         order: "created_at.desc",
         limit: "5000"
@@ -910,18 +917,17 @@ async function handleAdminOverview(req, res) {
 
     const activeMembers = members.filter((member) => membershipAllowsAccess(member.subscription_status));
     const foundingMembers = activeMembers.filter((member) => member.founding_member);
-    const onboardingComplete = members.filter((member) => member.onboarding?.completed).length;
-    const discordConnected = members.filter((member) => member.discord_username).length;
-    const moduleTotals = members.reduce((total, member) => {
+    const onboardingComplete = activeMembers.filter((member) => member.onboarding?.completed).length;
+    const discordConnected = activeMembers.filter((member) => member.discord_username).length;
+    const moduleTotals = activeMembers.reduce((total, member) => {
       const completed = Array.isArray(member.progress?.completedModules) ? member.progress.completedModules.length : 0;
       return total + completed;
     }, 0);
-    const visitorSessions = new Set(trafficEvents.map((event) => event.session_id).filter(Boolean));
-    const pageViews = trafficEvents.filter((event) => event.event_name === "page_view");
-    const pageViewSessions = new Set(pageViews.map((event) => event.session_id).filter(Boolean));
-    const checkoutStarts = trafficEvents.filter((event) => event.event_name === "checkout_started").length;
-    const waitlistSubmitted = trafficEvents.filter((event) => event.event_name === "waitlist_submitted").length;
-    const successViews = trafficEvents.filter((event) => event.event_name === "checkout_success_viewed").length;
+    const publicTrafficEvents = trafficEvents.filter(isPublicWebsiteEvent);
+    const visitorSessions = new Set(publicTrafficEvents.map((event) => event.session_id).filter(Boolean));
+    const pageViews = publicTrafficEvents.filter((event) => event.event_name === "page_view");
+    const checkoutStarts = publicTrafficEvents.filter((event) => event.event_name === "checkout_started").length;
+    const successViews = publicTrafficEvents.filter((event) => event.event_name === "checkout_success_viewed").length;
     const newWaitlist = waitlistEntries.filter((entry) => new Date(entry.created_at).getTime() >= Date.now() - 30 * 86400_000).length;
 
     sendJson(res, 200, {
@@ -934,21 +940,20 @@ async function handleAdminOverview(req, res) {
         foundingRemaining: Math.max(0, 100 - foundingMembers.length),
         discordConnected,
         onboardingComplete,
-        averageModulesComplete: members.length ? Number((moduleTotals / members.length).toFixed(1)) : 0,
+        averageModulesComplete: activeMembers.length ? Number((moduleTotals / activeMembers.length).toFixed(1)) : 0,
         projectedMrr: foundingMembers.length * 30 + (activeMembers.length - foundingMembers.length) * 50
       },
       traffic: {
         windowDays: 30,
-        events: trafficEvents.length,
-        uniqueVisitors: visitorSessions.size || pageViewSessions.size,
+        events: publicTrafficEvents.length,
+        uniqueVisitors: visitorSessions.size,
         pageViews: pageViews.length,
         checkoutStarts,
         checkoutSuccessViews: successViews,
-        waitlistSubmitted,
         waitlistTotal: waitlistEntries.length,
         waitlistNew: newWaitlist,
         topPages: summarizeCounts(pageViews, (event) => event.page || "/"),
-        topSources: summarizeCounts(trafficEvents, (event) => cleanTrafficSource(event.source))
+        topSources: summarizeCounts(publicTrafficEvents, (event) => cleanTrafficSource(event.source))
       },
       students: members.slice(0, 100).map((member) => ({
         name: member.name,
