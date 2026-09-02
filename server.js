@@ -977,6 +977,46 @@ function dateDaysAgo(days) {
   return new Date(Date.now() - days * 86400_000).toISOString();
 }
 
+function startOfCurrentMonth() {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+}
+
+function timestampIsOnOrAfter(value, threshold) {
+  const timestamp = new Date(value || 0).getTime();
+  return Number.isFinite(timestamp) && timestamp >= new Date(threshold).getTime();
+}
+
+function invoiceAmount(value) {
+  const amount = Number(value);
+  return Number.isFinite(amount) && amount > 0 ? amount : 0;
+}
+
+function calculateBillingMetrics(members, paidInvoices, unresolvedInvoices, cancellationEvents, monthStart) {
+  const activeMembers = members.filter((member) => membershipAllowsAccess(member.subscription_status));
+  const currentMrr = activeMembers.reduce((total, member) => {
+    const hasRecurringAmount = member.recurring_amount !== null && member.recurring_amount !== undefined && member.recurring_amount !== "";
+    const recurringAmount = Number(member.recurring_amount);
+    return total + (hasRecurringAmount && Number.isFinite(recurringAmount) && recurringAmount >= 0
+      ? recurringAmount
+      : member.founding_member ? 3000 : 5000);
+  }, 0);
+  const paidInvoicesThisMonth = paidInvoices.filter((invoice) => timestampIsOnOrAfter(invoice.paid_at, monthStart));
+  const newPaidMembersThisMonth = members.filter((member) => timestampIsOnOrAfter(member.first_paid_at, monthStart)).length;
+  return {
+    currentMrr,
+    grossRevenueThisMonth: paidInvoicesThisMonth.reduce((total, invoice) => total + invoiceAmount(invoice.amount_paid), 0),
+    grossRevenueLast30Days: paidInvoices.reduce((total, invoice) => total + invoiceAmount(invoice.amount_paid), 0),
+    successfulPaymentsThisMonth: paidInvoicesThisMonth.length,
+    unresolvedPayments: unresolvedInvoices.length,
+    unresolvedMemberIds: [...new Set(unresolvedInvoices.map((invoice) => invoice.member_id).filter(Boolean))],
+    recoveredPaymentsThisMonth: paidInvoicesThisMonth.filter((invoice) => invoice.last_failed_at).length,
+    newPaidMembersThisMonth,
+    cancellationsThisMonth: cancellationEvents.length,
+    netMembershipChange: newPaidMembersThisMonth - cancellationEvents.length
+  };
+}
+
 function cleanTrafficSource(source) {
   if (!source || source === "direct") return "Direct";
   try {
@@ -1015,9 +1055,10 @@ async function handleAdminOverview(req, res) {
 
   try {
     const since = dateDaysAgo(30);
-    const [members, trafficEvents, waitlistEntries] = await Promise.all([
+    const monthStart = startOfCurrentMonth();
+    const [members, trafficEvents, waitlistEntries, paidInvoices, unresolvedInvoices, cancellationEvents] = await Promise.all([
       supabaseSelect("members", {
-        select: "id,name,email,subscription_status,founding_member,created_at,current_period_end,onboarding,progress,discord_username,referral_count,referral_credits",
+        select: "id,name,email,subscription_status,founding_member,created_at,current_period_end,first_paid_at,recurring_amount,recurring_interval,onboarding,progress,discord_username,referral_count,referral_credits",
         order: "created_at.desc",
         limit: "1000"
       }),
@@ -1031,7 +1072,29 @@ async function handleAdminOverview(req, res) {
         select: "id,created_at",
         order: "created_at.desc",
         limit: "1000"
-      }).catch(() => [])
+      }).catch(() => []),
+      supabaseSelect("stripe_invoices", {
+        select: "member_id,status,amount_paid,paid_at,last_failed_at",
+        status: "eq.paid",
+        amount_paid: "gt.0",
+        paid_at: `gte.${since}`,
+        order: "paid_at.desc",
+        limit: "5000"
+      }),
+      supabaseSelect("stripe_invoices", {
+        select: "member_id,status,last_failed_at",
+        status: "neq.paid",
+        last_failed_at: "not.is.null",
+        order: "last_failed_at.desc",
+        limit: "5000"
+      }),
+      supabaseSelect("subscription_lifecycle_events", {
+        select: "event_type,occurred_at",
+        event_type: "eq.canceled",
+        occurred_at: `gte.${monthStart}`,
+        order: "occurred_at.desc",
+        limit: "5000"
+      })
     ]);
 
     const activeMembers = members.filter((member) => membershipAllowsAccess(member.subscription_status));
@@ -1048,6 +1111,11 @@ async function handleAdminOverview(req, res) {
     const checkoutStarts = publicTrafficEvents.filter((event) => event.event_name === "checkout_started").length;
     const successViews = publicTrafficEvents.filter((event) => event.event_name === "checkout_success_viewed").length;
     const newWaitlist = waitlistEntries.filter((entry) => new Date(entry.created_at).getTime() >= Date.now() - 30 * 86400_000).length;
+    const billing = calculateBillingMetrics(members, paidInvoices, unresolvedInvoices, cancellationEvents, monthStart);
+    const rosterMembers = [...new Map([
+      ...members.slice(0, 100),
+      ...members.filter((member) => billing.unresolvedMemberIds.includes(member.id))
+    ].map((member) => [member.id, member])).values()];
 
     sendJson(res, 200, {
       generatedAt: new Date().toISOString(),
@@ -1059,9 +1127,9 @@ async function handleAdminOverview(req, res) {
         foundingRemaining: Math.max(0, 100 - foundingMembers.length),
         discordConnected,
         onboardingComplete,
-        averageModulesComplete: activeMembers.length ? Number((moduleTotals / activeMembers.length).toFixed(1)) : 0,
-        projectedMrr: foundingMembers.length * 30 + (activeMembers.length - foundingMembers.length) * 50
+        averageModulesComplete: activeMembers.length ? Number((moduleTotals / activeMembers.length).toFixed(1)) : 0
       },
+      billing,
       traffic: {
         windowDays: 30,
         events: publicTrafficEvents.length,
@@ -1074,7 +1142,7 @@ async function handleAdminOverview(req, res) {
         topPages: summarizeCounts(pageViews, (event) => event.page || "/"),
         topSources: summarizeCounts(publicTrafficEvents, (event) => cleanTrafficSource(event.source))
       },
-      students: members.slice(0, 100).map((member) => ({
+      students: rosterMembers.map((member) => ({
         name: member.name,
         email: member.email,
         status: member.subscription_status,
@@ -1085,7 +1153,8 @@ async function handleAdminOverview(req, res) {
         modulesComplete: Array.isArray(member.progress?.completedModules) ? member.progress.completedModules.length : 0,
         discordConnected: Boolean(member.discord_username),
         referralCount: member.referral_count || 0,
-        referralCredits: member.referral_credits || 0
+        referralCredits: member.referral_credits || 0,
+        hasUnresolvedBilling: billing.unresolvedMemberIds.includes(member.id)
       }))
     });
   } catch (error) {
