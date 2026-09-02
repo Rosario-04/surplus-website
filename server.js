@@ -973,18 +973,38 @@ async function handleMemberSession(req, res) {
   });
 }
 
-function dateDaysAgo(days) {
-  return new Date(Date.now() - days * 86400_000).toISOString();
+function dateDaysAgo(days, now = new Date()) {
+  return new Date(now.getTime() - days * 86400_000).toISOString();
 }
 
-function startOfCurrentMonth() {
-  const now = new Date();
+function startOfCurrentDay(now = new Date()) {
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())).toISOString();
+}
+
+function startOfCurrentMonth(now = new Date()) {
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+}
+
+function resolveDashboardRange(req, now = new Date()) {
+  const requested = new URL(req.url, siteUrl).searchParams.get("range");
+  const ranges = {
+    today: { label: "Today", windowDays: 1, since: startOfCurrentDay(now) },
+    "7d": { label: "Last 7 Days", windowDays: 7, since: dateDaysAgo(7, now) },
+    "30d": { label: "Last 30 Days", windowDays: 30, since: dateDaysAgo(30, now) },
+    "90d": { label: "Last 90 Days", windowDays: 90, since: dateDaysAgo(90, now) },
+    all: { label: "All Time", windowDays: null, since: null }
+  };
+  const key = Object.hasOwn(ranges, requested) ? requested : "30d";
+  return { key, ...ranges[key] };
+}
+
+function withTimeBoundary(params, field, range) {
+  return range.since ? { ...params, [field]: `gte.${range.since}` } : params;
 }
 
 function timestampIsOnOrAfter(value, threshold) {
   const timestamp = new Date(value || 0).getTime();
-  return Number.isFinite(timestamp) && timestamp >= new Date(threshold).getTime();
+  return Number.isFinite(timestamp) && (!threshold || timestamp >= new Date(threshold).getTime());
 }
 
 function invoiceAmount(value) {
@@ -992,7 +1012,7 @@ function invoiceAmount(value) {
   return Number.isFinite(amount) && amount > 0 ? amount : 0;
 }
 
-function calculateBillingMetrics(members, paidInvoices, unresolvedInvoices, cancellationEvents, monthStart) {
+function calculateBillingMetrics(members, paidInvoices, unresolvedInvoices, cancellationEvents, newPaidMembers, rangeStart) {
   const activeMembers = members.filter((member) => membershipAllowsAccess(member.subscription_status));
   const currentMrr = activeMembers.reduce((total, member) => {
     const hasRecurringAmount = member.recurring_amount !== null && member.recurring_amount !== undefined && member.recurring_amount !== "";
@@ -1001,19 +1021,19 @@ function calculateBillingMetrics(members, paidInvoices, unresolvedInvoices, canc
       ? recurringAmount
       : member.founding_member ? 3000 : 5000);
   }, 0);
-  const paidInvoicesThisMonth = paidInvoices.filter((invoice) => timestampIsOnOrAfter(invoice.paid_at, monthStart));
-  const newPaidMembersThisMonth = members.filter((member) => timestampIsOnOrAfter(member.first_paid_at, monthStart)).length;
+  const paidInvoicesInRange = paidInvoices.filter((invoice) => timestampIsOnOrAfter(invoice.paid_at, rangeStart));
+  const newPaidMembersInRange = newPaidMembers.length;
   return {
     currentMrr,
-    grossRevenueThisMonth: paidInvoicesThisMonth.reduce((total, invoice) => total + invoiceAmount(invoice.amount_paid), 0),
+    grossRevenueThisMonth: paidInvoicesInRange.reduce((total, invoice) => total + invoiceAmount(invoice.amount_paid), 0),
     grossRevenueLast30Days: paidInvoices.reduce((total, invoice) => total + invoiceAmount(invoice.amount_paid), 0),
-    successfulPaymentsThisMonth: paidInvoicesThisMonth.length,
+    successfulPaymentsThisMonth: paidInvoicesInRange.length,
     unresolvedPayments: unresolvedInvoices.length,
     unresolvedMemberIds: [...new Set(unresolvedInvoices.map((invoice) => invoice.member_id).filter(Boolean))],
-    recoveredPaymentsThisMonth: paidInvoicesThisMonth.filter((invoice) => invoice.last_failed_at).length,
-    newPaidMembersThisMonth,
+    recoveredPaymentsThisMonth: paidInvoicesInRange.filter((invoice) => invoice.last_failed_at).length,
+    newPaidMembersThisMonth: newPaidMembersInRange,
     cancellationsThisMonth: cancellationEvents.length,
-    netMembershipChange: newPaidMembersThisMonth - cancellationEvents.length
+    netMembershipChange: newPaidMembersInRange - cancellationEvents.length
   };
 }
 
@@ -1124,33 +1144,31 @@ async function handleAdminOverview(req, res) {
   if (!isAdminMember(admin)) return sendJson(res, 403, { error: "Administrator access is required." });
 
   try {
-    const since = dateDaysAgo(30);
-    const monthStart = startOfCurrentMonth();
-    const [members, trafficEvents, waitlistEntries, paidInvoices, unresolvedInvoices, cancellationEvents, recentAnalyticsEvents, recentPaidInvoices, recentLifecycleEvents, recentPaidMembers, recentDiscordMembers] = await Promise.all([
+    const range = resolveDashboardRange(req);
+    const rangeLimit = range.key === "all" ? "10000" : "5000";
+    const [members, trafficEvents, waitlistEntries, paidInvoices, unresolvedInvoices, cancellationEvents, rangePaidMembers, recentAnalyticsEvents, recentPaidInvoices, recentLifecycleEvents, recentPaidMembers, recentDiscordMembers] = await Promise.all([
       supabaseSelect("members", {
         select: "id,name,email,subscription_status,founding_member,created_at,current_period_end,first_paid_at,recurring_amount,recurring_interval,onboarding,progress,discord_username,referral_count,referral_credits",
         order: "created_at.desc",
         limit: "1000"
       }),
-      supabaseSelect("analytics_events", {
+      supabaseSelect("analytics_events", withTimeBoundary({
         select: "member_id,event_name,page,source,session_id,created_at",
-        created_at: `gte.${since}`,
         order: "created_at.desc",
-        limit: "5000"
-      }),
-      supabaseSelect("waitlist", {
+        limit: rangeLimit
+      }, "created_at", range)),
+      supabaseSelect("waitlist", withTimeBoundary({
         select: "id,created_at",
         order: "created_at.desc",
-        limit: "1000"
-      }).catch(() => []),
-      supabaseSelect("stripe_invoices", {
+        limit: rangeLimit
+      }, "created_at", range)).catch(() => []),
+      supabaseSelect("stripe_invoices", withTimeBoundary({
         select: "member_id,status,amount_paid,paid_at,last_failed_at",
         status: "eq.paid",
         amount_paid: "gt.0",
-        paid_at: `gte.${since}`,
         order: "paid_at.desc",
-        limit: "5000"
-      }),
+        limit: rangeLimit
+      }, "paid_at", range)),
       supabaseSelect("stripe_invoices", {
         select: "member_id,status,amount_due,last_failed_at",
         status: "neq.paid",
@@ -1158,13 +1176,18 @@ async function handleAdminOverview(req, res) {
         order: "last_failed_at.desc",
         limit: "5000"
       }),
-      supabaseSelect("subscription_lifecycle_events", {
+      supabaseSelect("subscription_lifecycle_events", withTimeBoundary({
         select: "event_type,occurred_at",
         event_type: "eq.canceled",
-        occurred_at: `gte.${monthStart}`,
         order: "occurred_at.desc",
-        limit: "5000"
-      }),
+        limit: rangeLimit
+      }, "occurred_at", range)),
+      supabaseSelect("members", withTimeBoundary({
+        select: "id",
+        first_paid_at: "not.is.null",
+        order: "first_paid_at.desc",
+        limit: rangeLimit
+      }, "first_paid_at", range)),
       supabaseSelect("analytics_events", {
         select: "member_id,event_name,created_at",
         event_name: "in.(checkout_started,checkout_success_viewed,onboarding_completed,module_completed)",
@@ -1212,8 +1235,8 @@ async function handleAdminOverview(req, res) {
     const pageViews = publicTrafficEvents.filter((event) => event.event_name === "page_view");
     const checkoutStarts = publicTrafficEvents.filter((event) => event.event_name === "checkout_started").length;
     const successViews = publicTrafficEvents.filter((event) => event.event_name === "checkout_success_viewed").length;
-    const newWaitlist = waitlistEntries.filter((entry) => new Date(entry.created_at).getTime() >= Date.now() - 30 * 86400_000).length;
-    const billing = calculateBillingMetrics(members, paidInvoices, unresolvedInvoices, cancellationEvents, monthStart);
+    const newWaitlist = waitlistEntries.length;
+    const billing = calculateBillingMetrics(members, paidInvoices, unresolvedInvoices, cancellationEvents, rangePaidMembers, range.since);
     const recentActivity = buildRecentActivity({
       members,
       analyticsEvents: recentAnalyticsEvents,
@@ -1231,6 +1254,7 @@ async function handleAdminOverview(req, res) {
 
     sendJson(res, 200, {
       generatedAt: new Date().toISOString(),
+      range: { key: range.key, label: range.label, windowDays: range.windowDays },
       members: {
         total: members.length,
         active: activeMembers.length,
@@ -1243,7 +1267,7 @@ async function handleAdminOverview(req, res) {
       },
       billing,
       traffic: {
-        windowDays: 30,
+        windowDays: range.windowDays,
         events: publicTrafficEvents.length,
         uniqueVisitors: visitorSessions.size,
         pageViews: pageViews.length,
