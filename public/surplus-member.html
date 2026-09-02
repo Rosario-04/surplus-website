@@ -252,6 +252,7 @@
   }
   .nav-icon{width:18px; height:18px; flex-shrink:0; opacity:.7}
   .nav-item.active .nav-icon{opacity:1}
+  body.member-access-active .nav-lock{display:none}
   .nav-badge{
     display:inline-flex;
     align-items:center;
@@ -464,12 +465,11 @@
   /* MODULES */
   .filter-row{display:flex; gap:8px; margin-bottom:28px; flex-wrap:wrap}
   .chip{
-    padding:7px 14px; border-radius:100px; cursor:pointer;
+    padding:7px 14px; border-radius:100px; cursor:default;
     background:transparent; border:1px solid var(--line); color:var(--ink-dim);
     font-size:13px; font-weight:500; transition:all .2s;
   }
   .chip.active{background:var(--ink); color:var(--bg); border-color:var(--ink)}
-  .chip:hover:not(.active){border-color:rgba(255,255,255,.18); color:var(--ink)}
 
   .modules-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:20px}
   .module-card{padding:0; overflow:hidden; cursor:pointer; display:flex; flex-direction:column}
@@ -1114,6 +1114,14 @@
     border:1px solid var(--line); position:relative;
     display:flex; align-items:center; justify-content:center;
   }
+  .video-preview-label{
+    position:absolute; left:16px; bottom:16px; z-index:2;
+    padding:7px 10px; border-radius:8px;
+    background:rgba(10,10,12,.78); border:1px solid var(--line);
+    color:var(--ink-dim); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+  }
+  .video-play-big:disabled{opacity:.42; cursor:not-allowed}
+  .coming-soon-btn:disabled{opacity:.52; cursor:not-allowed; box-shadow:none; transform:none}
   .video-player::before{
     content:''; position:absolute; inset:0; pointer-events:none;
     background:radial-gradient(circle at center,rgba(185,154,85,.15),transparent 60%);
@@ -1141,6 +1149,7 @@
     transition:all .2s; border:none; background:none; font-family:inherit;
   }
   .lesson-tab.active{background:var(--bg-2); color:var(--ink); box-shadow:0 1px 0 var(--line)}
+  .lesson-tab:disabled,.side-action:disabled{opacity:.5; cursor:not-allowed}
 
   .lesson-content{padding:6px 4px; color:var(--ink-dim); font-size:14px; line-height:1.7}
   .lesson-content h3{font-family:var(--serif); font-weight:500; color:var(--ink); font-size:20px; letter-spacing:-.01em; margin:22px 0 10px}
@@ -1161,6 +1170,7 @@
     transition:all .25s; font-family:inherit; font-weight:400; text-align:left;
   }
   .side-action:hover{background:var(--glass-strong); border-color:rgba(185,154,85,.3)}
+  .side-action:disabled:hover{background:rgba(255,255,255,.02); border-color:var(--line)}
   .side-action-icon{
     width:28px; height:28px; border-radius:7px; flex-shrink:0;
     background:linear-gradient(135deg,rgba(185,154,85,.2),rgba(185,154,85,.05));
@@ -1541,18 +1551,9 @@
         <svg class="ico" id="themeIconLight" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       </button>
       <div class="notif-wrap">
-        <button class="topbar-icon-btn" onclick="toggleNotifs(event)" title="Notifications">
+        <button class="topbar-icon-btn" type="button" disabled title="Notifications coming soon" aria-label="Notifications coming soon">
           <svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          <span class="notif-dot" id="notifDot"></span>
         </button>
-        <div class="notif-panel" id="notifPanel" onclick="event.stopPropagation()">
-          <div class="notif-head">
-            <h3>Notifications</h3>
-            <span class="notif-mark-read" onclick="markAllRead()">Mark all read</span>
-          </div>
-          <div class="notif-list" id="notifList"></div>
-          <div class="notif-foot"><a href="#" onclick="event.preventDefault()">View all</a></div>
-        </div>
       </div>
     </div>
 
@@ -1576,7 +1577,7 @@
               <h2 class="expired-title">Your <em>spot</em> is still here.</h2>
               <p class="expired-body">Your membership is inactive. Rejoin to restore the course, tools, community, and the progress already saved to your account.</p>
               <div class="expired-cta-group">
-                <button class="btn btn-primary" onclick="resubscribe()">Resubscribe — $50/mo →</button>
+                <button class="btn btn-primary" onclick="resubscribe()">View membership options →</button>
                 <button class="btn btn-ghost" onclick="navigateTo('settings')">View billing</button>
               </div>
               <div class="expired-mini-savings">
@@ -1591,9 +1592,9 @@
 
       <div class="stats-grid">
         <div class="card stat-card">
-          <div class="stat-label">Current rung</div>
-          <div class="stat-value" id="homeCurrentRung">1 / 7</div>
-          <div class="stat-meta" id="homeCurrentStage">Foundation · establish the baseline</div>
+          <div class="stat-label">Starting rung</div>
+          <div class="stat-value" id="homeCurrentRung">— / 7</div>
+          <div class="stat-meta" id="homeCurrentStage">Complete onboarding to set your starting stage</div>
         </div>
         <div class="card stat-card">
           <div class="stat-label">Modules complete</div>
@@ -1606,9 +1607,9 @@
           <div class="stat-meta" id="homeActionMeta">Complete onboarding</div>
         </div>
         <div class="card stat-card">
-          <div class="stat-label">Actions this week</div>
-          <div class="stat-value" id="homeActionCount">0 / 3</div>
-          <div class="stat-meta" id="homeActionCountMeta">Build momentum with one real action today</div>
+          <div class="stat-label">Saved goals</div>
+          <div class="stat-value" id="homeActionCount">0</div>
+          <div class="stat-meta" id="homeActionCountMeta">Add a goal when you are ready to track it</div>
         </div>
       </div>
 
@@ -1623,12 +1624,6 @@
         <p class="build-plan-copy" id="buildPlanCopy">A simple plan to get your money, income, and support system moving in the same direction.</p>
         <div class="build-plan-list" id="buildPlanList"></div>
       </section>
-
-      <div class="wins-head">
-        <h3>Milestones worth sharing</h3>
-        <span class="meta">The outcomes Surplus is built to create</span>
-      </div>
-      <div class="wins-strip" id="winsStrip"></div>
 
       <div class="home-grid">
         <div class="card continue-card">
@@ -1684,9 +1679,9 @@
     <section class="section" id="section-modules">
       <div class="page-head">
         <div>
-          <div class="page-eyebrow">Course Library</div>
+          <div class="page-eyebrow">Course Roadmap</div>
           <h1 class="page-title">Modules &amp; <em>lessons.</em></h1>
-          <p class="page-sub">Six core modules, each built around a real action, worksheet, and measurable outcome.</p>
+          <p class="page-sub">Explore the six-module roadmap now. Lesson videos, worksheets, and downloads are being prepared.</p>
         </div>
       </div>
 
@@ -1697,7 +1692,7 @@
               <div class="expired-eyebrow">Library locked · 30 seconds to unlock</div>
               <h2 class="expired-title">Your course progress is <em>saved.</em></h2>
               <p class="expired-body">Your completed modules, onboarding path, and weekly goals remain attached to your account.</p>
-              <button class="btn btn-primary" onclick="resubscribe()">Unlock for $50/mo →</button>
+              <button class="btn btn-primary" onclick="resubscribe()">View membership options →</button>
             </div>
           </div>
         </div>
@@ -1720,9 +1715,9 @@
     <section class="section" id="section-spreadsheets">
       <div class="page-head">
         <div>
-          <div class="page-eyebrow">Toolkit</div>
+          <div class="page-eyebrow">Toolkit Preview</div>
           <h1 class="page-title">Prebuilt <em>spreadsheets.</em></h1>
-          <p class="page-sub">Every template ships in Google Sheets and Excel. Plug in your numbers, watch the system work.</p>
+          <p class="page-sub">Preview the tools being prepared for Google Sheets and Excel. Downloads will be added here when they are ready.</p>
         </div>
       </div>
 
@@ -1733,7 +1728,7 @@
               <div class="expired-eyebrow">Downloads paused</div>
               <h2 class="expired-title">Your <em>tools</em> are right here.</h2>
               <p class="expired-body">All 12+ spreadsheets you've used remain in your account. Resubscribe to download the latest versions and receive new templates each month.</p>
-              <button class="btn btn-primary" onclick="resubscribe()">Get my tools back — $50/mo →</button>
+              <button class="btn btn-primary" onclick="resubscribe()">View membership options →</button>
             </div>
           </div>
         </div>
@@ -1746,9 +1741,9 @@
     <section class="section" id="section-ladder">
       <div class="page-head">
         <div>
-          <div class="page-eyebrow">Your Progress</div>
+          <div class="page-eyebrow">Your Roadmap</div>
           <h1 class="page-title">The <em>Ladder.</em></h1>
-          <p class="page-sub">Seven rungs from the bottom to surplus. Each one unlocks the next.</p>
+          <p class="page-sub">Your starting stage anchors the roadmap. The remaining rungs show the path ahead.</p>
         </div>
       </div>
 
@@ -1756,10 +1751,10 @@
         <div class="expired-hero">
           <div class="expired-hero-grid">
             <div>
-              <div class="expired-eyebrow">Climb paused at rung 3</div>
-              <h2 class="expired-title">Your <em>climb</em> is saved.</h2>
-              <p class="expired-body">You've made it to <strong style="color:var(--ink)">Discipline</strong> — rung 3 of 7. Don't lose the momentum. Resubscribe and pick up from exactly where you stopped.</p>
-              <button class="btn btn-primary" onclick="resubscribe()">Continue the climb — $50/mo →</button>
+              <div class="expired-eyebrow">Roadmap paused</div>
+              <h2 class="expired-title">Your <em>starting point</em> is saved.</h2>
+              <p class="expired-body">Your saved onboarding, modules, and goals remain attached to your account. Resubscribe to return to your roadmap.</p>
+              <button class="btn btn-primary" onclick="resubscribe()">View membership options →</button>
             </div>
           </div>
         </div>
@@ -1767,15 +1762,15 @@
 
       <div class="card ladder-progress-card">
         <div>
-          <div class="ladder-current">Current stage</div>
-          <div class="ladder-current-stage">Discipline · Rung 3</div>
-          <div class="ladder-current-sub">Install the budget system. By month's end you'll know exactly where every dollar goes.</div>
+          <div class="ladder-current">Your starting stage</div>
+          <div class="ladder-current-stage" id="ladderCurrentStage">Complete onboarding to set your stage</div>
+          <div class="ladder-current-sub" id="ladderCurrentSub">Your selected starting point will anchor the roadmap below.</div>
         </div>
         <div class="ladder-progress-ring">
           <svg width="140" height="140" viewBox="0 0 140 140">
             <circle cx="70" cy="70" r="60" fill="none" stroke="rgba(185,154,85,.12)" stroke-width="10"/>
             <circle cx="70" cy="70" r="60" fill="none" stroke="url(#ringGrad)" stroke-width="10" stroke-linecap="round"
-              stroke-dasharray="377" stroke-dashoffset="216"/>
+              stroke-dasharray="377" stroke-dashoffset="377" id="ladderProgressStroke"/>
             <defs>
               <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0%" stop-color="#d4b66a"/><stop offset="100%" stop-color="#8a7340"/>
@@ -1783,8 +1778,8 @@
             </defs>
           </svg>
           <div class="ladder-ring-text">
-            <div class="ladder-ring-num">43%</div>
-            <div class="ladder-ring-total">Climbed</div>
+            <div class="ladder-ring-num" id="ladderRingNum">—</div>
+            <div class="ladder-ring-total">Starting point</div>
           </div>
         </div>
       </div>
@@ -1810,27 +1805,26 @@
         <div class="expired-hero">
           <div class="expired-hero-grid">
             <div>
-              <div class="expired-eyebrow">No upcoming workshops</div>
-              <h2 class="expired-title">You're missing <em>this Thursday.</em></h2>
-              <p class="expired-body">Live workshop on killing high-interest debt — the rung 5 deep-dive. Members get to ask Rosario their own situation in real time.</p>
-              <button class="btn btn-primary" onclick="resubscribe()">Reserve my seat — $50/mo →</button>
+              <div class="expired-eyebrow">Workshop access paused</div>
+              <h2 class="expired-title">Your <em>workshop access</em> is here.</h2>
+              <p class="expired-body">Resubscribe to return to upcoming member workshops as they are scheduled.</p>
+              <button class="btn btn-primary" onclick="resubscribe()">View membership options →</button>
             </div>
           </div>
         </div>
       </div>
 
       <div class="card workshop-featured">
-        <div class="workshop-live">Live this week</div>
-        <h2 class="workshop-title">Killing high-interest debt: the rung 5 deep-dive</h2>
-        <div class="workshop-when">Thursday, April 24 · 7:00 PM PT · 75 min</div>
-        <p class="workshop-desc">Walk through the snowball vs avalanche math with real member numbers, see the spreadsheet in action, and bring your own debts for live coaching. Replay available the next day.</p>
+        <div class="workshop-live">Workshop schedule</div>
+        <h2 class="workshop-title">Upcoming member workshops</h2>
+        <p class="workshop-desc">Dates, calendar links, and question submission will appear here once the live workshop schedule is published. Until then, use the community to ask Rosario a question.</p>
         <div style="display:flex; gap:10px; flex-wrap:wrap">
-          <button class="btn btn-primary">Add to calendar</button>
-          <button class="btn btn-ghost">Submit a question</button>
+          <button class="btn btn-ghost coming-soon-btn" disabled>Calendar links coming soon</button>
+          <button class="btn btn-primary" onclick="navigateTo('community')">Ask in Discord →</button>
         </div>
       </div>
 
-      <h3 class="card-title" style="margin:32px 0 16px">Upcoming</h3>
+      <h3 class="card-title" style="margin:32px 0 16px">Upcoming topics</h3>
       <div class="calendar-list" id="calendarList"></div>
     </section>
 
@@ -1851,7 +1845,7 @@
               <div class="expired-eyebrow">Community access paused</div>
               <h2 class="expired-title">The <em>room</em> kept building.</h2>
               <p class="expired-body">Resubscribe to rejoin the live community — your path role is preserved, your wins stay, and the conversations have only sharpened. Members are still pushing forward. Come back and build with them.</p>
-              <button class="btn btn-primary" onclick="resubscribe()">Rejoin the build — $50/mo →</button>
+              <button class="btn btn-primary" onclick="resubscribe()">View membership options →</button>
             </div>
           </div>
         </div>
@@ -1995,17 +1989,10 @@
           </div>
         </div>
 
-        <!-- Live activity feed -->
         <div class="card" style="padding:28px">
-          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px">
-            <h3 class="card-title" style="margin:0">Live activity</h3>
-            <span style="font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:#7983f5; font-weight:500; display:flex; align-items:center; gap:6px">
-              <span style="width:6px; height:6px; border-radius:50%; background:#5865f2; box-shadow:0 0 8px #5865f2"></span>
-              Live
-            </span>
-          </div>
-          <p class="card-sub" style="margin-bottom:18px">What's happening in the server right now.</p>
-          <div class="activity-feed" id="activityFeed"></div>
+          <h3 class="card-title" style="margin:0 0 6px">Community activity</h3>
+          <p class="card-sub" style="margin-bottom:18px">Live conversation happens inside Discord. Connect your account to see the current discussions, wins, and member check-ins.</p>
+          <a href="/api/discord/connect" class="btn btn-discord btn-sm" data-discord-action onclick="trackDiscordJoin()"><span data-discord-label>Connect Discord</span></a>
         </div>
       </div>
 
@@ -2097,17 +2084,16 @@
       <div class="module-detail-grid">
         <div>
           <div class="video-player">
-            <button class="video-play-big" onclick="showToast('In a real build, this plays the lesson video.')">
+            <button class="video-play-big" type="button" disabled title="Lesson video coming soon">
               <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
             </button>
-            <div class="video-duration">11:24 / 32:00</div>
-            <div class="video-progress-bar"><div class="video-progress-fill"></div></div>
+            <div class="video-preview-label">Lesson video coming soon</div>
           </div>
 
           <div class="lesson-tabs">
-            <button class="lesson-tab active" onclick="switchLessonTab(this,'notes')">Lesson notes</button>
-            <button class="lesson-tab" onclick="switchLessonTab(this,'transcript')">Transcript</button>
-            <button class="lesson-tab" onclick="switchLessonTab(this,'discuss')">Discussion</button>
+            <button class="lesson-tab active" type="button">Course notes</button>
+            <button class="lesson-tab" type="button" disabled>Transcript · soon</button>
+            <button class="lesson-tab" type="button" disabled>Discussion · soon</button>
           </div>
 
           <div class="lesson-content" id="lessonContent">
@@ -2128,12 +2114,8 @@
 
           <div class="module-nav-row">
             <button class="module-nav-btn" onclick="navigateTo('modules')">
-              <span class="module-nav-btn-label">← Previous</span>
-              <span class="module-nav-btn-title">Zero-based budget setup</span>
-            </button>
-            <button class="module-nav-btn next" onclick="navigateTo('modules')">
-              <span class="module-nav-btn-label">Next →</span>
-              <span class="module-nav-btn-title">Expense audit &amp; trimming</span>
+              <span class="module-nav-btn-label">← Back</span>
+              <span class="module-nav-btn-title">Return to the module library</span>
             </button>
           </div>
         </div>
@@ -2144,15 +2126,15 @@
             <div class="side-actions">
               <button class="side-action" onclick="navigateTo('spreadsheets')">
                 <span class="side-action-icon">X</span>
-                <div><div>Monthly Budget spreadsheet</div><div style="font-size:11px; color:var(--ink-dim)">Open in new tab</div></div>
+                <div><div>Monthly Budget template preview</div><div style="font-size:11px; color:var(--ink-dim)">View in the template library</div></div>
               </button>
-              <button class="side-action">
+              <button class="side-action" disabled>
                 <span class="side-action-icon">↓</span>
-                <div><div>Lesson 5 worksheet (PDF)</div><div style="font-size:11px; color:var(--ink-dim)">12 pages · printable</div></div>
+                <div><div>Lesson worksheet</div><div style="font-size:11px; color:var(--ink-dim)">Coming soon</div></div>
               </button>
-              <button class="side-action">
+              <button class="side-action" disabled>
                 <span class="side-action-icon">▶</span>
-                <div><div>Quick reference card</div><div style="font-size:11px; color:var(--ink-dim)">The 8 categories at a glance</div></div>
+                <div><div>Quick reference card</div><div style="font-size:11px; color:var(--ink-dim)">Coming soon</div></div>
               </button>
             </div>
           </div>
@@ -2175,9 +2157,9 @@
     <section class="section" id="section-resources">
       <div class="page-head">
         <div>
-          <div class="page-eyebrow">Resource Library</div>
+          <div class="page-eyebrow">Resource Preview</div>
           <h1 class="page-title">Templates, scripts &amp; <em>tools.</em></h1>
-          <p class="page-sub">Everything beyond the modules. Negotiation scripts, email templates, recommended software, real estate calculators, and the books that shaped this.</p>
+          <p class="page-sub">A preview of the scripts, templates, calculators, and tools being prepared for the member library.</p>
         </div>
       </div>
 
@@ -2188,7 +2170,7 @@
               <div class="expired-eyebrow">Library locked</div>
               <h2 class="expired-title">Your <em>toolkit</em> awaits.</h2>
               <p class="expired-body">Negotiation scripts, lender call templates, real estate calculators — all the resources that pay for the membership ten times over.</p>
-              <button class="btn btn-primary" onclick="resubscribe()">Get the library back — $50/mo →</button>
+              <button class="btn btn-primary" onclick="resubscribe()">View membership options →</button>
             </div>
           </div>
         </div>
@@ -2210,9 +2192,9 @@
     <section class="section" id="section-replays">
       <div class="page-head">
         <div>
-          <div class="page-eyebrow">Workshop Archive</div>
+          <div class="page-eyebrow">Workshop Archive Preview</div>
           <h1 class="page-title">Past <em>workshops</em> &amp; recordings.</h1>
-          <p class="page-sub">Every live workshop with Rosario, full recordings, slides, and chapter markers. Search and rewatch anytime.</p>
+          <p class="page-sub">Recordings, slides, and chapter markers will appear here after live workshops begin.</p>
         </div>
       </div>
 
@@ -2223,7 +2205,7 @@
               <div class="expired-eyebrow">Archive locked</div>
               <h2 class="expired-title">Every <em>workshop</em>, still here.</h2>
               <p class="expired-body">All recordings, slides, and chapter markers stay in your account. Resubscribe to rewatch and download.</p>
-              <button class="btn btn-primary" onclick="resubscribe()">Unlock archive — $50/mo →</button>
+              <button class="btn btn-primary" onclick="resubscribe()">View membership options →</button>
             </div>
           </div>
         </div>
@@ -2237,8 +2219,8 @@
       <div class="page-head">
         <div>
           <div class="page-eyebrow">Daily Discipline</div>
-          <h1 class="page-title">Goals, streaks &amp; <em>accountability.</em></h1>
-          <p class="page-sub">Track your daily and weekly commitments. The streak is the proof. Don't break the chain.</p>
+          <h1 class="page-title">Goals &amp; <em>accountability.</em></h1>
+          <p class="page-sub">Keep your current commitments visible and mark them complete as you make progress.</p>
         </div>
       </div>
 
@@ -2247,9 +2229,9 @@
           <div class="expired-hero-grid">
             <div>
               <div class="expired-eyebrow">Tracking paused</div>
-              <h2 class="expired-title">Your <em>streak</em> is on hold.</h2>
-              <p class="expired-body">Resubscribe to resume your accountability tracking. Your 12-day streak and goal history are preserved.</p>
-              <button class="btn btn-primary" onclick="resubscribe()">Resume tracking — $50/mo →</button>
+              <h2 class="expired-title">Your <em>goals</em> are saved.</h2>
+              <p class="expired-body">Resubscribe to return to your saved accountability goals and course progress.</p>
+              <button class="btn btn-primary" onclick="resubscribe()">View membership options →</button>
             </div>
           </div>
         </div>
@@ -2257,29 +2239,17 @@
 
       <div class="goals-grid">
         <div class="card goal-card">
-          <h3 class="card-title" style="margin-bottom:6px">Today's check-in</h3>
-          <p class="card-sub" style="margin-bottom:16px">Wednesday · April 23</p>
+          <h3 class="card-title" style="margin-bottom:6px">Saved goals</h3>
+          <p class="card-sub" style="margin-bottom:16px">Add the commitments you want to keep visible. Date-based streaks are coming later.</p>
           <div id="todayGoals"></div>
-          <button class="btn btn-primary btn-sm" style="margin-top:14px" onclick="addGoal()">+ Add today's goal</button>
+          <button class="btn btn-primary btn-sm" style="margin-top:14px" onclick="addGoal()">+ Add a goal</button>
         </div>
         <div>
-          <div class="streak-display" style="margin-bottom:18px">
-            <div class="streak-flame">🔥</div>
-            <div class="streak-num">12</div>
-            <div class="streak-label">Day streak</div>
-            <div class="streak-best">Personal best: <strong style="color:var(--gold-bright)">23 days</strong></div>
-          </div>
           <div class="card" style="padding:22px">
-            <h4 style="font-family:var(--serif); font-weight:500; font-size:15px; margin-bottom:14px; letter-spacing:-.01em">Streak leaderboard</h4>
-            <div id="leaderboard"></div>
+            <h4 style="font-family:var(--serif); font-weight:500; font-size:15px; margin-bottom:8px; letter-spacing:-.01em">Consistency tracking</h4>
+            <p class="card-sub" style="margin:0">Goal history, streaks, and member milestones are planned for a future dashboard update.</p>
           </div>
         </div>
-      </div>
-
-      <div class="card" style="padding:28px">
-        <h3 class="card-title" style="margin-bottom:6px">Badges</h3>
-        <p class="card-sub" style="margin-bottom:6px">Milestones earned through consistency. The proof you can hold.</p>
-        <div class="badges-grid" id="badgesGrid"></div>
       </div>
     </section>
 
@@ -2311,10 +2281,6 @@
               <div>
                 <div class="refer-stat-num" id="referralCredits">0</div>
                 <div class="refer-stat-lbl">Free months earned</div>
-              </div>
-              <div>
-                <div class="refer-stat-num" id="referralSavings">$0</div>
-                <div class="refer-stat-lbl">Future credits</div>
               </div>
             </div>
           </div>
@@ -2350,7 +2316,7 @@
         <div>
           <div class="page-eyebrow">Your Profile</div>
           <h1 class="page-title">Your <em>page</em> in the room.</h1>
-          <p class="page-sub">Who you are inside Surplus. Other members see this when you post wins or interact in the community.</p>
+          <p class="page-sub">Your saved Surplus profile. Member-editable and public profiles are coming in a future update.</p>
         </div>
       </div>
 
@@ -2366,8 +2332,8 @@
             </div>
           </div>
           <div class="profile-cta">
-            <button class="btn btn-primary btn-sm">Edit profile</button>
-            <button class="btn btn-ghost btn-sm">View public page</button>
+            <button class="btn btn-primary btn-sm coming-soon-btn" disabled>Edit profile coming soon</button>
+            <button class="btn btn-ghost btn-sm coming-soon-btn" disabled>Public profile coming soon</button>
           </div>
         </div>
       </div>
@@ -2379,24 +2345,24 @@
           <div class="stat-meta">Saved progress</div>
         </div>
         <div class="card stat-card">
-          <div class="stat-label">Current rung</div>
-          <div class="stat-value" id="profileCurrentRung">1 / 7</div>
-          <div class="stat-meta" id="profileCurrentStage">Foundation</div>
+          <div class="stat-label">Starting rung</div>
+          <div class="stat-value" id="profileCurrentRung">— / 7</div>
+          <div class="stat-meta" id="profileCurrentStage">Complete onboarding to set your starting stage</div>
         </div>
         <div class="card stat-card">
-          <div class="stat-label">Streak</div>
-          <div class="stat-value">Day 1</div>
-          <div class="stat-meta">Build the habit</div>
+          <div class="stat-label">Saved goals</div>
+          <div class="stat-value" id="profileGoalCount">0</div>
+          <div class="stat-meta" id="profileGoalMeta">No saved goals yet</div>
         </div>
         <div class="card stat-card">
-          <div class="stat-label">Wins shared</div>
-          <div class="stat-value">0</div>
-          <div class="stat-meta">Share your first win</div>
+          <div class="stat-label">Community</div>
+          <div class="stat-value" id="profileDiscordStatus">Not connected</div>
+          <div class="stat-meta" id="profileDiscordMeta">Connect Discord to join the room</div>
         </div>
       </div>
 
       <div class="card" style="padding:28px">
-        <h3 class="card-title" style="margin-bottom:14px">Your next wins</h3>
+        <h3 class="card-title" style="margin-bottom:14px">Your next steps</h3>
         <div class="next-up">
           <div class="next-item">
             <div class="next-icon">$</div>
@@ -2437,10 +2403,10 @@
         <div>
           <div class="billing-status-pill" id="billingStatusPill">Active</div>
           <div style="font-family:var(--serif); font-weight:500; font-size:22px; letter-spacing:-.01em; margin-bottom:4px" id="billingHeadline">
-            $30 / month · founding member for life
+            Surplus membership
           </div>
           <div style="color:var(--ink-dim); font-size:13px" id="billingSubline">
-            Next charge: May 23, 2026 · Visa ending 6411
+            Manage your payment details and invoices through Stripe.
           </div>
         </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap" id="billingActions">
@@ -2456,7 +2422,7 @@
               <div class="setting-label">Display name</div>
               <div class="setting-value"><strong id="settingsName">Jordan Morales</strong></div>
             </div>
-            <button class="btn btn-ghost btn-sm">Edit</button>
+            <button class="btn btn-ghost btn-sm coming-soon-btn" disabled>Edit coming soon</button>
           </div>
           <div class="setting-row">
             <div>
@@ -2468,21 +2434,21 @@
           <div class="setting-row">
             <div>
               <div class="setting-label">Time zone</div>
-              <div class="setting-value">Pacific Time (US &amp; Canada)</div>
+              <div class="setting-value">Set to your device time zone</div>
             </div>
-            <button class="btn btn-ghost btn-sm">Edit</button>
+            <button class="btn btn-ghost btn-sm coming-soon-btn" disabled>Preferences coming soon</button>
           </div>
           <div class="setting-row">
             <div>
               <div class="setting-label">Email notifications</div>
-              <div class="setting-value">New modules, workshop reminders, weekly digest</div>
+              <div class="setting-value">Member notification preferences are coming soon</div>
             </div>
-            <button class="btn btn-ghost btn-sm">Manage</button>
+            <button class="btn btn-ghost btn-sm coming-soon-btn" disabled>Coming soon</button>
           </div>
           <div class="setting-row">
             <div>
-              <div class="setting-label">Member since</div>
-              <div class="setting-value">December 8, 2025  ·  <span style="color:var(--gold-bright)">Founding member</span></div>
+              <div class="setting-label">Membership</div>
+              <div class="setting-value" id="settingsMembership">Your current membership details appear above.</div>
             </div>
           </div>
         </div>
@@ -2623,9 +2589,9 @@ const LADDER = [
 ];
 
 const EVENTS = [
-  { day:'New', num:'01', month:'Drop', title:'Monthly money reset', meta:['Schedule announced in Discord','Live Q&A','Replay included'] },
-  { day:'New', num:'02', month:'Drop', title:'Build your first useful offer', meta:['Member workshop','Action worksheet','Replay included'] },
-  { day:'New', num:'03', month:'Drop', title:'AI workflows for real work', meta:['Live build','Reusable prompts','Replay included'] },
+  { day:'SOON', num:'01', month:'TOPIC', title:'Monthly money reset', meta:['Schedule to be announced','Workshop details coming soon'] },
+  { day:'SOON', num:'02', month:'TOPIC', title:'Build your first useful offer', meta:['Schedule to be announced','Workshop details coming soon'] },
+  { day:'SOON', num:'03', month:'TOPIC', title:'AI workflows for real work', meta:['Schedule to be announced','Workshop details coming soon'] },
 ];
 
 const WINS = [
@@ -2683,9 +2649,9 @@ const REPLAYS = [
 ];
 
 const TODAY_GOALS = [
-  { text:'Complete the onboarding path', done:false, meta:'Start here' },
-  { text:'Open Module 1 and write the assignment', done:false, meta:'Today' },
-  { text:'Post one commitment in Discord', done:false, meta:'This week' },
+  { text:'Complete the onboarding path', done:false, meta:'Suggested start' },
+  { text:'Open Module 1 and write the assignment', done:false, meta:'Suggested next step' },
+  { text:'Post one commitment in Discord', done:false, meta:'Suggested next step' },
 ];
 
 const LEADERBOARD = [
@@ -2948,6 +2914,12 @@ function getNextModule(){
   return MODULES.find(module => !MEMBER_PROGRESS.completedModules.includes(module.n)) || null;
 }
 
+function getStartingRung(){
+  if (!MEMBER_ONBOARDING.completed) return null;
+  const index = WIZARD_STAGES.findIndex(item => item.title === MEMBER_ONBOARDING.stage);
+  return index >= 0 ? index + 1 : null;
+}
+
 function renderBuildPlan(){
   const list = document.getElementById('buildPlanList');
   if (!list) return;
@@ -2955,8 +2927,8 @@ function renderBuildPlan(){
   const onboardingDone = Boolean(MEMBER_ONBOARDING.completed);
   const discordConnected = Boolean(CURRENT_MEMBER?.discord?.connected);
   const nextModule = getNextModule();
-  const goals = MEMBER_PROGRESS.goals.length ? MEMBER_PROGRESS.goals : TODAY_GOALS;
-  const completedGoals = goals.filter(goal => goal.done).length;
+  const savedGoals = MEMBER_PROGRESS.goals;
+  const completedGoals = savedGoals.filter(goal => goal.done).length;
   const nextLabel = nextModule
     ? `Start Module ${nextModule.n}: ${nextModule.title}`
     : 'Review your capital plan';
@@ -3032,10 +3004,10 @@ function renderBuildPlan(){
     actionMeta.textContent = 'Revisit your capital plan';
   }
 
-  document.getElementById('homeActionCount').textContent = `${completedGoals} / ${goals.length}`;
-  document.getElementById('homeActionCountMeta').textContent = completedGoals === goals.length
-    ? 'Plan complete. Keep the streak honest tomorrow.'
-    : 'Build momentum with one real action today';
+  document.getElementById('homeActionCount').textContent = `${savedGoals.length}`;
+  document.getElementById('homeActionCountMeta').textContent = savedGoals.length === 0
+    ? 'Add a goal when you are ready to track it'
+    : `${completedGoals} of ${savedGoals.length} marked complete`;
 }
 
 function applyMember(member){
@@ -3057,16 +3029,17 @@ function applyMember(member){
   document.getElementById('settingsEmail').textContent = member.email;
   document.getElementById('memberAdminLink').hidden = !member.isAdmin;
   document.getElementById('topbarAdminLink').hidden = !member.isAdmin;
-  document.getElementById('statusText').textContent = member.foundingMember ? 'Founding member' : 'Active';
+  document.body.classList.toggle('member-access-active', ['active','trialing'].includes(member.subscriptionStatus));
+  document.getElementById('statusText').textContent = member.foundingMember
+    ? 'Founding member'
+    : (member.subscriptionStatus === 'trialing' ? 'Trialing' : 'Active');
   const referralLink = `${location.origin}/?ref=${member.referralCode || 'member'}`;
   document.getElementById('referLink').textContent = referralLink;
   document.getElementById('referralCount').textContent = member.referralCount || 0;
   document.getElementById('referralCredits').textContent = member.referralCredits || 0;
-  document.getElementById('referralSavings').textContent = `$${(member.referralCredits || 0) * 30}`;
   const completedCount = MEMBER_PROGRESS.completedModules.length;
-  const stageIndex = Math.max(0, WIZARD_STAGES.findIndex(item => item.title === MEMBER_ONBOARDING.stage));
-  const currentRung = Math.min(stageIndex + 1, 7);
-  const stageName = MEMBER_ONBOARDING.stage || 'Foundation';
+  const currentRung = getStartingRung();
+  const stageName = MEMBER_ONBOARDING.stage || 'Starting stage not set';
   const primaryGoal = MEMBER_ONBOARDING.goal || 'Complete onboarding and choose your first target';
   const paths = Array.isArray(MEMBER_ONBOARDING.paths) ? MEMBER_ONBOARDING.paths : [];
   document.getElementById('personalizedSummary').textContent = MEMBER_ONBOARDING.completed
@@ -3074,9 +3047,9 @@ function applyMember(member){
     : 'Start with onboarding so Surplus can place you on the right path.';
   document.getElementById('homeModuleCount').textContent = `${completedCount} / ${MODULES.length}`;
   document.getElementById('profileModuleCount').textContent = `${completedCount} / ${MODULES.length}`;
-  document.getElementById('homeCurrentRung').textContent = `${currentRung} / 7`;
-  document.getElementById('profileCurrentRung').textContent = `${currentRung} / 7`;
-  document.getElementById('homeCurrentStage').textContent = `${stageName} · ${primaryGoal}`;
+  document.getElementById('homeCurrentRung').textContent = currentRung ? `${currentRung} / 7` : '— / 7';
+  document.getElementById('profileCurrentRung').textContent = currentRung ? `${currentRung} / 7` : '— / 7';
+  document.getElementById('homeCurrentStage').textContent = MEMBER_ONBOARDING.completed ? `${stageName} · ${primaryGoal}` : 'Complete onboarding to set your starting stage';
   document.getElementById('profileCurrentStage').textContent = stageName;
   document.getElementById('profileHandle').textContent = member.foundingMember ? 'Founding Surplus member' : 'Surplus member';
   document.getElementById('profileBio').textContent = MEMBER_ONBOARDING.completed
@@ -3086,11 +3059,26 @@ function applyMember(member){
     ...paths.map(path => `<span class="profile-badge">${path}</span>`),
     member.foundingMember ? '<span class="profile-badge">Founding Member</span>' : '<span class="profile-badge">Surplus Member</span>'
   ].join('');
+  const savedGoals = MEMBER_PROGRESS.goals;
+  const completedGoals = savedGoals.filter(goal => goal.done).length;
+  document.getElementById('profileGoalCount').textContent = `${savedGoals.length}`;
+  document.getElementById('profileGoalMeta').textContent = savedGoals.length
+    ? `${completedGoals} marked complete`
+    : 'No saved goals yet';
+  const discordConnected = Boolean(member.discord?.connected);
+  document.getElementById('profileDiscordStatus').textContent = discordConnected ? 'Connected' : 'Not connected';
+  document.getElementById('profileDiscordMeta').textContent = discordConnected
+    ? `Connected as ${member.discord.username || 'your Discord account'}`
+    : 'Connect Discord to join the room';
+  document.getElementById('settingsMembership').textContent = member.foundingMember
+    ? 'Founding member · your rate is locked'
+    : `${member.subscriptionStatus === 'trialing' ? 'Trialing' : 'Active'} Surplus member`;
   updateDiscordConnection(member.discord);
   document.querySelector('.demo-toggle')?.remove();
   setState(member.subscriptionStatus === 'active' || member.subscriptionStatus === 'trialing' ? 'active' : 'expired');
   renderModules();
   renderContinueCard();
+  renderLadder();
   renderGoals();
   renderBuildPlan();
   if (!MEMBER_ONBOARDING.completed) setTimeout(openWizard, 250);
@@ -3227,7 +3215,7 @@ function setState(state){
     sub.textContent = 'Resubscribe to restore full access. Your progress and content are preserved.';
     banner.style.background = 'linear-gradient(135deg,rgba(217,112,112,.10),rgba(217,112,112,.02))';
     banner.style.borderColor = 'rgba(217,112,112,.3)';
-    acts.innerHTML = `<button class="btn btn-primary btn-sm" onclick="resubscribe()">Resubscribe — $30/mo →</button>`;
+    acts.innerHTML = `<button class="btn btn-primary btn-sm" onclick="resubscribe()">View membership options →</button>`;
   } else {
     pill.textContent = 'Active';
     pill.style.background = '';
@@ -3247,9 +3235,7 @@ function setState(state){
 }
 
 function resubscribe(){
-  setState('active');
-  navigateTo('home');
-  // brief celebratory toast could be added; for prototype just flip state
+  window.location.href = '/surplus.html#pricing';
 }
 
 // ---------- RENDER MODULES ----------
@@ -3316,8 +3302,8 @@ function renderSheets(){
         <div class="sheet-name">${s.name}</div>
         <p class="sheet-desc">${s.desc}</p>
         <div class="sheet-foot">
-          <button class="btn btn-primary btn-sm" style="flex:1; justify-content:center">Google Sheets</button>
-          <button class="btn btn-ghost btn-sm" style="flex:1; justify-content:center">Excel</button>
+          <button class="btn btn-primary btn-sm coming-soon-btn" style="flex:1; justify-content:center" disabled>Google Sheets · soon</button>
+          <button class="btn btn-ghost btn-sm coming-soon-btn" style="flex:1; justify-content:center" disabled>Excel · soon</button>
         </div>
       </div>
     </div>`).join('');
@@ -3326,14 +3312,23 @@ function renderSheets(){
 // ---------- RENDER LADDER ----------
 function renderLadder(){
   const cont = document.getElementById('ladderRungs');
+  const startingRung = getStartingRung();
+  const stage = startingRung ? LADDER[startingRung - 1] : null;
+  document.getElementById('ladderCurrentStage').textContent = stage
+    ? `${stage.stage} · Rung ${stage.n}`
+    : 'Complete onboarding to set your stage';
+  document.getElementById('ladderCurrentSub').textContent = stage
+    ? `${stage.desc} This is your selected starting point, not a calculated completion percentage.`
+    : 'Choose your current stage during onboarding. The roadmap does not infer progress you have not saved.';
+  document.getElementById('ladderRingNum').textContent = startingRung ? `${startingRung}` : '—';
+  document.getElementById('ladderProgressStroke').setAttribute('stroke-dashoffset', '377');
   cont.innerHTML = `<div class="ladder-spine"></div>` + LADDER.map(r => {
-    const cls = r.status === 'done' ? 'done' : r.status === 'current' ? 'current' : 'pending';
-    const nodeCls = r.status === 'done' ? '' : r.status === 'current' ? 'current' : 'pending';
-    const action = r.status === 'current'
-      ? `<button class="btn btn-primary btn-sm">Continue →</button>`
-      : r.status === 'done'
-      ? `<button class="btn btn-ghost btn-sm">Review</button>`
-      : `<span style="font-size:12px; color:var(--ink-faint); letter-spacing:.1em; text-transform:uppercase">Locked</span>`;
+    const isStartingPoint = r.n === startingRung;
+    const cls = isStartingPoint ? 'current' : 'pending';
+    const nodeCls = isStartingPoint ? 'current' : 'pending';
+    const action = isStartingPoint
+      ? `<span style="font-size:12px; color:var(--gold-bright); letter-spacing:.1em; text-transform:uppercase">Starting point</span>`
+      : `<span style="font-size:12px; color:var(--ink-faint); letter-spacing:.1em; text-transform:uppercase">Roadmap milestone</span>`;
     return `
       <div class="rung ${cls}">
         <div class="rung-node ${nodeCls}">${r.n}</div>
@@ -3426,7 +3421,7 @@ function renderCalendar(){
         <div class="cal-title">${e.title}</div>
         <div class="cal-meta">${e.meta.map(m => `<span>${m}</span>`).join('')}</div>
       </div>
-      <button class="btn btn-ghost btn-sm">Add to calendar</button>
+      <span style="font-size:11px; color:var(--ink-faint); letter-spacing:.1em; text-transform:uppercase">Details soon</span>
     </div>`).join('');
 }
 
@@ -3659,11 +3654,9 @@ function renderReplays(){
   const grid = document.getElementById('replaysGrid');
   if (!grid) return;
   grid.innerHTML = REPLAYS.map(r => `
-    <div class="card replay-card hover-lift">
+    <div class="card replay-card">
       <div class="replay-thumb">
-        <div class="replay-play">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-        </div>
+        <div class="replay-play" style="width:auto; height:auto; padding:8px 12px; border-radius:8px; font-size:11px; letter-spacing:.08em; text-transform:uppercase">Coming soon</div>
         <div class="replay-duration">${r.duration}</div>
       </div>
       <div class="replay-body">
@@ -3717,14 +3710,14 @@ function toggleGoal(i, btn){
   saveMemberState().catch(error => showToast(error.message));
   if (MEMBER_PROGRESS.goals[i].done) {
     analytics('daily_goal_completed');
-    showToast('Goal checked off. Keep the streak alive.');
+    showToast('Goal checked off. Progress saved.');
   }
 }
 function addGoal(){
-  const text = prompt('What\'s your next goal for today?');
+  const text = prompt('What goal do you want to save?');
   if (text && text.trim()){
     if (!MEMBER_PROGRESS.goals.length) MEMBER_PROGRESS.goals = TODAY_GOALS.map(goal => ({...goal}));
-    MEMBER_PROGRESS.goals.push({ text:text.trim().slice(0,120), done:false, meta:'Today' });
+    MEMBER_PROGRESS.goals.push({ text:text.trim().slice(0,120), done:false, meta:'Saved goal' });
     renderGoals();
     renderBuildPlan();
     saveMemberState().catch(error => showToast(error.message));
