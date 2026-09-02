@@ -1048,6 +1048,76 @@ function summarizeCounts(items, getKey, limit = 6) {
     .map(([label, value]) => ({ label, value }));
 }
 
+function buildRecentActivity({ members, analyticsEvents, waitlistEntries, paidInvoices, unresolvedInvoices, lifecycleEvents, paidMembers, discordMembers }) {
+  const memberNames = new Map(members.map((member) => [member.id, member.name || "Surplus member"]));
+  const memberName = (memberId, fallback = "Member") => memberNames.get(memberId) || fallback;
+  const activity = [];
+
+  analyticsEvents.forEach((event) => {
+    const details = {
+      checkout_started: "Started checkout",
+      checkout_success_viewed: "Viewed the checkout success page",
+      onboarding_completed: "Completed onboarding",
+      module_completed: "Completed a module"
+    };
+    const description = details[event.event_name];
+    if (!description || !event.created_at) return;
+    activity.push({
+      type: event.event_name,
+      description,
+      memberName: memberName(event.member_id, "Website visitor"),
+      timestamp: event.created_at
+    });
+  });
+
+  waitlistEntries.forEach((entry) => {
+    if (!entry.created_at) return;
+    activity.push({ type: "waitlist_signup", description: "Joined the waitlist", memberName: "Website visitor", timestamp: entry.created_at });
+  });
+
+  paidInvoices.forEach((invoice) => {
+    if (!invoice.paid_at) return;
+    activity.push({
+      type: invoice.last_failed_at ? "payment_recovered" : "payment_succeeded",
+      description: invoice.last_failed_at ? "Payment recovered" : "Payment succeeded",
+      memberName: memberName(invoice.member_id),
+      amount: invoiceAmount(invoice.amount_paid),
+      timestamp: invoice.paid_at
+    });
+  });
+
+  unresolvedInvoices.forEach((invoice) => {
+    if (!invoice.last_failed_at) return;
+    activity.push({
+      type: "payment_failed",
+      description: "Payment failed",
+      memberName: memberName(invoice.member_id),
+      amount: invoiceAmount(invoice.amount_due),
+      timestamp: invoice.last_failed_at
+    });
+  });
+
+  paidMembers.forEach((member) => {
+    if (!member.first_paid_at) return;
+    activity.push({ type: "new_paid_member", description: "Became a paid member", memberName: memberName(member.id, member.name || "Member"), timestamp: member.first_paid_at });
+  });
+
+  discordMembers.forEach((member) => {
+    if (!member.discord_connected_at) return;
+    activity.push({ type: "discord_connected", description: "Connected Discord", memberName: memberName(member.id, member.name || "Member"), timestamp: member.discord_connected_at });
+  });
+
+  lifecycleEvents.forEach((event) => {
+    if (!event.occurred_at) return;
+    activity.push({ type: "membership_canceled", description: "Membership canceled", memberName: memberName(event.member_id), timestamp: event.occurred_at });
+  });
+
+  return activity
+    .filter((event) => Number.isFinite(new Date(event.timestamp).getTime()))
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, 15);
+}
+
 async function handleAdminOverview(req, res) {
   if (req.method !== "GET") return sendJson(res, 405, { error: "Method not allowed" });
   const admin = await getAuthenticatedMember(req);
@@ -1056,7 +1126,7 @@ async function handleAdminOverview(req, res) {
   try {
     const since = dateDaysAgo(30);
     const monthStart = startOfCurrentMonth();
-    const [members, trafficEvents, waitlistEntries, paidInvoices, unresolvedInvoices, cancellationEvents] = await Promise.all([
+    const [members, trafficEvents, waitlistEntries, paidInvoices, unresolvedInvoices, cancellationEvents, recentAnalyticsEvents, recentPaidInvoices, recentLifecycleEvents, recentPaidMembers, recentDiscordMembers] = await Promise.all([
       supabaseSelect("members", {
         select: "id,name,email,subscription_status,founding_member,created_at,current_period_end,first_paid_at,recurring_amount,recurring_interval,onboarding,progress,discord_username,referral_count,referral_credits",
         order: "created_at.desc",
@@ -1082,7 +1152,7 @@ async function handleAdminOverview(req, res) {
         limit: "5000"
       }),
       supabaseSelect("stripe_invoices", {
-        select: "member_id,status,last_failed_at",
+        select: "member_id,status,amount_due,last_failed_at",
         status: "neq.paid",
         last_failed_at: "not.is.null",
         order: "last_failed_at.desc",
@@ -1094,6 +1164,38 @@ async function handleAdminOverview(req, res) {
         occurred_at: `gte.${monthStart}`,
         order: "occurred_at.desc",
         limit: "5000"
+      }),
+      supabaseSelect("analytics_events", {
+        select: "member_id,event_name,created_at",
+        event_name: "in.(checkout_started,checkout_success_viewed,onboarding_completed,module_completed)",
+        order: "created_at.desc",
+        limit: "60"
+      }),
+      supabaseSelect("stripe_invoices", {
+        select: "member_id,status,amount_paid,paid_at,last_failed_at",
+        status: "eq.paid",
+        amount_paid: "gt.0",
+        paid_at: "not.is.null",
+        order: "paid_at.desc",
+        limit: "30"
+      }),
+      supabaseSelect("subscription_lifecycle_events", {
+        select: "member_id,event_type,occurred_at",
+        event_type: "eq.canceled",
+        order: "occurred_at.desc",
+        limit: "30"
+      }),
+      supabaseSelect("members", {
+        select: "id,name,first_paid_at",
+        first_paid_at: "not.is.null",
+        order: "first_paid_at.desc",
+        limit: "30"
+      }),
+      supabaseSelect("members", {
+        select: "id,name,discord_connected_at",
+        discord_connected_at: "not.is.null",
+        order: "discord_connected_at.desc",
+        limit: "30"
       })
     ]);
 
@@ -1112,6 +1214,16 @@ async function handleAdminOverview(req, res) {
     const successViews = publicTrafficEvents.filter((event) => event.event_name === "checkout_success_viewed").length;
     const newWaitlist = waitlistEntries.filter((entry) => new Date(entry.created_at).getTime() >= Date.now() - 30 * 86400_000).length;
     const billing = calculateBillingMetrics(members, paidInvoices, unresolvedInvoices, cancellationEvents, monthStart);
+    const recentActivity = buildRecentActivity({
+      members,
+      analyticsEvents: recentAnalyticsEvents,
+      waitlistEntries: waitlistEntries.slice(0, 30),
+      paidInvoices: recentPaidInvoices,
+      unresolvedInvoices: unresolvedInvoices.slice(0, 30),
+      lifecycleEvents: recentLifecycleEvents,
+      paidMembers: recentPaidMembers,
+      discordMembers: recentDiscordMembers
+    });
     const rosterMembers = [...new Map([
       ...members.slice(0, 100),
       ...members.filter((member) => billing.unresolvedMemberIds.includes(member.id))
@@ -1142,6 +1254,7 @@ async function handleAdminOverview(req, res) {
         topPages: summarizeCounts(pageViews, (event) => event.page || "/"),
         topSources: summarizeCounts(publicTrafficEvents, (event) => cleanTrafficSource(event.source))
       },
+      recentActivity,
       students: rosterMembers.map((member) => ({
         name: member.name,
         email: member.email,
