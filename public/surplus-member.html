@@ -1190,6 +1190,49 @@
   .module-nav-btn.next{text-align:right}
   .module-nav-btn-label{font-size:11px; color:var(--ink-faint); letter-spacing:.1em; text-transform:uppercase; font-weight:500}
   .module-nav-btn-title{font-family:var(--serif); font-size:14px; font-weight:500; letter-spacing:-.01em}
+  .lesson-availability{
+    display:flex; align-items:center; gap:10px; padding:13px 15px; margin-bottom:18px;
+    border:1px solid var(--line); border-radius:12px; background:rgba(185,154,85,.06);
+    color:var(--ink-dim); font-size:13px; line-height:1.5;
+  }
+  .lesson-availability strong{color:var(--ink); font-weight:500}
+  .lesson-list{display:grid; gap:8px; margin-bottom:20px}
+  .lesson-item{
+    width:100%; display:flex; align-items:center; gap:12px; padding:13px 14px;
+    border:1px solid var(--line); border-radius:12px; background:var(--glass); color:var(--ink);
+    text-align:left; font-family:inherit; cursor:pointer; transition:background .2s,border-color .2s;
+  }
+  .lesson-item:hover{background:var(--glass-strong); border-color:rgba(185,154,85,.38)}
+  .lesson-item.is-current{border-color:var(--gold); background:rgba(185,154,85,.1)}
+  .lesson-item.is-complete .lesson-item-state{background:rgba(122,201,139,.16); color:var(--good); border-color:rgba(122,201,139,.3)}
+  .lesson-item-state{
+    width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex:0 0 28px;
+    border:1px solid var(--line); border-radius:50%; color:var(--gold-bright); font-size:12px; font-weight:600;
+  }
+  .lesson-item-copy{min-width:0; flex:1}
+  .lesson-item-title{font-size:14px; font-weight:500; color:var(--ink); margin-bottom:2px}
+  .lesson-item-summary{font-size:12px; color:var(--ink-dim); line-height:1.45}
+  .lesson-reader{padding:22px; border:1px solid var(--line); border-radius:14px; background:var(--glass)}
+  .lesson-reader-kicker{font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold); font-weight:500; margin-bottom:8px}
+  .lesson-reader h2{font-family:var(--serif); font-weight:500; font-size:28px; line-height:1.15; letter-spacing:-.015em; margin-bottom:8px}
+  .lesson-summary{color:var(--ink-dim); font-size:14px; line-height:1.6; margin-bottom:20px}
+  .lesson-body{color:var(--ink-dim); font-size:14px; line-height:1.75}
+  .lesson-body p{margin-bottom:14px}
+  .lesson-action{margin-top:20px; padding:16px; border-left:2px solid var(--gold); background:rgba(185,154,85,.07); border-radius:0 10px 10px 0}
+  .lesson-action-label{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold-bright); font-weight:500; margin-bottom:5px}
+  .lesson-action p{color:var(--ink); font-size:13px; line-height:1.55; margin:0}
+  .lesson-controls{display:grid; grid-template-columns:1fr auto 1fr; gap:10px; margin-top:18px; align-items:stretch}
+  .lesson-controls .btn{justify-content:center}
+  .lesson-controls .next-control{text-align:right}
+  .module-complete-state{padding:14px; border-radius:10px; background:rgba(122,201,139,.1); border:1px solid rgba(122,201,139,.24); color:var(--good); font-size:13px; line-height:1.5}
+  @media(max-width:600px){
+    .module-detail-title{font-size:34px}
+    .lesson-reader{padding:18px}
+    .lesson-reader h2{font-size:24px}
+    .lesson-controls{grid-template-columns:1fr 1fr}
+    .lesson-controls .btn-primary{grid-column:1 / -1; grid-row:1}
+    .lesson-controls .next-control{text-align:center}
+  }
 
   /* ---------- RESOURCES PAGE ---------- */
   .resources-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px}
@@ -1681,7 +1724,7 @@
         <div>
           <div class="page-eyebrow">Course Roadmap</div>
           <h1 class="page-title">Modules &amp; <em>lessons.</em></h1>
-          <p class="page-sub">Explore the six-module roadmap now. Lesson videos, worksheets, and downloads are being prepared.</p>
+          <p class="page-sub">Work through six practical modules at your pace. Written lessons and progress are ready now; videos and downloadable tools will be added later.</p>
         </div>
       </div>
 
@@ -2073,68 +2116,28 @@
       <div class="module-detail-head">
         <div class="module-detail-stage" id="modDetailStage">Discipline</div>
         <h1 class="module-detail-title" id="modDetailTitle">Install the monthly <em>budget system.</em></h1>
-        <div class="module-detail-meta">
-          <span>Video module</span>
-          <span>Assignment included</span>
-          <span>Progress saved</span>
-          <span>0% complete</span>
-        </div>
+        <div class="module-detail-meta" id="modDetailMeta"></div>
       </div>
 
       <div class="module-detail-grid">
         <div>
-          <div class="video-player">
-            <button class="video-play-big" type="button" disabled title="Lesson video coming soon">
-              <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-            </button>
-            <div class="video-preview-label">Lesson video coming soon</div>
-          </div>
-
-          <div class="lesson-tabs">
-            <button class="lesson-tab active" type="button">Course notes</button>
-            <button class="lesson-tab" type="button" disabled>Transcript · soon</button>
-            <button class="lesson-tab" type="button" disabled>Discussion · soon</button>
-          </div>
-
-          <div class="lesson-content" id="lessonContent">
-            <h3>The 20-minute setup</h3>
-            <p>The monthly budget system is the single biggest leverage point in the entire Surplus method. Most people fail not because they can't budget — they fail because the system they're using takes too long to maintain. We're going to fix that.</p>
-            <h3>What you'll do in this lesson</h3>
-            <ul>
-              <li>Open the Monthly Budget spreadsheet (linked in the sidebar)</li>
-              <li>Fill in your real income from last month</li>
-              <li>Categorize every expense into the 8 core buckets</li>
-              <li>Identify the three biggest leaks immediately</li>
-              <li>Set the rollover rules for next month</li>
-            </ul>
-            <h3>The principle</h3>
-            <p>Every dollar gets a job. <strong>Zero left undecided.</strong> The dollars you don't decide on are the dollars that disappear. By the end of this lesson, you'll have a working budget for the next 30 days — and a system you can run in 10 minutes a week.</p>
-            <p>One thing most people miss: budgets fail when they're aspirational. Don't budget the income you "should" make. Budget the income you actually have. Stretch comes later.</p>
-          </div>
-
-          <div class="module-nav-row">
-            <button class="module-nav-btn" onclick="navigateTo('modules')">
-              <span class="module-nav-btn-label">← Back</span>
-              <span class="module-nav-btn-title">Return to the module library</span>
-            </button>
-          </div>
+          <div class="lesson-availability"><strong>Written lesson</strong><span>Read, take the action, and mark it complete. Video lessons will be added later.</span></div>
+          <div class="lesson-list" id="lessonSelector"></div>
+          <article class="lesson-reader" id="lessonContent"></article>
+          <div class="lesson-controls" id="lessonControls"></div>
         </div>
 
         <div class="module-side">
           <div class="side-card">
-            <h4>Lesson resources</h4>
+            <h4>Module action</h4>
             <div class="side-actions">
+              <div class="side-action" style="cursor:default">
+                <span class="side-action-icon">→</span>
+                <div><div id="moduleAssignmentTitle">Complete the module assignment</div><div id="moduleAssignmentCopy" style="font-size:11px; color:var(--ink-dim)"></div></div>
+              </div>
               <button class="side-action" onclick="navigateTo('spreadsheets')">
                 <span class="side-action-icon">X</span>
-                <div><div>Monthly Budget template preview</div><div style="font-size:11px; color:var(--ink-dim)">View in the template library</div></div>
-              </button>
-              <button class="side-action" disabled>
-                <span class="side-action-icon">↓</span>
-                <div><div>Lesson worksheet</div><div style="font-size:11px; color:var(--ink-dim)">Coming soon</div></div>
-              </button>
-              <button class="side-action" disabled>
-                <span class="side-action-icon">▶</span>
-                <div><div>Quick reference card</div><div style="font-size:11px; color:var(--ink-dim)">Coming soon</div></div>
+                <div><div>Template library</div><div style="font-size:11px; color:var(--ink-dim)">Preview tools being prepared</div></div>
               </button>
             </div>
           </div>
@@ -2147,7 +2150,7 @@
               </div>
               <div class="progress-bar"><div class="progress-fill" id="moduleDetailProgressBar" style="width:0"></div></div>
             </div>
-            <button class="btn btn-primary btn-sm" style="width:100%; justify-content:center" onclick="markCurrentModuleComplete()">Mark module complete</button>
+            <div id="moduleCompletionState"></div>
           </div>
         </div>
       </div>
@@ -2558,12 +2561,54 @@
 
 // ---------- DATA ----------
 const MODULES = [
-  { n:1, stage:'Foundation', title:'The Wake-Up', desc:'Your story, standards, schedule, and the “nobody is coming to save you” operating system.', duration:'38 min', assignment:'Write your 12-month target and non-negotiable weekly schedule.', lessons:['Why your current system keeps repeating','The standard that changes the trajectory','Build a schedule you can actually hold'] },
-  { n:2, stage:'Money Control', title:'Control the Number', desc:'Audit cash flow, install a simple budget, build a buffer, and stop reacting to every expense.', duration:'64 min', assignment:'Complete the money audit and build next month’s zero-based plan.', lessons:['Know your true number','Build the first $1,000 buffer','Run the monthly money system'] },
-  { n:3, stage:'Income', title:'Build the Income Ladder', desc:'Turn your current job, trade, service, or skill into the next $500 and then the next level.', duration:'72 min', assignment:'Choose one income play and make ten real offers this week.', lessons:['Pick a skill people already pay for','Package your first useful offer','Price, pitch, and improve through reps'] },
-  { n:4, stage:'Leverage', title:'AI as a Daily Tool', desc:'Use AI for planning, research, communication, operations, and producing better work faster.', duration:'55 min', assignment:'Build three reusable prompts around your real weekly workload.', lessons:['AI fundamentals without the hype','Your personal AI operating system','Business workflows and reusable prompts'] },
-  { n:5, stage:'Operator', title:'Business and Trades', desc:'Lessons from learning the trades, working a full-time job, earning trust, and building a service company.', duration:'61 min', assignment:'Create your offer, quality checklist, and first-customer plan.', lessons:['Starting before you feel ready','Standards, estimates, and customer trust','From helper to owner-operator'] },
-  { n:6, stage:'Surplus', title:'Property and Wealth Basics', desc:'Make better first-property decisions and learn what to do with the gap once income exceeds lifestyle.', duration:'58 min', assignment:'Write your capital order: buffer, debt, investing, property, and business.', lessons:['Buying a home with an investment lens','Renovation math and risk','Deploying surplus for the long term'] },
+  {
+    n:1, stage:'Foundation', title:'The Wake-Up', desc:'Your story, standards, schedule, and the “nobody is coming to save you” operating system.', duration:'38 min', assignment:'Write your 12-month target and non-negotiable weekly schedule.',
+    lessons:[
+      {id:'1-1', title:'Why your current system keeps repeating', summary:'Name the loop before trying to escape it.', content:['Most financial stress is not one bad choice. It is a repeated loop: money arrives, urgent expenses absorb it, the remaining decisions get made tired, and the next surprise goes on a card or gets ignored. You do not break that loop by waiting for motivation. You break it by making the next decision visible before the pressure hits.','Start with honesty, not shame. Your current result is simply the output of your current system. That is good news, because systems can be changed. The goal this week is not to fix your whole life. It is to stop making decisions in the dark and choose one repeatable action you can keep.'], action:'Write down the one money or time pattern you are done repeating. Then name the smallest action that interrupts it this week.'},
+      {id:'1-2', title:'The standard that changes the trajectory', summary:'Trade vague goals for a standard you can hold.', content:['A goal points at a destination. A standard decides what you do on an ordinary Tuesday. “I want more money” is a goal. “I review my numbers every Friday before I spend for the weekend” is a standard. The people who build momentum are not perfect; they return to a few standards even when work gets busy.','Choose standards that create proof. A weekly money review, a fixed number of income offers, and a protected block for your next skill can look boring. That is the point. They make progress less dependent on mood, luck, or a viral idea.'], action:'Choose two standards for the next seven days: one for money control and one for income or skill-building.'},
+      {id:'1-3', title:'Build a schedule you can actually hold', summary:'Make the work fit your real week before adding more.', content:['An ambitious plan that ignores your job, commute, family, and energy is not discipline. It is fiction. Start by looking at the week you actually have. Protect a small number of focused blocks and decide in advance what each block is for: money review, income work, learning, or recovery.','Consistency beats an occasional eighteen-hour sprint. Give your best work a home on the calendar, remove one predictable distraction, and leave enough margin to recover when life gets messy. A schedule that survives a hard week is the one that changes your year.'], action:'Block two 45-minute sessions on your calendar this week and give each one a specific purpose.'}
+    ]
+  },
+  {
+    n:2, stage:'Money Control', title:'Control the Number', desc:'Audit cash flow, install a simple budget, build a buffer, and stop reacting to every expense.', duration:'64 min', assignment:'Complete the money audit and build next month’s zero-based plan.',
+    lessons:[
+      {id:'2-1', title:'Know your true number', summary:'Build a baseline from real income, bills, debt, and spending.', content:['You cannot improve a number you refuse to see. Pull the last month of income, fixed bills, debt minimums, and everyday spending. Do not guess. The first pass may feel uncomfortable, but clarity is cheaper than carrying uncertainty for another year.','Your baseline answers three useful questions: what reliably comes in, what must go out, and what is left after reality. That final number is your starting point. It is not a verdict on you; it is the number you will use to make better choices.'], action:'List last month’s income, fixed bills, debt minimums, and the three categories where you spent the most.'},
+      {id:'2-2', title:'Build the first $1,000 buffer', summary:'Create breathing room before trying to optimize everything.', content:['A starter buffer is not glamorous, but it changes the way emergencies land. Without one, a flat tire, medical bill, or missed shift becomes new high-interest debt. With even a small cash buffer, the problem stays a problem instead of becoming a financial spiral.','Build it with speed and focus. Pause a few low-value expenses, sell something unused, pick up a short-term shift, or redirect a temporary windfall. This is not the forever plan. It is the first line between your real life and a credit-card reaction.'], action:'Choose one concrete source for your first buffer contribution this week and set the exact dollar target.'},
+      {id:'2-3', title:'Run the monthly money system', summary:'Give every dollar a job before the month starts.', content:['A useful budget is a decision tool, not a punishment. Start with your real income, fund the essentials, plan for irregular costs, then decide where the remaining dollars should go: buffer, debt, goals, or a little room to live. The point is to assign money before it disappears.','Review it briefly once a week. You are not trying to make the plan look perfect. You are checking whether the plan still matches reality and adjusting early. Small weekly corrections are easier than a month of avoidance.'], action:'Create a simple next-month plan using your real expected income and schedule a 15-minute weekly review.'}
+    ]
+  },
+  {
+    n:3, stage:'Income', title:'Build the Income Ladder', desc:'Turn your current job, trade, service, or skill into the next $500 and then the next level.', duration:'72 min', assignment:'Choose one income play and make ten real offers this week.',
+    lessons:[
+      {id:'3-1', title:'Pick a skill people already pay for', summary:'Start near real demand instead of chasing the perfect idea.', content:['You do not need a revolutionary business idea to create your first extra income. Look for skills you already use, problems people already complain about, and work that produces a clear result. Service work, trade knowledge, organization, sales, editing, design, and local problem-solving all become more valuable when you make the outcome specific.','Start where you have evidence. Ask what people already trust you to do, what you have learned at work, and what tasks others avoid. The first offer should be small enough to deliver well and clear enough that a real person can say yes.'], action:'Write down three skills or problems you could help with, then circle the one with the clearest buyer and result.'},
+      {id:'3-2', title:'Package your first useful offer', summary:'Make the result, scope, and next step easy to understand.', content:['People do not buy vague capability. They buy a result they can picture. Instead of saying “I do maintenance,” say what you will solve, for whom, in what timeframe, and what it costs. A small defined offer is easier to sell, deliver, and improve than a giant custom promise.','Keep the first version simple. Define the work, the boundary, the price, and how someone starts. You can refine it after real conversations. Do not wait for branding, a perfect logo, or a website before asking whether the offer helps someone.'], action:'Write a one-sentence offer: “I help [person] get [result] through [specific service] for [price or range].”'},
+      {id:'3-3', title:'Price, pitch, and improve through reps', summary:'Use real conversations to improve faster than private planning.', content:['Your first prices and pitches will not be perfect. That is normal. The fastest way to improve is to make a useful offer, listen to the response, and adjust the message or scope. Reps create confidence because they replace imagination with evidence.','Set a number of real asks for the week. An ask can be a direct message, a local conversation, a referral request, or a proposal. Keep track of what people say yes to, what confuses them, and which objections repeat. Those notes become your next version.'], action:'Make ten real offers or outreach attempts this week and record the response to each one.'}
+    ]
+  },
+  {
+    n:4, stage:'Leverage', title:'AI as a Daily Tool', desc:'Use AI for planning, research, communication, operations, and producing better work faster.', duration:'55 min', assignment:'Build three reusable prompts around your real weekly workload.',
+    lessons:[
+      {id:'4-1', title:'AI fundamentals without the hype', summary:'Treat AI like a practical assistant, not a shortcut to expertise.', content:['AI is useful when you give it context, a clear outcome, and something to work from. It can help you organize ideas, draft a first version, research options, explain unfamiliar material, and turn messy notes into a usable checklist. It cannot replace judgment, responsibility, or the knowledge you need to verify the result.','The goal is not to use AI for everything. The goal is to remove repeatable friction from work you already understand. Start with a task you do often and can check easily. Better instructions create better output.'], action:'Choose one recurring task that takes you at least 20 minutes and write down the exact result you want faster.'},
+      {id:'4-2', title:'Your personal AI operating system', summary:'Create prompts around the work you repeat every week.', content:['A reusable prompt is a saved instruction that includes your context, standards, and desired format. It saves time because you no longer start from a blank page. Build prompts for planning your week, preparing a difficult message, reviewing a document, or turning notes into an action list.','Keep a simple prompt library. Each time AI gives you a useful result, save the instruction and improve it once. Over time, you build a set of tools that sound like you and fit the way you work instead of relying on random one-off questions.'], action:'Create and save one reusable planning prompt using your real schedule, priorities, and preferred output format.'},
+      {id:'4-3', title:'Business workflows and reusable prompts', summary:'Use AI to improve output without pretending it runs the business.', content:['For a business or side income, AI can help produce first drafts of estimates, follow-up messages, customer FAQs, job checklists, research summaries, and marketing ideas. The leverage comes from pairing it with your real experience. You still own the numbers, quality, promises, and final decision.','Start with workflows that are repetitive and low-risk. Document the steps, test the output, and make a small reusable template. A dependable workflow that saves thirty minutes every week is more valuable than an impressive experiment you never use again.'], action:'Build one business or work prompt that produces a checklist, draft, or follow-up you can review before sending.'}
+    ]
+  },
+  {
+    n:5, stage:'Operator', title:'Business and Trades', desc:'Lessons from learning the trades, working a full-time job, earning trust, and building a service company.', duration:'61 min', assignment:'Create your offer, quality checklist, and first-customer plan.',
+    lessons:[
+      {id:'5-1', title:'Starting before you feel ready', summary:'Use small, responsible reps to earn confidence.', content:['Most people wait to feel qualified before they start. In practice, confidence usually arrives after you take a responsible first step. Start with work you can do safely and well, be honest about your scope, and learn from every estimate, job, and conversation.','You do not need to know everything to begin building. You need standards: show up, communicate clearly, do what you said, and do not take on work outside your ability. Small wins compound into a reputation, and reputation creates better opportunities.'], action:'Pick one service or work opportunity you can deliver responsibly this month and identify the first person you will tell.'},
+      {id:'5-2', title:'Standards, estimates, and customer trust', summary:'Make reliability part of the product you sell.', content:['Customers remember whether you were clear, on time, and accountable. A simple estimate should define the work, the price, what is included, what is not included, and the next step. That clarity protects both people and makes you easier to refer.','Build a basic quality checklist for the work you do. It helps you catch avoidable mistakes and gives you a consistent finish even when you are tired or busy. Trust is not a personality trait. It is the result of repeated follow-through.'], action:'Create a five-point checklist you will use before you finish your next job, project, or deliverable.'},
+      {id:'5-3', title:'From helper to owner-operator', summary:'Shift from doing tasks to building repeatable systems.', content:['Being good at the work is the beginning. Becoming an operator means learning to price, communicate, schedule, document, and protect quality as the work grows. You do not have to quit your job immediately to think this way. Start by treating your side work with the same care you would give a real company.','Document what works while it is fresh: the estimate, the material list, the customer message, the quality check. Those small systems make the next job easier and create room for you to take better work instead of constantly reinventing the process.'], action:'Document one repeatable process from your work this week in a checklist someone else could follow.'}
+    ]
+  },
+  {
+    n:6, stage:'Surplus', title:'Property and Wealth Basics', desc:'Make better first-property decisions and learn what to do with the gap once income exceeds lifestyle.', duration:'58 min', assignment:'Write your capital order: buffer, debt, investing, property, and business.',
+    lessons:[
+      {id:'6-1', title:'Buying a home with an investment lens', summary:'Understand the numbers and risks before calling a property an investment.', content:['A home can be both a place to live and part of a long-term plan, but only if the numbers work. Look beyond the purchase price: payment, insurance, taxes, repairs, renovation scope, carrying costs, and the time required. A good opportunity still needs enough margin for reality to be different than the spreadsheet.','Do not force a deal because you want the story. Learn the local market, get qualified advice where needed, and build your cash position first. A property should support your plan, not make your life so tight that one repair undoes your progress.'], action:'List the full monthly cost of the property you want someday, including a realistic repair and maintenance allowance.'},
+      {id:'6-2', title:'Renovation math and risk', summary:'Plan for uncertainty before you plan for profit.', content:['Renovation projects can create value, but they also expose every weak estimate. Separate the work into scope, labor, materials, permits, contingency, and timeline. Then ask what happens if the project takes longer, costs more, or the market changes. If the deal only works in the best case, it does not have enough margin.','The goal is not to avoid risk. It is to understand which risks you can afford. Keep records, get multiple inputs, and avoid making a major decision based on a social-media before-and-after. Real projects reward patience and disciplined numbers.'], action:'For one future project, add a 10–20% contingency line and write down the risk most likely to change the outcome.'},
+      {id:'6-3', title:'Deploying surplus for the long term', summary:'Create an order for money once you are no longer only surviving.', content:['Surplus is the gap between what you earn and what your life requires. When that gap appears, give it an order. Start with protection: cash buffer and high-interest debt. Then use a plan for long-term investing, skill growth, business opportunities, or property based on your risk tolerance and goals.','The point is not to copy someone else’s allocation. It is to stop every extra dollar from becoming unplanned lifestyle spending. Keep learning, understand the tradeoffs, and use qualified professionals for decisions that require them. Consistency over years matters more than one exciting move.'], action:'Write your current capital order from first priority to last, and choose the next dollar you expect to direct toward it.'}
+    ]
+  },
 ];
 
 const SHEETS = [
@@ -2739,8 +2784,9 @@ const IS_PREVIEW_MODE = MEMBER_QUERY.has('limited') || MEMBER_QUERY.has('preview
 let CURRENT_STATE = 'active';
 let CURRENT_MEMBER = null;
 let MEMBER_ONBOARDING = {};
-let MEMBER_PROGRESS = { completedModules:[], moduleProgress:{}, goals:[] };
+let MEMBER_PROGRESS = { completedModules:[], moduleProgress:{}, lessonProgress:{}, goals:[] };
 let ACTIVE_MODULE = 1;
+let ACTIVE_LESSON_ID = null;
 
 function analytics(eventName, metadata = {}){
   const sessionId = sessionStorage.getItem('surplusAnalyticsSession') || crypto.randomUUID();
@@ -2910,8 +2956,37 @@ async function logOut(){
   navigateTo('home');
 }
 
+function getModule(moduleId){
+  return MODULES.find(module => module.n === Number(moduleId)) || MODULES[0];
+}
+
+function isModuleComplete(module){
+  return MEMBER_PROGRESS.completedModules.includes(module.n)
+    || Number(MEMBER_PROGRESS.moduleProgress?.[module.n] || 0) === 100;
+}
+
+function getModuleLessonState(module){
+  const lessonIds = module.lessons.map(lesson => lesson.id);
+  const stored = MEMBER_PROGRESS.lessonProgress?.[String(module.n)] || {};
+  const storedCompleted = Array.isArray(stored.completedLessonIds) ? stored.completedLessonIds : [];
+  const completedLessonIds = isModuleComplete(module)
+    ? lessonIds
+    : [...new Set(storedCompleted.filter(id => lessonIds.includes(id)))];
+  const firstIncomplete = module.lessons.find(lesson => !completedLessonIds.includes(lesson.id));
+  const currentLessonId = lessonIds.includes(stored.currentLessonId)
+    ? stored.currentLessonId
+    : (firstIncomplete?.id || module.lessons[module.lessons.length - 1].id);
+  return {completedLessonIds, currentLessonId};
+}
+
+function getModuleProgressPercent(module){
+  if (isModuleComplete(module)) return 100;
+  const state = getModuleLessonState(module);
+  return Math.round((state.completedLessonIds.length / module.lessons.length) * 100);
+}
+
 function getNextModule(){
-  return MODULES.find(module => !MEMBER_PROGRESS.completedModules.includes(module.n)) || null;
+  return MODULES.find(module => !isModuleComplete(module)) || null;
 }
 
 function getStartingRung(){
@@ -3013,9 +3088,14 @@ function renderBuildPlan(){
 function applyMember(member){
   CURRENT_MEMBER = member;
   MEMBER_ONBOARDING = member.onboarding || {};
+  const savedProgress = member.progress && typeof member.progress === 'object' ? member.progress : {};
   MEMBER_PROGRESS = {
+    ...savedProgress,
     completedModules:Array.isArray(member.progress?.completedModules) ? member.progress.completedModules : [],
     moduleProgress:member.progress?.moduleProgress || {},
+    lessonProgress:member.progress?.lessonProgress && typeof member.progress.lessonProgress === 'object'
+      ? member.progress.lessonProgress
+      : {},
     goals:Array.isArray(member.progress?.goals) ? member.progress.goals : []
   };
   const name = member.name || 'Surplus Member';
@@ -3037,7 +3117,7 @@ function applyMember(member){
   document.getElementById('referLink').textContent = referralLink;
   document.getElementById('referralCount').textContent = member.referralCount || 0;
   document.getElementById('referralCredits').textContent = member.referralCredits || 0;
-  const completedCount = MEMBER_PROGRESS.completedModules.length;
+  const completedCount = MODULES.filter(module => isModuleComplete(module)).length;
   const currentRung = getStartingRung();
   const stageName = MEMBER_ONBOARDING.stage || 'Starting stage not set';
   const primaryGoal = MEMBER_ONBOARDING.goal || 'Complete onboarding and choose your first target';
@@ -3242,9 +3322,9 @@ function resubscribe(){
 function renderModules(){
   const grid = document.getElementById('modulesGrid');
   grid.innerHTML = MODULES.map(m => {
-    const progress = MEMBER_PROGRESS.completedModules.includes(m.n)
-      ? 100
-      : Number(MEMBER_PROGRESS.moduleProgress[m.n] || 0);
+    const progress = getModuleProgressPercent(m);
+    const lessonState = getModuleLessonState(m);
+    const completedLessons = lessonState.completedLessonIds.length;
     const statusClass = progress === 100 ? 'complete' : progress > 0 ? 'in-progress' : 'available';
     const statusLabel = progress === 100 ? 'Complete' : progress > 0 ? 'In progress' : 'Available';
     const cta = progress === 100 ? 'Review →' : progress > 0 ? 'Resume →' : 'Start →';
@@ -3258,7 +3338,7 @@ function renderModules(){
         <div class="module-stage">${m.stage}</div>
         <h3 class="module-title">${m.title}</h3>
         <p class="module-desc">${m.desc}</p>
-        <div style="font-size:11px;color:var(--ink-faint);margin-bottom:12px">${m.lessons.length} lessons · ${m.duration}</div>
+        <div style="font-size:11px;color:var(--ink-faint);margin-bottom:12px">${completedLessons} / ${m.lessons.length} lessons · ${m.duration}</div>
         <div class="module-foot">
           <div class="module-progress">
             <div class="module-progress-label"><span>Progress</span><strong>${progress}%</strong></div>
@@ -3273,15 +3353,15 @@ function renderModules(){
 
 function renderContinueCard(){
   const nextModule = getNextModule() || MODULES[MODULES.length - 1];
-  const progress = MEMBER_PROGRESS.completedModules.includes(nextModule.n)
-    ? 100
-    : Number(MEMBER_PROGRESS.moduleProgress[nextModule.n] || 0);
+  const progress = getModuleProgressPercent(nextModule);
+  const lessonState = getModuleLessonState(nextModule);
+  const completedLessons = lessonState.completedLessonIds.length;
   document.getElementById('continueModuleBadge').textContent = `Module ${nextModule.n} · ${nextModule.stage}`;
   document.getElementById('continueModuleTitle').textContent = nextModule.title;
   document.getElementById('continueModuleDuration').textContent = nextModule.duration;
   document.getElementById('continueModuleDescription').textContent = nextModule.desc;
   document.getElementById('continueModuleProgressBar').style.width = `${progress}%`;
-  document.getElementById('continueModuleProgressText').textContent = `${progress}% complete`;
+  document.getElementById('continueModuleProgressText').textContent = `${completedLessons} / ${nextModule.lessons.length} lessons · ${progress}% complete`;
   const button = document.getElementById('continueModuleButton');
   button.textContent = progress > 0 ? 'Resume →' : 'Start →';
   button.onclick = () => openModuleDetail(nextModule.n);
@@ -3726,33 +3806,6 @@ function addGoal(){
   }
 }
 
-// ---------- LESSON TABS ----------
-function switchLessonTab(btn, tab){
-  btn.parentNode.querySelectorAll('.lesson-tab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const content = document.getElementById('lessonContent');
-  if (tab === 'transcript'){
-    content.innerHTML = `<p style="color:var(--ink-faint); font-style:italic; padding:24px 0">[Full lesson transcript appears here. Searchable, copyable, and timestamped to jump to any point in the video.]</p>`;
-  } else if (tab === 'discuss'){
-    content.innerHTML = `<p style="color:var(--ink-faint); font-style:italic; padding:24px 0">[Member discussion thread for this lesson — questions, insights, and Rosario's replies live here.]</p>`;
-  } else {
-    content.innerHTML = `
-      <h3>The 20-minute setup</h3>
-      <p>The monthly budget system is the single biggest leverage point in the entire Surplus method. Most people fail not because they can't budget — they fail because the system they're using takes too long to maintain. We're going to fix that.</p>
-      <h3>What you'll do in this lesson</h3>
-      <ul>
-        <li>Open the Monthly Budget spreadsheet (linked in the sidebar)</li>
-        <li>Fill in your real income from last month</li>
-        <li>Categorize every expense into the 8 core buckets</li>
-        <li>Identify the three biggest leaks immediately</li>
-        <li>Set the rollover rules for next month</li>
-      </ul>
-      <h3>The principle</h3>
-      <p>Every dollar gets a job. <strong>Zero left undecided.</strong> The dollars you don't decide on are the dollars that disappear. By the end of this lesson, you'll have a working budget for the next 30 days — and a system you can run in 10 minutes a week.</p>
-      <p>One thing most people miss: budgets fail when they're aspirational. Don't budget the income you "should" make. Budget the income you actually have. Stretch comes later.</p>`;
-  }
-}
-
 // ---------- REFER LINK ----------
 function copyReferLink(){
   const link = document.getElementById('referLink').textContent;
@@ -3761,49 +3814,157 @@ function copyReferLink(){
   showToast('Link copied. Now go share it.');
 }
 
-// ---------- MODULE CLICK -> DETAIL ----------
-function openModuleDetail(moduleId = 1){
-  ACTIVE_MODULE = moduleId;
-  const module = MODULES.find(item => item.n === moduleId) || MODULES[0];
-  const progress = MEMBER_PROGRESS.completedModules.includes(module.n)
-    ? 100
-    : Number(MEMBER_PROGRESS.moduleProgress[module.n] || 0);
+// ---------- MODULE LESSON FLOW ----------
+function getMutableLessonProgress(module){
+  const key = String(module.n);
+  if (!MEMBER_PROGRESS.lessonProgress || typeof MEMBER_PROGRESS.lessonProgress !== 'object') {
+    MEMBER_PROGRESS.lessonProgress = {};
+  }
+  if (!MEMBER_PROGRESS.lessonProgress[key] || typeof MEMBER_PROGRESS.lessonProgress[key] !== 'object') {
+    MEMBER_PROGRESS.lessonProgress[key] = {completedLessonIds:[], currentLessonId:null, updatedAt:null};
+  }
+  const state = MEMBER_PROGRESS.lessonProgress[key];
+  state.completedLessonIds = Array.isArray(state.completedLessonIds) ? [...new Set(state.completedLessonIds)] : [];
+  return state;
+}
+
+function getLessonById(module, lessonId){
+  return module.lessons.find(lesson => lesson.id === lessonId) || module.lessons[0];
+}
+
+function getNextIncompleteLesson(module, completedLessonIds, afterLessonId = null){
+  const startIndex = afterLessonId ? module.lessons.findIndex(lesson => lesson.id === afterLessonId) + 1 : 0;
+  return module.lessons.slice(Math.max(startIndex, 0)).find(lesson => !completedLessonIds.includes(lesson.id))
+    || module.lessons.find(lesson => !completedLessonIds.includes(lesson.id))
+    || null;
+}
+
+function renderModuleDetail(){
+  const module = getModule(ACTIVE_MODULE);
+  const lessonState = getModuleLessonState(module);
+  const currentLesson = getLessonById(module, ACTIVE_LESSON_ID || lessonState.currentLessonId);
+  const progress = getModuleProgressPercent(module);
+  const completedLessons = lessonState.completedLessonIds.length;
+  const currentIndex = module.lessons.findIndex(lesson => lesson.id === currentLesson.id);
+  const currentIsComplete = lessonState.completedLessonIds.includes(currentLesson.id);
+  const moduleIsComplete = isModuleComplete(module);
+  const nextModule = getNextModule();
+
+  ACTIVE_LESSON_ID = currentLesson.id;
   document.getElementById('modDetailStage').textContent = module.stage;
-  document.getElementById('modDetailTitle').innerHTML = `${module.title}.`;
-  document.querySelector('.module-detail-meta').innerHTML = `
-    <span>Video · ${module.duration}</span>
+  document.getElementById('modDetailTitle').textContent = module.title;
+  document.getElementById('modDetailMeta').innerHTML = `
     <span>${module.lessons.length} lessons</span>
-    <span>Assignment included</span>
+    <span>${module.duration} written path</span>
+    <span>${completedLessons} / ${module.lessons.length} complete</span>
     <span>${progress}% complete</span>`;
+  document.getElementById('lessonSelector').innerHTML = module.lessons.map((lesson, index) => {
+    const complete = lessonState.completedLessonIds.includes(lesson.id);
+    const current = lesson.id === currentLesson.id;
+    return `<button class="lesson-item${current ? ' is-current' : ''}${complete ? ' is-complete' : ''}" type="button" onclick="selectLesson('${lesson.id}')">
+      <span class="lesson-item-state">${complete ? '✓' : index + 1}</span>
+      <span class="lesson-item-copy"><span class="lesson-item-title">${lesson.title}</span><span class="lesson-item-summary">${lesson.summary}</span></span>
+    </button>`;
+  }).join('');
   document.getElementById('lessonContent').innerHTML = `
-    <h3>What this module changes</h3>
-    <p>${module.desc}</p>
-    <h3>Lessons</h3>
-    <ul>${module.lessons.map(lesson => `<li>${lesson}</li>`).join('')}</ul>
-    <h3>Your assignment</h3>
-    <p><strong>${module.assignment}</strong></p>
-    <p>This module is complete when the assignment is done in your real life, not when the video ends.</p>`;
+    <div class="lesson-reader-kicker">Lesson ${currentIndex + 1} of ${module.lessons.length}</div>
+    <h2>${currentLesson.title}</h2>
+    <p class="lesson-summary">${currentLesson.summary}</p>
+    <div class="lesson-body">${currentLesson.content.map(paragraph => `<p>${paragraph}</p>`).join('')}</div>
+    ${currentLesson.action ? `<div class="lesson-action"><div class="lesson-action-label">Action step</div><p>${currentLesson.action}</p></div>` : ''}`;
+  document.getElementById('lessonControls').innerHTML = `
+    <button class="btn btn-ghost btn-sm" type="button" onclick="openPreviousLesson()" ${currentIndex === 0 ? 'disabled' : ''}>← Previous</button>
+    <button class="btn btn-primary btn-sm" type="button" onclick="completeActiveLesson()" ${currentIsComplete || moduleIsComplete ? 'disabled' : ''}>${moduleIsComplete ? 'Module complete' : currentIsComplete ? 'Lesson complete' : 'Complete lesson'}</button>
+    <button class="btn btn-ghost btn-sm next-control" type="button" onclick="openNextLesson()" ${currentIndex === module.lessons.length - 1 ? 'disabled' : ''}>Next →</button>`;
   document.getElementById('moduleDetailProgressBar').style.width = `${progress}%`;
-  document.getElementById('moduleDetailProgressText').textContent = `${progress}% complete`;
+  document.getElementById('moduleDetailProgressText').textContent = `${completedLessons} / ${module.lessons.length} lessons · ${progress}% complete`;
   document.getElementById('moduleDetailDuration').textContent = module.duration;
+  document.getElementById('moduleAssignmentTitle').textContent = 'Complete the module assignment';
+  document.getElementById('moduleAssignmentCopy').textContent = module.assignment;
+  document.getElementById('moduleCompletionState').innerHTML = moduleIsComplete
+    ? `<div class="module-complete-state"><strong>Module complete.</strong> ${nextModule ? `Keep moving while the work is fresh.<br><button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="openModuleDetail(${nextModule.n})">Continue to Module ${nextModule.n} →</button>` : 'You completed the full Surplus course path. Revisit the lesson that will create the most useful action this week.'}</div>`
+    : `<div style="font-size:12px; color:var(--ink-dim); line-height:1.55">Complete each written lesson to finish this module. Completion is saved to your member account.</div>`;
+}
+
+function openModuleDetail(moduleId = 1, lessonId = null){
+  ACTIVE_MODULE = Number(moduleId);
+  const module = getModule(ACTIVE_MODULE);
+  const lessonState = getModuleLessonState(module);
+  ACTIVE_LESSON_ID = lessonId && module.lessons.some(lesson => lesson.id === lessonId)
+    ? lessonId
+    : lessonState.currentLessonId;
+  renderModuleDetail();
   analytics('module_opened',{module:module.n,title:module.title});
+  analytics('lesson_opened',{module:module.n,lesson:ACTIVE_LESSON_ID});
   navigateTo('module-detail');
 }
 
-async function markCurrentModuleComplete(){
-  if (!MEMBER_PROGRESS.completedModules.includes(ACTIVE_MODULE)) {
-    MEMBER_PROGRESS.completedModules.push(ACTIVE_MODULE);
-  }
-  MEMBER_PROGRESS.moduleProgress[ACTIVE_MODULE] = 100;
+async function selectLesson(lessonId){
+  const module = getModule(ACTIVE_MODULE);
+  if (!module.lessons.some(lesson => lesson.id === lessonId)) return;
+  const state = getMutableLessonProgress(module);
+  ACTIVE_LESSON_ID = lessonId;
+  state.currentLessonId = lessonId;
+  state.updatedAt = new Date().toISOString();
+  renderModuleDetail();
+  analytics('lesson_opened',{module:module.n,lesson:lessonId});
   try {
     await saveMemberState();
+  } catch (error) {
+    showToast(`Your place could not be saved. ${error.message}`);
+  }
+}
+
+function openPreviousLesson(){
+  const module = getModule(ACTIVE_MODULE);
+  const index = module.lessons.findIndex(lesson => lesson.id === ACTIVE_LESSON_ID);
+  if (index > 0) selectLesson(module.lessons[index - 1].id);
+}
+
+function openNextLesson(){
+  const module = getModule(ACTIVE_MODULE);
+  const index = module.lessons.findIndex(lesson => lesson.id === ACTIVE_LESSON_ID);
+  if (index >= 0 && index < module.lessons.length - 1) selectLesson(module.lessons[index + 1].id);
+}
+
+async function completeActiveLesson(){
+  const module = getModule(ACTIVE_MODULE);
+  const previousProgress = JSON.parse(JSON.stringify(MEMBER_PROGRESS));
+  const state = getMutableLessonProgress(module);
+  const lessonId = ACTIVE_LESSON_ID;
+  const wasModuleComplete = isModuleComplete(module);
+  if (state.completedLessonIds.includes(lessonId) || wasModuleComplete) return;
+
+  state.completedLessonIds = [...new Set([...state.completedLessonIds, lessonId])];
+  const nextLesson = getNextIncompleteLesson(module, state.completedLessonIds, lessonId);
+  state.currentLessonId = nextLesson?.id || lessonId;
+  state.updatedAt = new Date().toISOString();
+  const allComplete = state.completedLessonIds.length === module.lessons.length;
+  MEMBER_PROGRESS.moduleProgress[module.n] = Math.round((state.completedLessonIds.length / module.lessons.length) * 100);
+  if (allComplete && !MEMBER_PROGRESS.completedModules.includes(module.n)) {
+    MEMBER_PROGRESS.completedModules.push(module.n);
+  }
+
+  try {
+    await saveMemberState();
+    ACTIVE_LESSON_ID = state.currentLessonId;
     renderModules();
     renderContinueCard();
     renderBuildPlan();
-    openModuleDetail(ACTIVE_MODULE);
-    analytics('module_completed',{module:ACTIVE_MODULE});
-    showToast('Module complete. Progress saved.');
+    renderModuleDetail();
+    analytics('lesson_completed',{module:module.n,lesson:lessonId});
+    if (allComplete && !wasModuleComplete) {
+      analytics('module_completed',{module:module.n});
+      showToast(nextLesson ? 'Lesson complete. Keep moving.' : 'Module complete. Your progress is saved.');
+    } else {
+      showToast('Lesson complete. Progress saved.');
+    }
   } catch (error) {
+    MEMBER_PROGRESS = previousProgress;
+    renderModules();
+    renderContinueCard();
+    renderBuildPlan();
+    renderModuleDetail();
     showToast(error.message);
   }
 }
