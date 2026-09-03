@@ -1007,10 +1007,41 @@
   }
   .mobile-nav-item.active{color:var(--gold-bright)}
   .mobile-nav-item svg{width:20px; height:20px}
+  .mobile-more-trigger{border:0; background:transparent; font-family:inherit}
+  .mobile-more-overlay{display:none}
+  .mobile-more-sheet{display:none}
   @media(max-width:700px){
     .mobile-nav{display:flex}
     .main{padding-bottom:90px !important}
     .sidebar{display:none}
+    .mobile-more-overlay.open{
+      display:block; position:fixed; inset:0; z-index:120;
+      background:rgba(0,0,0,.58);
+    }
+    .mobile-more-sheet{
+      display:block; position:absolute; left:0; right:0; bottom:0;
+      max-height:min(74svh,620px); overflow-y:auto;
+      padding:18px 16px calc(18px + env(safe-area-inset-bottom));
+      background:var(--bg-2); border:1px solid var(--line); border-bottom:0;
+      border-radius:18px 18px 0 0; box-shadow:0 -18px 54px rgba(0,0,0,.36);
+    }
+    [data-theme="light"] .mobile-more-sheet{background:var(--bg-2)}
+    .mobile-more-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px}
+    .mobile-more-title{font-family:var(--serif); font-size:22px; font-weight:500; letter-spacing:-.01em}
+    .mobile-more-close{
+      width:40px; height:40px; border:1px solid var(--line); border-radius:50%;
+      background:var(--glass); color:var(--ink); cursor:pointer; font:inherit; font-size:24px; line-height:1;
+    }
+    .mobile-more-list{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+    .mobile-more-item{
+      min-height:56px; display:flex; align-items:center; gap:10px; padding:12px;
+      border:1px solid var(--line); border-radius:10px; background:var(--glass);
+      color:var(--ink); cursor:pointer; font:inherit; font-size:13px; font-weight:500;
+      text-align:left; text-decoration:none;
+    }
+    .mobile-more-item svg{width:19px; height:19px; flex:0 0 19px; color:var(--gold)}
+    .mobile-more-item.owner{grid-column:1 / -1; color:var(--gold-bright)}
+    body.mobile-more-open{overflow:hidden}
     .topbar{
       margin-left:-20px;
       margin-right:-20px;
@@ -2566,11 +2597,31 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
     Room
   </a>
-  <a class="mobile-nav-item" data-section="profile" onclick="navigateTo('profile')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-    Me
-  </a>
+  <button class="mobile-nav-item mobile-more-trigger" id="mobileMoreTrigger" type="button" onclick="toggleMobileMore()" aria-label="Open more navigation" aria-expanded="false" aria-controls="mobileMoreSheet">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
+    More
+  </button>
 </nav>
+
+<div class="mobile-more-overlay" id="mobileMoreOverlay" hidden onclick="closeMobileMore()">
+  <section class="mobile-more-sheet" id="mobileMoreSheet" role="dialog" aria-modal="true" aria-labelledby="mobileMoreTitle" onclick="event.stopPropagation()">
+    <div class="mobile-more-header">
+      <h2 class="mobile-more-title" id="mobileMoreTitle">More</h2>
+      <button class="mobile-more-close" type="button" onclick="closeMobileMore()" aria-label="Close more navigation">×</button>
+    </div>
+    <div class="mobile-more-list">
+      <button class="mobile-more-item" type="button" onclick="openMobileMoreSection('ladder')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v18M16 3v18M8 7h8M8 12h8M8 17h8"/></svg>Ladder</button>
+      <button class="mobile-more-item" type="button" onclick="openMobileMoreSection('spreadsheets')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg>Tools &amp; templates</button>
+      <button class="mobile-more-item" type="button" onclick="openMobileMoreSection('resources')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Resources</button>
+      <button class="mobile-more-item" type="button" onclick="openMobileMoreSection('workshops')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>Workshops</button>
+      <button class="mobile-more-item" type="button" onclick="openMobileMoreSection('replays')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="15" height="14" rx="2"/><path d="m18 10 3-2v8l-3-2z"/></svg>Replays</button>
+      <button class="mobile-more-item" type="button" onclick="openMobileMoreSection('refer')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="3"/><path d="M3 21v-2a6 6 0 0 1 12 0v2M16 11h5M18.5 8.5v5"/></svg>Referrals</button>
+      <button class="mobile-more-item" type="button" onclick="openMobileMoreSection('profile')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</button>
+      <button class="mobile-more-item" type="button" onclick="openMobileMoreSection('settings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.12 2.12-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.04 1.56v.08h-3v-.08A1.7 1.7 0 0 0 10.66 18.66a1.7 1.7 0 0 0-1.88.34l-.06.06L6.6 16.94l.06-.06A1.7 1.7 0 0 0 7 15a1.7 1.7 0 0 0-1.56-1.04h-.08v-3h.08A1.7 1.7 0 0 0 7 9.92a1.7 1.7 0 0 0-.34-1.88L6.6 7.98 8.72 5.86l.06.06a1.7 1.7 0 0 0 1.88.34A1.7 1.7 0 0 0 11.7 4.7v-.08h3v.08a1.7 1.7 0 0 0 1.04 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.12 2.12-.06.06a1.7 1.7 0 0 0-.34 1.88 1.7 1.7 0 0 0 1.56 1.04h.08v3h-.08A1.7 1.7 0 0 0 19.4 15z"/></svg>Settings &amp; billing</button>
+      <a class="mobile-more-item owner" id="mobileOwnerDashboardLink" href="/surplus-admin.html" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 16v-5M12 16V8M16 16v-3"/></svg>Owner dashboard</a>
+    </div>
+  </section>
+</div>
 
 <!-- ============ TOAST ============ -->
 <div class="toast" id="toast">
@@ -3304,6 +3355,7 @@ function applyMember(member){
   document.getElementById('settingsEmail').textContent = member.email;
   document.getElementById('memberAdminLink').hidden = !member.isAdmin;
   document.getElementById('topbarAdminLink').hidden = !member.isAdmin;
+  document.getElementById('mobileOwnerDashboardLink').hidden = !member.isAdmin;
   document.body.classList.toggle('member-access-active', ['active','trialing'].includes(member.subscriptionStatus));
   document.getElementById('statusText').textContent = member.foundingMember
     ? 'Founding member'
@@ -3437,13 +3489,52 @@ async function openBillingPortal(){
 }
 
 // ---------- NAVIGATION ----------
+const PRIMARY_MOBILE_SECTIONS = new Set(['home','modules','goals','community']);
+const MOBILE_MORE_SECTIONS = new Set(['ladder','spreadsheets','resources','workshops','replays','refer','profile','settings']);
+
+function updateMobileNavigation(id){
+  const activePrimary = id === 'module-detail' ? 'modules' : id;
+  document.querySelectorAll('.mobile-nav-item[data-section]').forEach(el => {
+    el.classList.toggle('active', el.dataset.section === activePrimary);
+  });
+  const moreIsActive = !PRIMARY_MOBILE_SECTIONS.has(activePrimary) && MOBILE_MORE_SECTIONS.has(id);
+  document.getElementById('mobileMoreTrigger')?.classList.toggle('active', moreIsActive);
+}
+
+function closeMobileMore(){
+  const overlay = document.getElementById('mobileMoreOverlay');
+  const trigger = document.getElementById('mobileMoreTrigger');
+  if (!overlay || overlay.hidden) return;
+  overlay.classList.remove('open');
+  overlay.hidden = true;
+  trigger?.setAttribute('aria-expanded', 'false');
+  document.body.classList.remove('mobile-more-open');
+}
+
+function toggleMobileMore(){
+  const overlay = document.getElementById('mobileMoreOverlay');
+  const trigger = document.getElementById('mobileMoreTrigger');
+  if (!overlay || !trigger) return;
+  if (!overlay.hidden){ closeMobileMore(); return; }
+  overlay.hidden = false;
+  overlay.classList.add('open');
+  trigger.setAttribute('aria-expanded', 'true');
+  document.body.classList.add('mobile-more-open');
+}
+
+function openMobileMoreSection(id){
+  closeMobileMore();
+  navigateTo(id);
+}
+
 function navigateTo(id){
   document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.section === id));
-  document.querySelectorAll('.mobile-nav-item').forEach(el => el.classList.toggle('active', el.dataset.section === id));
+  updateMobileNavigation(id);
   document.querySelectorAll('.section').forEach(el => el.classList.toggle('active', el.id === `section-${id}`));
   window.scrollTo({top:0, behavior:'smooth'});
   analytics('dashboard_section_viewed',{section:id});
   closePalette();
+  closeMobileMore();
 }
 document.querySelectorAll('.nav-item').forEach(el => {
   el.addEventListener('click', e => { e.preventDefault(); navigateTo(el.dataset.section); });
@@ -3802,7 +3893,7 @@ function renderPaletteResults(items){
 }
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'k'){ e.preventDefault(); openPalette(); }
-  if (e.key === 'Escape'){ closePalette(); }
+  if (e.key === 'Escape'){ closePalette(); closeMobileMore(); }
 });
 
 // ---------- ONBOARDING WIZARD ----------
