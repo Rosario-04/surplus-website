@@ -524,6 +524,45 @@
   .sheet-desc{color:var(--ink-dim); font-size:12px; line-height:1.6; margin-bottom:16px; flex:1}
   .sheet-foot{display:flex; gap:8px; padding-top:14px; border-top:1px solid var(--line-soft)}
 
+  /* MONEY SYSTEM PLANNER */
+  .money-planner-intro{margin-bottom:24px; padding:16px 18px; border:1px solid var(--line); border-radius:14px; background:var(--glass); color:var(--ink-dim); font-size:13px; line-height:1.6}
+  .money-planner-grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px}
+  .money-planner-card{padding:24px}
+  .money-planner-card.wide{grid-column:1 / -1}
+  .money-planner-card h2{font-family:var(--serif); font-weight:500; font-size:24px; letter-spacing:-.015em; margin-bottom:6px}
+  .money-planner-card > p{color:var(--ink-dim); font-size:13px; line-height:1.55; margin-bottom:18px}
+  .money-field-list{display:grid; gap:9px}
+  .money-field{display:grid; grid-template-columns:minmax(0,1fr) 132px; gap:12px; align-items:center; min-height:42px}
+  .money-field label{color:var(--ink-dim); font-size:13px; line-height:1.3}
+  .money-field input{width:100%; min-width:0; padding:10px 12px; border:1px solid var(--line); border-radius:9px; background:var(--bg-2); color:var(--ink); font:inherit; font-variant-numeric:tabular-nums}
+  .money-field input:focus{outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(185,154,85,.1)}
+  .money-calculations{margin-top:18px; padding-top:14px; border-top:1px solid var(--line); display:grid; gap:9px}
+  .money-calculation{display:flex; align-items:center; justify-content:space-between; gap:16px; color:var(--ink-dim); font-size:13px}
+  .money-calculation strong{color:var(--ink); font-family:var(--serif); font-size:17px; font-weight:500; font-variant-numeric:tabular-nums}
+  .money-calculation.emphasis{padding-top:4px; color:var(--ink)}
+  .money-calculation.emphasis strong{color:var(--gold-bright); font-size:22px}
+  .money-calculation.positive strong{color:var(--good)}
+  .money-calculation.negative strong{color:var(--bad)}
+  .money-plan-state{margin-top:12px; padding:10px 12px; border-radius:9px; background:rgba(185,154,85,.07); border:1px solid var(--line); color:var(--ink-dim); font-size:12px; line-height:1.5}
+  .money-plan-state.balanced{background:rgba(126,196,134,.1); border-color:rgba(126,196,134,.24); color:var(--good)}
+  .money-plan-state.over{background:rgba(217,112,112,.09); border-color:rgba(217,112,112,.22); color:var(--bad)}
+  .money-planner-actions{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:22px; padding:16px 18px; border:1px solid var(--line); border-radius:14px; background:var(--glass); flex-wrap:wrap}
+  .money-planner-save-status{color:var(--ink-dim); font-size:12px; line-height:1.5}
+  .money-planner-save-status.success{color:var(--good)}
+  .money-planner-save-status.error{color:var(--bad)}
+  .money-planner-locked{padding:28px; max-width:680px}
+  .money-planner-locked h2{font-family:var(--serif); font-size:30px; font-weight:400; margin-bottom:8px}
+  .money-planner-locked p{color:var(--ink-dim); line-height:1.6; margin-bottom:18px}
+  @media(max-width:760px){
+    .money-planner-grid{grid-template-columns:1fr}
+    .money-planner-card.wide{grid-column:auto}
+    .money-planner-card{padding:20px}
+    .money-field{grid-template-columns:1fr; gap:6px; padding:7px 0}
+    .money-field input{min-height:44px; font-size:16px}
+    .money-planner-actions{align-items:stretch}
+    .money-planner-actions .btn{width:100%; justify-content:center; min-height:46px}
+  }
+
   /* LADDER */
   .ladder-progress-card{padding:32px; margin-bottom:32px; display:flex; justify-content:space-between; align-items:center; gap:24px; flex-wrap:wrap}
   .ladder-current{font-family:var(--serif); font-style:italic; color:var(--gold-bright); font-weight:300; font-size:14px; margin-bottom:8px}
@@ -1732,7 +1771,7 @@
               <div class="next-icon">$</div>
               <div class="next-text">
                 <div class="next-title">Monthly money system</div>
-                <div class="next-sub">Open the first action-ready spreadsheet</div>
+                <div class="next-sub">Open the first action-ready money tool</div>
               </div>
             </div>
             <div class="next-item" onclick="navigateTo('ladder')">
@@ -1807,6 +1846,94 @@
       </div>
 
       <div class="sheets-grid" id="sheetsGrid"></div>
+    </section>
+
+    <!-- ===== MONEY SYSTEM PLANNER ===== -->
+    <section class="section" id="section-money-planner">
+      <button class="module-detail-back" type="button" onclick="navigateTo('spreadsheets')">← Back to member tools</button>
+      <div class="page-head">
+        <div>
+          <div class="page-eyebrow">Module 2 Member Tool</div>
+          <h1 class="page-title">Money System <em>Planner.</em></h1>
+          <p class="page-sub">Get your real monthly number, give each dollar a job, and build the buffer that keeps surprises from becoming debt.</p>
+        </div>
+      </div>
+
+      <div class="card money-planner-locked" id="moneyPlannerLocked" hidden>
+        <div class="page-eyebrow">Membership required</div>
+        <h2>Your money plan is saved.</h2>
+        <p>An active Surplus membership is required to use and update the Money System Planner. Resubscribe to return to your plan.</p>
+        <button class="btn btn-primary" type="button" onclick="resubscribe()">View membership options →</button>
+      </div>
+
+      <div id="moneyPlannerWorkspace">
+        <div class="money-planner-intro">Use real monthly numbers. Zero-based does not mean spending every dollar: savings, debt payoff, investing, and reinvestment are assignments too.</div>
+        <div class="money-planner-grid">
+          <section class="card money-planner-card">
+            <h2>Money Snapshot</h2>
+            <p>See what comes in, what goes out, and the gap you can use intentionally.</p>
+            <div class="money-field-list">
+              <div class="money-field"><label for="snapshotTakeHomeIncome">Monthly take-home income</label><input id="snapshotTakeHomeIncome" data-money-snapshot="takeHomeIncome" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+              <div class="money-field"><label for="snapshotHousing">Housing</label><input id="snapshotHousing" data-money-snapshot="housing" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+              <div class="money-field"><label for="snapshotUtilities">Utilities</label><input id="snapshotUtilities" data-money-snapshot="utilities" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+              <div class="money-field"><label for="snapshotTransportation">Transportation</label><input id="snapshotTransportation" data-money-snapshot="transportation" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+              <div class="money-field"><label for="snapshotInsurance">Insurance</label><input id="snapshotInsurance" data-money-snapshot="insurance" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+              <div class="money-field"><label for="snapshotGroceries">Groceries</label><input id="snapshotGroceries" data-money-snapshot="groceries" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+              <div class="money-field"><label for="snapshotOtherEssentials">Other essentials</label><input id="snapshotOtherEssentials" data-money-snapshot="otherEssentials" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+              <div class="money-field"><label for="snapshotDebtMinimums">Debt minimums</label><input id="snapshotDebtMinimums" data-money-snapshot="debtMinimums" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+              <div class="money-field"><label for="snapshotDiscretionary">Discretionary spending</label><input id="snapshotDiscretionary" data-money-snapshot="discretionarySpending" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+              <div class="money-field"><label for="snapshotOtherOutflow">Other outflow</label><input id="snapshotOtherOutflow" data-money-snapshot="otherOutflow" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+            </div>
+            <div class="money-calculations">
+              <div class="money-calculation"><span>Total monthly income</span><strong id="snapshotIncomeTotal">$0</strong></div>
+              <div class="money-calculation"><span>Total monthly outflow</span><strong id="snapshotOutflowTotal">$0</strong></div>
+              <div class="money-calculation emphasis" id="snapshotSurplusRow"><span>Current monthly surplus / deficit</span><strong id="snapshotSurplusTotal">$0</strong></div>
+            </div>
+          </section>
+
+          <section class="card money-planner-card">
+            <h2>Buffer Target</h2>
+            <p>Build a cash buffer before the next surprise has to go on a card.</p>
+            <div class="money-field-list">
+              <div class="money-field"><label for="bufferTarget">Target buffer amount</label><input id="bufferTarget" data-money-buffer="targetAmount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+              <div class="money-field"><label for="bufferCurrent">Current buffer amount</label><input id="bufferCurrent" data-money-buffer="currentAmount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+              <div class="money-field"><label for="bufferContribution">Planned monthly contribution</label><input id="bufferContribution" data-money-buffer="monthlyContribution" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+            </div>
+            <div class="money-calculations">
+              <div class="money-calculation"><span>Remaining to target</span><strong id="bufferRemaining">$0</strong></div>
+              <div class="money-calculation"><span>Percent complete</span><strong id="bufferPercent">0%</strong></div>
+              <div class="money-calculation emphasis"><span>Estimated months to target</span><strong id="bufferMonths">—</strong></div>
+            </div>
+          </section>
+
+          <section class="card money-planner-card wide">
+            <h2>Monthly Plan</h2>
+            <p>Assign your monthly take-home income before it disappears into unplanned spending.</p>
+            <div class="money-field-list">
+              <div class="money-field"><label for="planBillsEssentials">Bills / essentials</label><input id="planBillsEssentials" data-money-plan="billsEssentials" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+              <div class="money-field"><label for="planDebtPayoff">Debt payoff</label><input id="planDebtPayoff" data-money-plan="debtPayoff" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+              <div class="money-field"><label for="planEmergencySavings">Emergency buffer / savings</label><input id="planEmergencySavings" data-money-plan="emergencySavings" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+              <div class="money-field"><label for="planInvesting">Investing</label><input id="planInvesting" data-money-plan="investing" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+              <div class="money-field"><label for="planReinvestment">Skill / business reinvestment</label><input id="planReinvestment" data-money-plan="skillBusinessReinvestment" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+              <div class="money-field"><label for="planDiscretionary">Discretionary</label><input id="planDiscretionary" data-money-plan="discretionary" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+              <div class="money-field"><label for="planOther">Other</label><input id="planOther" data-money-plan="other" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+            </div>
+            <div class="money-calculations">
+              <div class="money-calculation"><span>Take-home income</span><strong id="planIncomeTotal">$0</strong></div>
+              <div class="money-calculation"><span>Total planned allocation</span><strong id="planAllocationTotal">$0</strong></div>
+              <div class="money-calculation emphasis" id="planUnassignedRow"><span>Unassigned amount</span><strong id="planUnassignedTotal">$0</strong></div>
+            </div>
+            <div class="money-plan-state" id="planStateMessage">Enter your take-home income and assignments to see what still needs a job.</div>
+          </section>
+        </div>
+        <div class="money-planner-actions">
+          <div class="money-planner-save-status" id="moneyPlannerSaveStatus" aria-live="polite">Your entries save only when you choose Save Money Plan.</div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" type="button" onclick="openModuleDetail(2)">Return to Module 2</button>
+            <button class="btn btn-primary" type="button" id="saveMoneyPlannerButton" onclick="saveMoneyPlanner()">Save Money Plan</button>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- ===== LADDER ===== -->
@@ -2693,7 +2820,7 @@ const MODULES = [
 
 const SHEETS = [
   { module:1, name:'Foundation Plan', desc:'A printable plan for your 12-month target, operating standards, weekly blocks, and commitment.', asset:'/assets/surplus-foundation-plan.pdf', action:'Open plan', format:'Printable PDF' },
-  { module:2, name:'Money System Planner', desc:'Editable Money Snapshot, zero-based Monthly Plan, and Buffer Target workbook.', asset:'/assets/surplus-money-system-planner.xlsx', action:'Download Excel', format:'Excel workbook' },
+  { module:2, name:'Money System Planner', desc:'Use your real numbers to see your surplus, assign each dollar, and build your buffer.', tool:'money-planner', action:'Open Money Planner', format:'Interactive member tool' },
   { module:3, name:'Offer & Outreach Tracker', desc:'Define a useful offer, send real outreach, and track the replies that improve it.', asset:'/assets/surplus-offer-outreach-tracker.xlsx', action:'Download Excel', format:'Excel workbook' },
   { name:'Net Worth Tracker', desc:'A simple view of cash, investments, equity, and liabilities.', comingSoon:true },
   { name:'Debt Payoff Planner', desc:'A focused way to compare payoff methods and keep your next move visible.', comingSoon:true },
@@ -2706,7 +2833,7 @@ const SHEETS = [
 
 const MODULE_TOOLS = {
   1: { title:'Open Foundation Plan', copy:'Printable Module 1 worksheet', icon:'1', href:'/assets/surplus-foundation-plan.pdf' },
-  2: { title:'Download Money System Planner', copy:'Excel workbook for your Module 2 money system', icon:'2', href:'/assets/surplus-money-system-planner.xlsx' },
+  2: { title:'Open Money System Planner', copy:'Interactive Module 2 money tool', icon:'2', section:'money-planner' },
   3: { title:'Download Offer & Outreach Tracker', copy:'Excel workbook for your Module 3 offer and outreach', icon:'3', href:'/assets/surplus-offer-outreach-tracker.xlsx' },
 };
 
@@ -2798,7 +2925,7 @@ const PALETTE_ITEMS = [
   { type:'Module', label:'Your first $500 in side income', section:'modules' },
   { type:'Module', label:'Salary negotiation playbook',section:'modules' },
   { type:'Tool',   label:'Foundation Plan',            section:'spreadsheets' },
-  { type:'Tool',   label:'Money System Planner',       section:'spreadsheets' },
+  { type:'Tool',   label:'Money System Planner',       section:'money-planner' },
   { type:'Tool',   label:'Offer & Outreach Tracker',   section:'spreadsheets' },
   { type:'Resource', label:'Salary negotiation script',  section:'resources' },
   { type:'Resource', label:'BRRRR cash-on-cash calculator', section:'resources' },
@@ -3414,6 +3541,7 @@ function applyMember(member){
   renderLadder();
   renderGoals();
   renderBuildPlan();
+  renderMoneyPlanner();
   if (accountabilityNeedsSave && !IS_PREVIEW_MODE) {
     saveMemberState().catch(() => {
       MEMBER_PROGRESS = progressBeforeAccountabilityNormalization;
@@ -3501,7 +3629,7 @@ async function openBillingPortal(){
 
 // ---------- NAVIGATION ----------
 const PRIMARY_MOBILE_SECTIONS = new Set(['home','modules','goals','community']);
-const MOBILE_MORE_SECTIONS = new Set(['ladder','spreadsheets','resources','workshops','replays','refer','profile','settings']);
+const MOBILE_MORE_SECTIONS = new Set(['ladder','spreadsheets','money-planner','resources','workshops','replays','refer','profile','settings']);
 
 function updateMobileNavigation(id){
   const activePrimary = id === 'module-detail' ? 'modules' : id;
@@ -3669,7 +3797,7 @@ function renderContinueCard(){
 function renderSheets(){
   const grid = document.getElementById('sheetsGrid');
   grid.innerHTML = SHEETS.map(s => {
-    const available = Boolean(s.asset);
+    const available = Boolean(s.asset || s.tool);
     return `
     <div class="card sheet-card hover-lift">
       <div class="sheet-preview">
@@ -3683,7 +3811,9 @@ function renderSheets(){
         <div class="sheet-name">${s.name}</div>
         <p class="sheet-desc">${s.desc}</p>
         <div class="sheet-foot">
-          ${available
+          ${s.tool === 'money-planner'
+            ? `<button class="btn btn-primary btn-sm" style="flex:1; justify-content:center" type="button" onclick="openMoneyPlanner()">${s.action} →</button>`
+            : available
             ? `<a class="btn btn-primary btn-sm" style="flex:1; justify-content:center" href="${s.asset}" target="_blank" rel="noopener">${s.action} →</a>`
             : `<button class="btn btn-ghost btn-sm coming-soon-btn" style="flex:1; justify-content:center" type="button" disabled>Coming soon</button>`}
         </div>
@@ -3691,6 +3821,152 @@ function renderSheets(){
     </div>`;
   }).join('');
 }
+
+// ---------- MONEY SYSTEM PLANNER ----------
+const MONEY_SNAPSHOT_FIELDS = ['takeHomeIncome','housing','utilities','transportation','insurance','groceries','otherEssentials','debtMinimums','discretionarySpending','otherOutflow'];
+const MONEY_PLAN_FIELDS = ['billsEssentials','debtPayoff','emergencySavings','investing','skillBusinessReinvestment','discretionary','other'];
+const MONEY_BUFFER_FIELDS = ['targetAmount','currentAmount','monthlyContribution'];
+
+function moneyValue(value){
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+}
+
+function moneyObject(source, fields){
+  const result = {};
+  fields.forEach(field => { result[field] = moneyValue(source?.[field]); });
+  return result;
+}
+
+function getMoneyPlannerData(){
+  const saved = MEMBER_PROGRESS?.tools?.moneyPlanner || {};
+  return {
+    snapshot: moneyObject(saved.snapshot, MONEY_SNAPSHOT_FIELDS),
+    monthlyPlan: moneyObject(saved.monthlyPlan, MONEY_PLAN_FIELDS),
+    buffer: moneyObject(saved.buffer, MONEY_BUFFER_FIELDS),
+    updatedAt: typeof saved.updatedAt === 'string' ? saved.updatedAt : null
+  };
+}
+
+function moneyFormat(value){
+  return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(value || 0);
+}
+
+function canUseMoneyPlanner(){
+  return !IS_PREVIEW_MODE && ['active','trialing'].includes(CURRENT_MEMBER?.subscriptionStatus);
+}
+
+function plannerInputValue(value){
+  return value > 0 ? String(value) : '';
+}
+
+function collectMoneyPlannerData(){
+  return {
+    snapshot: moneyObject(Object.fromEntries([...document.querySelectorAll('[data-money-snapshot]')].map(input => [input.dataset.moneySnapshot,input.value])), MONEY_SNAPSHOT_FIELDS),
+    monthlyPlan: moneyObject(Object.fromEntries([...document.querySelectorAll('[data-money-plan]')].map(input => [input.dataset.moneyPlan,input.value])), MONEY_PLAN_FIELDS),
+    buffer: moneyObject(Object.fromEntries([...document.querySelectorAll('[data-money-buffer]')].map(input => [input.dataset.moneyBuffer,input.value])), MONEY_BUFFER_FIELDS)
+  };
+}
+
+function updateMoneyPlannerCalculations(){
+  const data = collectMoneyPlannerData();
+  const snapshotOutflow = MONEY_SNAPSHOT_FIELDS.filter(field => field !== 'takeHomeIncome').reduce((total, field) => total + data.snapshot[field], 0);
+  const surplus = data.snapshot.takeHomeIncome - snapshotOutflow;
+  const planned = MONEY_PLAN_FIELDS.reduce((total, field) => total + data.monthlyPlan[field], 0);
+  const unassigned = data.snapshot.takeHomeIncome - planned;
+  const target = data.buffer.targetAmount;
+  const current = data.buffer.currentAmount;
+  const remaining = Math.max(0, target - current);
+  const percent = target > 0 ? Math.min(100, (current / target) * 100) : 0;
+  const months = remaining === 0 && target > 0 ? 0 : data.buffer.monthlyContribution > 0 ? Math.ceil(remaining / data.buffer.monthlyContribution) : null;
+
+  document.getElementById('snapshotIncomeTotal').textContent = moneyFormat(data.snapshot.takeHomeIncome);
+  document.getElementById('snapshotOutflowTotal').textContent = moneyFormat(snapshotOutflow);
+  document.getElementById('snapshotSurplusTotal').textContent = moneyFormat(surplus);
+  document.getElementById('snapshotSurplusRow').className = `money-calculation emphasis${surplus > 0 ? ' positive' : surplus < 0 ? ' negative' : ''}`;
+  document.getElementById('planIncomeTotal').textContent = moneyFormat(data.snapshot.takeHomeIncome);
+  document.getElementById('planAllocationTotal').textContent = moneyFormat(planned);
+  document.getElementById('planUnassignedTotal').textContent = moneyFormat(unassigned);
+  document.getElementById('planUnassignedRow').className = `money-calculation emphasis${unassigned > 0 ? ' positive' : unassigned < 0 ? ' negative' : ''}`;
+  document.getElementById('bufferRemaining').textContent = moneyFormat(remaining);
+  document.getElementById('bufferPercent').textContent = `${Math.round(percent)}%`;
+  document.getElementById('bufferMonths').textContent = months === null ? '—' : months === 0 ? 'Complete' : `${months} month${months === 1 ? '' : 's'}`;
+
+  const planMessage = document.getElementById('planStateMessage');
+  planMessage.className = 'money-plan-state';
+  if (unassigned === 0 && (data.snapshot.takeHomeIncome > 0 || planned > 0)) {
+    planMessage.classList.add('balanced');
+    planMessage.textContent = 'Your plan is fully assigned. Each dollar has a job.';
+  } else if (unassigned > 0) {
+    planMessage.textContent = `${moneyFormat(unassigned)} still needs a job. Assign it to a category that supports your priorities.`;
+  } else if (unassigned < 0) {
+    planMessage.classList.add('over');
+    planMessage.textContent = `Your plan is over-allocated by ${moneyFormat(Math.abs(unassigned))}. Adjust an assignment until the plan is balanced.`;
+  } else {
+    planMessage.textContent = 'Enter your take-home income and assignments to see what still needs a job.';
+  }
+}
+
+function renderMoneyPlanner(){
+  const workspace = document.getElementById('moneyPlannerWorkspace');
+  const locked = document.getElementById('moneyPlannerLocked');
+  if (!workspace || !locked) return;
+  const allowed = canUseMoneyPlanner();
+  workspace.hidden = !allowed;
+  locked.hidden = allowed;
+  if (!allowed) return;
+  const data = getMoneyPlannerData();
+  document.querySelectorAll('[data-money-snapshot]').forEach(input => { input.value = plannerInputValue(data.snapshot[input.dataset.moneySnapshot]); });
+  document.querySelectorAll('[data-money-plan]').forEach(input => { input.value = plannerInputValue(data.monthlyPlan[input.dataset.moneyPlan]); });
+  document.querySelectorAll('[data-money-buffer]').forEach(input => { input.value = plannerInputValue(data.buffer[input.dataset.moneyBuffer]); });
+  const status = document.getElementById('moneyPlannerSaveStatus');
+  status.className = 'money-planner-save-status';
+  status.textContent = data.updatedAt
+    ? `Last saved ${new Date(data.updatedAt).toLocaleString()}.`
+    : 'Your entries save only when you choose Save Money Plan.';
+  updateMoneyPlannerCalculations();
+}
+
+function openMoneyPlanner(){
+  if (IS_PREVIEW_MODE) { window.location.href = '/surplus.html#pricing'; return; }
+  renderMoneyPlanner();
+  analytics('money_planner_opened');
+  navigateTo('money-planner');
+}
+
+async function saveMoneyPlanner(){
+  if (!canUseMoneyPlanner()) { resubscribe(); return; }
+  const previousProgress = cloneProgress();
+  const status = document.getElementById('moneyPlannerSaveStatus');
+  const button = document.getElementById('saveMoneyPlannerButton');
+  const data = collectMoneyPlannerData();
+  MEMBER_PROGRESS = {
+    ...MEMBER_PROGRESS,
+    tools: {
+      ...(MEMBER_PROGRESS.tools && typeof MEMBER_PROGRESS.tools === 'object' ? MEMBER_PROGRESS.tools : {}),
+      moneyPlanner: {...data, updatedAt:new Date().toISOString()}
+    }
+  };
+  button.disabled = true;
+  status.className = 'money-planner-save-status';
+  status.textContent = 'Saving your money plan...';
+  try {
+    await saveMemberState();
+    status.className = 'money-planner-save-status success';
+    status.textContent = 'Money plan saved.';
+    analytics('money_planner_saved');
+  } catch (error) {
+    MEMBER_PROGRESS = previousProgress;
+    status.className = 'money-planner-save-status error';
+    status.textContent = 'Your plan was not saved. Please try again; your entries are still here.';
+  } finally {
+    button.disabled = false;
+  }
+}
+
+document.addEventListener('input', event => {
+  if (event.target.matches('[data-money-snapshot],[data-money-plan],[data-money-buffer]')) updateMoneyPlannerCalculations();
+});
 
 // ---------- RENDER LADDER ----------
 function renderLadder(){
@@ -4245,7 +4521,15 @@ function renderModuleDetail(){
   document.getElementById('moduleToolCopy').textContent = moduleTool
     ? moduleTool.copy
     : 'Three practical tools are available now; more are coming soon.';
-  if (moduleTool) {
+  if (moduleTool?.section) {
+    moduleToolLink.href = `#section-${moduleTool.section}`;
+    moduleToolLink.removeAttribute('target');
+    moduleToolLink.removeAttribute('rel');
+    moduleToolLink.onclick = event => {
+      event.preventDefault();
+      openMoneyPlanner();
+    };
+  } else if (moduleTool) {
     moduleToolLink.href = moduleTool.href;
     moduleToolLink.target = '_blank';
     moduleToolLink.rel = 'noopener';
@@ -4363,6 +4647,7 @@ renderBuildPlan();
 renderNotifs();
 setDate();
 setState('active');
+renderMoneyPlanner();
 if (IS_PREVIEW_MODE) {
   document.body.classList.add('preview-mode');
   document.getElementById('signin')?.classList.add('hidden');

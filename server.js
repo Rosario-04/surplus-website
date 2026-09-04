@@ -1434,6 +1434,12 @@ async function handleMemberState(req, res) {
     update.onboarding = body.onboarding;
   }
   if (body.progress && typeof body.progress === "object" && !Array.isArray(body.progress)) {
+    const currentPlanner = member.progress?.tools?.moneyPlanner || null;
+    const requestedPlanner = body.progress?.tools?.moneyPlanner || null;
+    const plannerChanged = JSON.stringify(currentPlanner) !== JSON.stringify(requestedPlanner);
+    if (plannerChanged && !membershipAllowsAccess(member.subscription_status)) {
+      return sendJson(res, 403, { error: "An active Surplus membership is required to update the Money System Planner." });
+    }
     update.progress = body.progress;
   }
   if (body.name) update.name = normalizeText(body.name, 100);
