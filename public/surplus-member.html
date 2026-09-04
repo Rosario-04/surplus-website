@@ -558,6 +558,45 @@
   .money-planner-locked{padding:28px; max-width:680px}
   .money-planner-locked h2{font-family:var(--serif); font-size:30px; font-weight:400; margin-bottom:8px}
   .money-planner-locked p{color:var(--ink-dim); line-height:1.6; margin-bottom:18px}
+
+  /* OFFER & OUTREACH TRACKER */
+  .offer-tracker-grid{display:grid; grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr); gap:18px; align-items:start}
+  .offer-tracker-card{padding:24px}
+  .offer-tracker-card h2{font-family:var(--serif); font-weight:500; font-size:24px; letter-spacing:-.015em; margin-bottom:6px}
+  .offer-tracker-card > p{color:var(--ink-dim); font-size:13px; line-height:1.55; margin-bottom:18px}
+  .tool-form-grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px}
+  .tool-field{display:grid; gap:6px; min-width:0}
+  .tool-field.wide{grid-column:1 / -1}
+  .tool-field label{font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); font-weight:500}
+  .tool-field input,.tool-field textarea,.tool-field select{width:100%; min-width:0; min-height:42px; padding:10px 12px; border:1px solid var(--line); border-radius:9px; background:var(--bg-2); color:var(--ink); font:inherit}
+  .tool-field textarea{min-height:76px; resize:vertical; line-height:1.45}
+  .tool-field input:focus,.tool-field textarea:focus,.tool-field select:focus{outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(185,154,85,.1)}
+  .offer-preview{padding:18px; border-radius:12px; background:rgba(185,154,85,.07); border:1px solid var(--line-gold); color:var(--ink-dim); font-size:14px; line-height:1.7}
+  .offer-preview-label{font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold-bright); font-weight:600; margin-bottom:8px}
+  .offer-preview strong{color:var(--ink); font-weight:500}
+  .offer-guidance{margin-top:14px; color:var(--ink-faint); font-size:12px; line-height:1.55}
+  .offer-results{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:18px}
+  .offer-result{padding:13px; border:1px solid var(--line); border-radius:10px; background:var(--glass)}
+  .offer-result-num{font-family:var(--serif); color:var(--ink); font-weight:500; font-size:22px; line-height:1.1; font-variant-numeric:tabular-nums}
+  .offer-result-label{margin-top:4px; color:var(--ink-faint); font-size:10px; line-height:1.35}
+  .follow-up-summary{margin-top:16px; padding:13px 14px; border-radius:10px; background:var(--glass); border:1px solid var(--line); color:var(--ink-dim); font-size:12px; line-height:1.5}
+  .follow-up-summary strong{color:var(--ink)}
+  .prospect-head{display:flex; justify-content:space-between; align-items:end; gap:14px; margin:28px 0 14px; flex-wrap:wrap}
+  .prospect-head h2{font-family:var(--serif); font-size:27px; font-weight:500; letter-spacing:-.015em}
+  .prospect-list{display:grid; gap:12px}
+  .prospect-card{padding:18px; border:1px solid var(--line); border-radius:12px; background:var(--glass)}
+  .prospect-card-head{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px}
+  .prospect-card-label{font-family:var(--serif); font-size:16px; color:var(--ink)}
+  .prospect-delete{border:0; padding:5px 0; background:none; color:var(--ink-faint); cursor:pointer; font:inherit; font-size:12px}
+  .prospect-delete:hover{color:var(--bad)}
+  .offer-tracker-actions{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:22px; padding:16px 18px; border:1px solid var(--line); border-radius:14px; background:var(--glass); flex-wrap:wrap}
+  .offer-tracker-save-status{color:var(--ink-dim); font-size:12px; line-height:1.5}
+  .offer-tracker-save-status.success{color:var(--good)}
+  .offer-tracker-save-status.error{color:var(--bad)}
+  .offer-tracker-empty{padding:26px; border:1px dashed var(--line-gold); border-radius:12px; color:var(--ink-dim); font-size:13px; line-height:1.6; text-align:center}
+  .offer-tracker-locked{padding:28px; max-width:680px}
+  .offer-tracker-locked h2{font-family:var(--serif); font-size:30px; font-weight:400; margin-bottom:8px}
+  .offer-tracker-locked p{color:var(--ink-dim); line-height:1.6; margin-bottom:18px}
   @media(max-width:760px){
     .money-planner-grid{grid-template-columns:1fr}
     .money-planner-card.wide{grid-column:auto}
@@ -567,6 +606,11 @@
     .money-planner-card.wide .money-field-list{grid-template-columns:1fr}
     .money-planner-actions{align-items:stretch}
     .money-planner-actions .btn{width:100%; justify-content:center; min-height:46px}
+    .offer-tracker-grid,.tool-form-grid{grid-template-columns:1fr}
+    .tool-field.wide{grid-column:auto}
+    .offer-results{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .offer-tracker-actions{align-items:stretch}
+    .offer-tracker-actions .btn{width:100%; justify-content:center; min-height:46px}
   }
 
   /* LADDER */
@@ -1943,6 +1987,72 @@
       </div>
     </section>
 
+    <!-- ===== OFFER & OUTREACH TRACKER ===== -->
+    <section class="section" id="section-offer-tracker">
+      <button class="module-detail-back" type="button" onclick="navigateTo('spreadsheets')">← Back to member tools</button>
+      <div class="page-head">
+        <div>
+          <div class="page-eyebrow">Module 3 Member Tool</div>
+          <h1 class="page-title">Offer &amp; Outreach <em>Tracker.</em></h1>
+          <p class="page-sub">Turn one useful skill into a clear offer, then use real outreach to learn what the market responds to.</p>
+        </div>
+      </div>
+
+      <div class="card offer-tracker-locked" id="offerTrackerLocked" hidden>
+        <div class="page-eyebrow">Membership required</div>
+        <h2>Your offer and outreach work is saved.</h2>
+        <p>An active Surplus membership is required to use and update the Offer &amp; Outreach Tracker. Resubscribe to return to your work.</p>
+        <button class="btn btn-primary" type="button" onclick="resubscribe()">View membership options →</button>
+      </div>
+
+      <div id="offerTrackerWorkspace">
+        <div class="offer-tracker-grid">
+          <section class="card offer-tracker-card">
+            <h2>Offer Builder</h2>
+            <p>Make the problem, result, and first price clear before you start pitching.</p>
+            <div class="tool-form-grid">
+              <div class="tool-field"><label for="offerSkillService">Skill / service</label><input id="offerSkillService" data-offer-field="skillService" type="text" placeholder="Example: furniture assembly"></div>
+              <div class="tool-field"><label for="offerCustomerType">Customer type</label><input id="offerCustomerType" data-offer-field="customerType" type="text" placeholder="Example: busy homeowners"></div>
+              <div class="tool-field"><label for="offerProblemSolved">Problem solved</label><input id="offerProblemSolved" data-offer-field="problemSolved" type="text" placeholder="Example: unfinished room setup"></div>
+              <div class="tool-field"><label for="offerResultDelivered">Result delivered</label><input id="offerResultDelivered" data-offer-field="resultDelivered" type="text" placeholder="Example: room assembled and ready"></div>
+              <div class="tool-field"><label for="offerPricingMethod">Pricing method</label><input id="offerPricingMethod" data-offer-field="pricingMethod" type="text" placeholder="Example: fixed price"></div>
+              <div class="tool-field"><label for="offerStartingPrice">Starting price / range</label><input id="offerStartingPrice" data-offer-field="startingPrice" type="text" placeholder="Example: $85 per project"></div>
+              <div class="tool-field"><label for="offerEstimatedHours">Estimated hours</label><input id="offerEstimatedHours" data-offer-field="estimatedHours" type="number" inputmode="decimal" min="0" step="0.25" placeholder="0"></div>
+              <div class="tool-field"><label for="offerDirectCost">Direct / material cost</label><input id="offerDirectCost" data-offer-field="directCost" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+              <div class="tool-field"><label for="offerHourlyValue">Desired hourly value</label><input id="offerHourlyValue" data-offer-field="desiredHourlyValue" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+              <div class="tool-field"><label for="offerRiskBuffer">Risk / margin buffer</label><input id="offerRiskBuffer" data-offer-field="riskBuffer" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+            </div>
+            <div class="offer-guidance">Keep the first version narrow. A clear buyer, problem, result, and price gives people something real to respond to.</div>
+          </section>
+
+          <aside class="card offer-tracker-card">
+            <h2>Your offer</h2>
+            <p>Use this sentence to pressure-test whether a prospect can understand the value.</p>
+            <div class="offer-preview" id="offerSentencePreview"></div>
+            <div class="offer-results" id="offerResults"></div>
+            <div class="follow-up-summary" id="offerFollowUpSummary"></div>
+          </aside>
+        </div>
+
+        <div class="prospect-head">
+          <div>
+            <div class="page-eyebrow">Outreach Tracker</div>
+            <h2>Prospects</h2>
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" onclick="addOfferProspect()">Add prospect</button>
+        </div>
+        <div class="prospect-list" id="offerProspectList"></div>
+
+        <div class="offer-tracker-actions">
+          <div class="offer-tracker-save-status" id="offerTrackerSaveStatus" aria-live="polite">Your entries save only when you choose Save Offer &amp; Outreach.</div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" type="button" onclick="openModuleDetail(3)">Return to Module 3</button>
+            <button class="btn btn-primary" type="button" id="saveOfferTrackerButton" onclick="saveOfferTracker()">Save Offer &amp; Outreach</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ===== LADDER ===== -->
     <section class="section" id="section-ladder">
       <div class="page-head">
@@ -2828,7 +2938,7 @@ const MODULES = [
 const SHEETS = [
   { module:1, name:'Foundation Plan', desc:'A printable plan for your 12-month target, operating standards, weekly blocks, and commitment.', asset:'/assets/surplus-foundation-plan.pdf', action:'Open plan', format:'Printable PDF' },
   { module:2, name:'Money System Planner', desc:'Use your real numbers to see your surplus, assign each dollar, and build your buffer.', tool:'money-planner', action:'Open Money Planner', format:'Interactive member tool' },
-  { module:3, name:'Offer & Outreach Tracker', desc:'Define a useful offer, send real outreach, and track the replies that improve it.', asset:'/assets/surplus-offer-outreach-tracker.xlsx', action:'Download Excel', format:'Excel workbook' },
+  { module:3, name:'Offer & Outreach Tracker', desc:'Build one useful offer, track real outreach, and use the replies to improve your next move.', tool:'offer-tracker', action:'Open Offer Tracker', format:'Interactive member tool' },
   { name:'Net Worth Tracker', desc:'A simple view of cash, investments, equity, and liabilities.', comingSoon:true },
   { name:'Debt Payoff Planner', desc:'A focused way to compare payoff methods and keep your next move visible.', comingSoon:true },
   { name:'Sinking Funds Planner', desc:'Plan for irregular expenses before they become emergencies.', comingSoon:true },
@@ -2841,7 +2951,7 @@ const SHEETS = [
 const MODULE_TOOLS = {
   1: { title:'Open Foundation Plan', copy:'Printable Module 1 worksheet', icon:'1', href:'/assets/surplus-foundation-plan.pdf' },
   2: { title:'Open Money System Planner', copy:'Interactive Module 2 money tool', icon:'2', section:'money-planner' },
-  3: { title:'Download Offer & Outreach Tracker', copy:'Excel workbook for your Module 3 offer and outreach', icon:'3', href:'/assets/surplus-offer-outreach-tracker.xlsx' },
+  3: { title:'Open Offer & Outreach Tracker', copy:'Interactive Module 3 offer and outreach tool', icon:'3', section:'offer-tracker' },
 };
 
 const LADDER = [
@@ -2933,7 +3043,7 @@ const PALETTE_ITEMS = [
   { type:'Module', label:'Salary negotiation playbook',section:'modules' },
   { type:'Tool',   label:'Foundation Plan',            section:'spreadsheets' },
   { type:'Tool',   label:'Money System Planner',       section:'money-planner' },
-  { type:'Tool',   label:'Offer & Outreach Tracker',   section:'spreadsheets' },
+  { type:'Tool',   label:'Offer & Outreach Tracker',   section:'offer-tracker' },
   { type:'Resource', label:'Salary negotiation script',  section:'resources' },
   { type:'Resource', label:'BRRRR cash-on-cash calculator', section:'resources' },
   { type:'Resource', label:'Recommended reading list', section:'resources' },
@@ -3549,6 +3659,7 @@ function applyMember(member){
   renderGoals();
   renderBuildPlan();
   renderMoneyPlanner();
+  renderOfferTracker();
   if (accountabilityNeedsSave && !IS_PREVIEW_MODE) {
     saveMemberState().catch(() => {
       MEMBER_PROGRESS = progressBeforeAccountabilityNormalization;
@@ -3636,7 +3747,7 @@ async function openBillingPortal(){
 
 // ---------- NAVIGATION ----------
 const PRIMARY_MOBILE_SECTIONS = new Set(['home','modules','goals','community']);
-const MOBILE_MORE_SECTIONS = new Set(['ladder','spreadsheets','money-planner','resources','workshops','replays','refer','profile','settings']);
+const MOBILE_MORE_SECTIONS = new Set(['ladder','spreadsheets','money-planner','offer-tracker','resources','workshops','replays','refer','profile','settings']);
 
 function updateMobileNavigation(id){
   const activePrimary = id === 'module-detail' ? 'modules' : id;
@@ -3674,7 +3785,7 @@ function openMobileMoreSection(id){
 }
 
 function navigateTo(id){
-  const navSection = id === 'money-planner' ? 'spreadsheets' : id;
+  const navSection = ['money-planner','offer-tracker'].includes(id) ? 'spreadsheets' : id;
   document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.section === navSection));
   updateMobileNavigation(id);
   document.querySelectorAll('.section').forEach(el => el.classList.toggle('active', el.id === `section-${id}`));
@@ -3819,8 +3930,8 @@ function renderSheets(){
         <div class="sheet-name">${s.name}</div>
         <p class="sheet-desc">${s.desc}</p>
         <div class="sheet-foot">
-          ${s.tool === 'money-planner'
-            ? `<button class="btn btn-primary btn-sm" style="flex:1; justify-content:center" type="button" onclick="openMoneyPlanner()">${s.action} →</button>`
+          ${s.tool === 'money-planner' || s.tool === 'offer-tracker'
+            ? `<button class="btn btn-primary btn-sm" style="flex:1; justify-content:center" type="button" onclick="${s.tool === 'money-planner' ? 'openMoneyPlanner' : 'openOfferTracker'}()">${s.action} →</button>`
             : available
             ? `<a class="btn btn-primary btn-sm" style="flex:1; justify-content:center" href="${s.asset}" target="_blank" rel="noopener">${s.action} →</a>`
             : `<button class="btn btn-ghost btn-sm coming-soon-btn" style="flex:1; justify-content:center" type="button" disabled>Coming soon</button>`}
@@ -3996,6 +4107,239 @@ document.addEventListener('input', event => {
     updateMoneyPlannerCalculations();
     setMoneyPlannerSaveStatus('Unsaved changes');
   }
+});
+
+// ---------- OFFER & OUTREACH TRACKER ----------
+const OFFER_FIELDS = ['skillService','customerType','problemSolved','resultDelivered','pricingMethod','startingPrice','estimatedHours','directCost','desiredHourlyValue','riskBuffer'];
+const PROSPECT_FIELDS = ['name','companySource','contactMethod','dateContacted','offer','response','followUpDate','status','notes'];
+const OUTREACH_STATUSES = ['Not contacted','Sent','Replied','Follow-up','Won','Not interested'];
+let OFFER_TRACKER_DRAFT = null;
+
+function escapeHtml(value){
+  return String(value || '').replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
+}
+
+function trackerText(value, limit = 500){
+  return typeof value === 'string' ? value.slice(0, limit) : '';
+}
+
+function createOfferTrackerId(){
+  return crypto.randomUUID ? crypto.randomUUID() : `prospect-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function normalizeOfferTracker(saved = {}){
+  const offer = {};
+  OFFER_FIELDS.forEach(field => { offer[field] = trackerText(saved.offer?.[field], 240); });
+  offer.updatedAt = typeof saved.offer?.updatedAt === 'string' ? saved.offer.updatedAt : null;
+  const prospects = Array.isArray(saved.prospects) ? saved.prospects.slice(0,100).map(item => {
+    const prospect = {id:trackerText(item?.id,100) || createOfferTrackerId()};
+    PROSPECT_FIELDS.forEach(field => {
+      prospect[field] = field === 'status'
+        ? (OUTREACH_STATUSES.includes(item?.[field]) ? item[field] : 'Not contacted')
+        : trackerText(item?.[field], field === 'notes' ? 2000 : 500);
+    });
+    prospect.createdAt = typeof item?.createdAt === 'string' ? item.createdAt : null;
+    prospect.updatedAt = typeof item?.updatedAt === 'string' ? item.updatedAt : null;
+    return prospect;
+  }) : [];
+  return {offer, prospects, updatedAt:typeof saved.updatedAt === 'string' ? saved.updatedAt : null};
+}
+
+function getOfferTrackerData(){
+  return normalizeOfferTracker(MEMBER_PROGRESS?.tools?.offerOutreach || {});
+}
+
+function canUseOfferTracker(){
+  return !IS_PREVIEW_MODE && ['active','trialing'].includes(CURRENT_MEMBER?.subscriptionStatus);
+}
+
+function setOfferTrackerSaveStatus(message, state = ''){
+  const status = document.getElementById('offerTrackerSaveStatus');
+  if (!status) return;
+  status.className = `offer-tracker-save-status${state ? ` ${state}` : ''}`;
+  status.dataset.saveState = state;
+  status.textContent = message;
+}
+
+function getOutreachMetrics(){
+  const prospects = OFFER_TRACKER_DRAFT?.prospects || [];
+  const sent = prospects.filter(prospect => prospect.status !== 'Not contacted').length;
+  const replies = prospects.filter(prospect => ['Replied','Follow-up','Won'].includes(prospect.status)).length;
+  const followUps = prospects.filter(prospect => prospect.status === 'Follow-up').length;
+  const won = prospects.filter(prospect => prospect.status === 'Won').length;
+  return {
+    total:prospects.length,
+    sent,
+    replies,
+    followUps,
+    won,
+    responseRate:sent ? (replies / sent) * 100 : 0,
+    winRate:sent ? (won / sent) * 100 : 0
+  };
+}
+
+function renderOfferPreview(){
+  const offer = OFFER_TRACKER_DRAFT?.offer || {};
+  const customer = escapeHtml(offer.customerType || 'your customer');
+  const problem = escapeHtml(offer.problemSolved || 'a specific problem');
+  const result = escapeHtml(offer.resultDelivered || offer.skillService || 'a useful result');
+  const price = escapeHtml(offer.startingPrice || offer.pricingMethod || 'a clear price');
+  document.getElementById('offerSentencePreview').innerHTML = `<div class="offer-preview-label">Live offer preview</div>I help <strong>${customer}</strong> solve <strong>${problem}</strong> by providing <strong>${result}</strong> for <strong>${price}</strong>.`;
+}
+
+function renderOfferTrackerSummary(){
+  const metrics = getOutreachMetrics();
+  document.getElementById('offerResults').innerHTML = [
+    ['Prospects',metrics.total],['Contacts sent',metrics.sent],['Replies',metrics.replies],
+    ['Follow-ups',metrics.followUps],['Won',metrics.won],['Response rate',`${Math.round(metrics.responseRate)}%`],
+    ['Win rate',`${Math.round(metrics.winRate)}%`]
+  ].map(([label,value]) => `<div class="offer-result"><div class="offer-result-num">${value}</div><div class="offer-result-label">${label}</div></div>`).join('');
+  const today = localDateKey();
+  const openProspects = (OFFER_TRACKER_DRAFT?.prospects || []).filter(prospect => !['Won','Not interested'].includes(prospect.status));
+  const dueToday = openProspects.filter(prospect => prospect.followUpDate === today).length;
+  const overdue = openProspects.filter(prospect => prospect.followUpDate && prospect.followUpDate < today).length;
+  document.getElementById('offerFollowUpSummary').innerHTML = overdue
+    ? `<strong>${overdue} overdue follow-up${overdue === 1 ? '' : 's'}.</strong> ${dueToday ? `${dueToday} due today.` : 'Choose the next outreach move.'}`
+    : dueToday
+    ? `<strong>${dueToday} follow-up${dueToday === 1 ? '' : 's'} due today.</strong> Keep the next conversation moving.`
+    : '<strong>No follow-ups due today.</strong> Set a date when a prospect needs a next touch.';
+}
+
+function prospectField(prospect, field, label, type = 'text', wide = false){
+  const value = escapeHtml(prospect[field]);
+  const attributes = `data-prospect-id="${escapeHtml(prospect.id)}" data-prospect-field="${field}"`;
+  if (field === 'status') {
+    return `<div class="tool-field${wide ? ' wide' : ''}"><label>${label}</label><select ${attributes}>${OUTREACH_STATUSES.map(status => `<option value="${status}"${prospect.status === status ? ' selected' : ''}>${status}</option>`).join('')}</select></div>`;
+  }
+  if (type === 'textarea') return `<div class="tool-field${wide ? ' wide' : ''}"><label>${label}</label><textarea ${attributes} placeholder="Add notes">${value}</textarea></div>`;
+  return `<div class="tool-field${wide ? ' wide' : ''}"><label>${label}</label><input ${attributes} type="${type}" value="${value}"${type === 'date' ? '' : ` placeholder="${label}"`}></div>`;
+}
+
+function renderOfferProspects(){
+  const list = document.getElementById('offerProspectList');
+  const prospects = OFFER_TRACKER_DRAFT?.prospects || [];
+  if (!prospects.length) {
+    list.innerHTML = '<div class="offer-tracker-empty">Add the first person or business you want to contact. The goal is a real conversation, not a perfect pitch.</div>';
+    return;
+  }
+  list.innerHTML = prospects.map((prospect, index) => `<article class="prospect-card">
+    <div class="prospect-card-head"><div class="prospect-card-label">Prospect ${index + 1}</div><button class="prospect-delete" type="button" data-delete-prospect="${escapeHtml(prospect.id)}">Remove</button></div>
+    <div class="tool-form-grid">
+      ${prospectField(prospect,'name','Prospect name')}
+      ${prospectField(prospect,'companySource','Company / source')}
+      ${prospectField(prospect,'contactMethod','Contact method')}
+      ${prospectField(prospect,'dateContacted','Date contacted','date')}
+      ${prospectField(prospect,'offer','Offer')}
+      ${prospectField(prospect,'response','Response')}
+      ${prospectField(prospect,'followUpDate','Follow-up date','date')}
+      ${prospectField(prospect,'status','Status')}
+      ${prospectField(prospect,'notes','Notes','textarea',true)}
+    </div>
+  </article>`).join('');
+}
+
+function renderOfferTracker(){
+  const workspace = document.getElementById('offerTrackerWorkspace');
+  const locked = document.getElementById('offerTrackerLocked');
+  if (!workspace || !locked) return;
+  const allowed = canUseOfferTracker();
+  workspace.hidden = !allowed;
+  locked.hidden = allowed;
+  if (!allowed) return;
+  OFFER_TRACKER_DRAFT = getOfferTrackerData();
+  document.querySelectorAll('[data-offer-field]').forEach(input => { input.value = OFFER_TRACKER_DRAFT.offer[input.dataset.offerField] || ''; });
+  renderOfferPreview();
+  renderOfferTrackerSummary();
+  renderOfferProspects();
+  setOfferTrackerSaveStatus(
+    OFFER_TRACKER_DRAFT.updatedAt ? `Saved · ${new Date(OFFER_TRACKER_DRAFT.updatedAt).toLocaleString()}.` : 'Your entries save only when you choose Save Offer & Outreach.',
+    OFFER_TRACKER_DRAFT.updatedAt ? 'success' : ''
+  );
+}
+
+function openOfferTracker(){
+  if (IS_PREVIEW_MODE) { window.location.href = '/surplus.html#pricing'; return; }
+  renderOfferTracker();
+  analytics('offer_tracker_opened');
+  navigateTo('offer-tracker');
+}
+
+function addOfferProspect(){
+  if (!canUseOfferTracker()) { resubscribe(); return; }
+  if (OFFER_TRACKER_DRAFT.prospects.length >= 100) { showToast('Keep this tracker focused: 100 prospects is the current limit.'); return; }
+  const now = new Date().toISOString();
+  const prospect = {id:createOfferTrackerId(),name:'',companySource:'',contactMethod:'',dateContacted:'',offer:'',response:'',followUpDate:'',status:'Not contacted',notes:'',createdAt:now,updatedAt:now};
+  OFFER_TRACKER_DRAFT.prospects.push(prospect);
+  renderOfferProspects();
+  renderOfferTrackerSummary();
+  setOfferTrackerSaveStatus('Unsaved changes');
+  document.querySelector(`[data-prospect-id="${prospect.id}"][data-prospect-field="name"]`)?.focus();
+}
+
+function deleteOfferProspect(id){
+  if (!canUseOfferTracker()) { resubscribe(); return; }
+  OFFER_TRACKER_DRAFT.prospects = OFFER_TRACKER_DRAFT.prospects.filter(prospect => prospect.id !== id);
+  renderOfferProspects();
+  renderOfferTrackerSummary();
+  setOfferTrackerSaveStatus('Unsaved changes');
+}
+
+function updateOfferTrackerFromControl(control){
+  if (!OFFER_TRACKER_DRAFT) return;
+  if (control.dataset.offerField) {
+    OFFER_TRACKER_DRAFT.offer[control.dataset.offerField] = trackerText(control.value, 240);
+    OFFER_TRACKER_DRAFT.offer.updatedAt = new Date().toISOString();
+    renderOfferPreview();
+  }
+  if (control.dataset.prospectId) {
+    const prospect = OFFER_TRACKER_DRAFT.prospects.find(item => item.id === control.dataset.prospectId);
+    if (!prospect) return;
+    const field = control.dataset.prospectField;
+    prospect[field] = field === 'status'
+      ? (OUTREACH_STATUSES.includes(control.value) ? control.value : 'Not contacted')
+      : trackerText(control.value, field === 'notes' ? 2000 : 500);
+    prospect.updatedAt = new Date().toISOString();
+    renderOfferTrackerSummary();
+  }
+  setOfferTrackerSaveStatus('Unsaved changes');
+}
+
+async function saveOfferTracker(){
+  if (!canUseOfferTracker()) { resubscribe(); return; }
+  const previousProgress = cloneProgress();
+  const button = document.getElementById('saveOfferTrackerButton');
+  OFFER_TRACKER_DRAFT.updatedAt = new Date().toISOString();
+  MEMBER_PROGRESS = {
+    ...MEMBER_PROGRESS,
+    tools: {
+      ...(MEMBER_PROGRESS.tools && typeof MEMBER_PROGRESS.tools === 'object' ? MEMBER_PROGRESS.tools : {}),
+      offerOutreach: normalizeOfferTracker(OFFER_TRACKER_DRAFT)
+    }
+  };
+  button.disabled = true;
+  setOfferTrackerSaveStatus('Saving your offer and outreach...');
+  try {
+    await saveMemberState();
+    setOfferTrackerSaveStatus('Saved · just now.', 'success');
+    analytics('offer_tracker_saved');
+  } catch (error) {
+    MEMBER_PROGRESS = previousProgress;
+    setOfferTrackerSaveStatus("Couldn't save - try again. Your entries are still here.", 'error');
+  } finally {
+    button.disabled = false;
+  }
+}
+
+document.addEventListener('input', event => {
+  if (event.target.matches('[data-offer-field],[data-prospect-id]')) updateOfferTrackerFromControl(event.target);
+});
+document.addEventListener('change', event => {
+  if (event.target.matches('[data-prospect-id]')) updateOfferTrackerFromControl(event.target);
+});
+
+document.addEventListener('click', event => {
+  const button = event.target.closest('[data-delete-prospect]');
+  if (button) deleteOfferProspect(button.dataset.deleteProspect);
 });
 
 // ---------- RENDER LADDER ----------
@@ -4678,6 +5022,7 @@ renderNotifs();
 setDate();
 setState('active');
 renderMoneyPlanner();
+renderOfferTracker();
 if (IS_PREVIEW_MODE) {
   document.body.classList.add('preview-mode');
   document.getElementById('signin')?.classList.add('hidden');
