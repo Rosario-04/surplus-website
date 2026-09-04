@@ -1440,6 +1440,12 @@ async function handleMemberState(req, res) {
     if (plannerChanged && !membershipAllowsAccess(member.subscription_status)) {
       return sendJson(res, 403, { error: "An active Surplus membership is required to update the Money System Planner." });
     }
+    const currentFoundationPlan = member.progress?.tools?.foundationPlan || null;
+    const requestedFoundationPlan = body.progress?.tools?.foundationPlan || null;
+    const foundationPlanChanged = JSON.stringify(currentFoundationPlan) !== JSON.stringify(requestedFoundationPlan);
+    if (foundationPlanChanged && !membershipAllowsAccess(member.subscription_status)) {
+      return sendJson(res, 403, { error: "An active Surplus membership is required to update the Foundation Plan." });
+    }
     const currentOfferTracker = member.progress?.tools?.offerOutreach || null;
     const requestedOfferTracker = body.progress?.tools?.offerOutreach || null;
     const offerTrackerChanged = JSON.stringify(currentOfferTracker) !== JSON.stringify(requestedOfferTracker);

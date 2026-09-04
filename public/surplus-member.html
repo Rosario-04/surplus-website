@@ -559,6 +559,29 @@
   .money-planner-locked h2{font-family:var(--serif); font-size:30px; font-weight:400; margin-bottom:8px}
   .money-planner-locked p{color:var(--ink-dim); line-height:1.6; margin-bottom:18px}
 
+  /* FOUNDATION PLAN */
+  .foundation-plan-grid{display:grid; grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr); gap:18px; align-items:start}
+  .foundation-plan-card{padding:24px}
+  .foundation-plan-card h2{font-family:var(--serif); font-weight:500; font-size:24px; letter-spacing:-.015em; margin-bottom:6px}
+  .foundation-plan-card > p{color:var(--ink-dim); font-size:13px; line-height:1.55; margin-bottom:18px}
+  .foundation-plan-card.wide{grid-column:1 / -1}
+  .foundation-plan-rows{display:grid; gap:12px}
+  .foundation-plan-row{padding:16px; border:1px solid var(--line); border-radius:12px; background:var(--glass)}
+  .foundation-plan-row + .foundation-plan-row{margin-top:0}
+  .foundation-plan-row-title{font-family:var(--serif); font-size:16px; color:var(--ink); margin-bottom:12px}
+  .foundation-plan-summary{padding:18px; border-radius:12px; background:rgba(185,154,85,.07); border:1px solid var(--line-gold); color:var(--ink-dim); font-size:14px; line-height:1.65}
+  .foundation-plan-summary-label{font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold-bright); font-weight:600; margin-bottom:8px}
+  .foundation-plan-summary ul{margin:10px 0 0 18px; padding:0}
+  .foundation-plan-summary li + li{margin-top:5px}
+  .foundation-plan-summary strong{color:var(--ink); font-weight:500}
+  .foundation-plan-actions{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:22px; padding:16px 18px; border:1px solid var(--line); border-radius:14px; background:var(--glass); flex-wrap:wrap}
+  .foundation-plan-save-status{color:var(--ink-dim); font-size:12px; line-height:1.5}
+  .foundation-plan-save-status.success{color:var(--good)}
+  .foundation-plan-save-status.error{color:var(--bad)}
+  .foundation-plan-locked{padding:28px; max-width:680px}
+  .foundation-plan-locked h2{font-family:var(--serif); font-size:30px; font-weight:400; margin-bottom:8px}
+  .foundation-plan-locked p{color:var(--ink-dim); line-height:1.6; margin-bottom:18px}
+
   /* OFFER & OUTREACH TRACKER */
   .offer-tracker-grid{display:grid; grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr); gap:18px; align-items:start}
   .offer-tracker-card{padding:24px}
@@ -606,6 +629,11 @@
     .money-planner-card.wide .money-field-list{grid-template-columns:1fr}
     .money-planner-actions{align-items:stretch}
     .money-planner-actions .btn{width:100%; justify-content:center; min-height:46px}
+    .foundation-plan-grid{grid-template-columns:1fr}
+    .foundation-plan-card.wide{grid-column:auto}
+    .foundation-plan-card{padding:20px}
+    .foundation-plan-actions{align-items:stretch}
+    .foundation-plan-actions .btn{width:100%; justify-content:center; min-height:46px}
     .offer-tracker-grid,.tool-form-grid{grid-template-columns:1fr}
     .tool-field.wide{grid-column:auto}
     .offer-results{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -1898,6 +1926,77 @@
       <div class="sheets-grid" id="sheetsGrid"></div>
     </section>
 
+    <!-- ===== FOUNDATION PLAN ===== -->
+    <section class="section" id="section-foundation-plan">
+      <button class="module-detail-back" type="button" onclick="navigateTo('spreadsheets')">← Back to member tools</button>
+      <div class="page-head">
+        <div>
+          <div class="page-eyebrow">Module 1 Member Tool</div>
+          <h1 class="page-title">Foundation <em>Plan.</em></h1>
+          <p class="page-sub">Choose the target, standards, and protected blocks that make the next 12 months intentional.</p>
+        </div>
+      </div>
+
+      <div class="card foundation-plan-locked" id="foundationPlanLocked" hidden>
+        <div class="page-eyebrow">Membership required</div>
+        <h2>Your foundation plan is saved.</h2>
+        <p>An active Surplus membership is required to use and update the Foundation Plan. Resubscribe to return to your plan.</p>
+        <button class="btn btn-primary" type="button" onclick="resubscribe()">View membership options →</button>
+      </div>
+
+      <div id="foundationPlanWorkspace">
+        <div class="foundation-plan-grid">
+          <section class="card foundation-plan-card">
+            <h2>12-Month Target</h2>
+            <p>Write the changes you are building toward. Keep this specific enough to guide your week.</p>
+            <div class="tool-form-grid">
+              <div class="tool-field wide"><label for="foundationVision">What do I want to be different 12 months from now?</label><textarea id="foundationVision" data-foundation-target="twelveMonthVision" placeholder="Example: I have a cash buffer, a clear income plan, and my work week has room to build."></textarea></div>
+              <div class="tool-field"><label for="foundationIncome">Income target</label><input id="foundationIncome" data-foundation-target="incomeTarget" type="text" placeholder="Example: $1,000/mo additional income"></div>
+              <div class="tool-field"><label for="foundationDebtCash">Debt / cash target</label><input id="foundationDebtCash" data-foundation-target="debtCashTarget" type="text" placeholder="Example: $3,000 cash buffer"></div>
+              <div class="tool-field"><label for="foundationSkillBusiness">Skill / business target</label><input id="foundationSkillBusiness" data-foundation-target="skillBusinessTarget" type="text" placeholder="Example: 3 paying maintenance clients"></div>
+              <div class="tool-field"><label for="foundationOperating">Personal operating target</label><input id="foundationOperating" data-foundation-target="personalOperatingTarget" type="text" placeholder="Example: Review money every Sunday"></div>
+              <div class="tool-field wide"><label for="foundationSuccess">One-sentence definition of success</label><textarea id="foundationSuccess" data-foundation-target="successDefinition" placeholder="Example: I can make decisions from a plan instead of reacting to every bill or opportunity."></textarea></div>
+            </div>
+          </section>
+
+          <aside class="card foundation-plan-card">
+            <h2>Your plan</h2>
+            <p>A short view of the commitments you have entered so far.</p>
+            <div class="foundation-plan-summary" id="foundationPlanSummary"></div>
+          </aside>
+
+          <section class="card foundation-plan-card wide">
+            <h2>Operating Standards</h2>
+            <p>Two standards are enough for V1. Define the weekly behavior that proves each one is real.</p>
+            <div class="foundation-plan-rows" id="foundationStandards"></div>
+          </section>
+
+          <section class="card foundation-plan-card wide">
+            <h2>Protected Weekly Blocks</h2>
+            <p>Choose two blocks for the work that gets crowded out when the week becomes reactive.</p>
+            <div class="foundation-plan-rows" id="foundationWeeklyBlocks"></div>
+          </section>
+
+          <section class="card foundation-plan-card wide">
+            <h2>Commitment</h2>
+            <p>Make room for the blocks before they reach the calendar.</p>
+            <div class="tool-form-grid">
+              <div class="tool-field wide"><label for="foundationStopDoing">What will I stop doing to protect these blocks?</label><textarea id="foundationStopDoing" data-foundation-commitment="stopDoing" placeholder="Example: I will stop using Sunday afternoon for unplanned errands and scrolling."></textarea></div>
+              <div class="tool-field"><label for="foundationStartDate">Start date</label><input id="foundationStartDate" data-foundation-commitment="startDate" type="date"></div>
+            </div>
+          </section>
+        </div>
+
+        <div class="foundation-plan-actions">
+          <div class="foundation-plan-save-status" id="foundationPlanSaveStatus" aria-live="polite">Your plan saves only when you choose Save Foundation Plan.</div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" type="button" onclick="openModuleDetail(1)">Return to Module 1</button>
+            <button class="btn btn-primary" type="button" id="saveFoundationPlanButton" onclick="saveFoundationPlan()">Save Foundation Plan</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ===== MONEY SYSTEM PLANNER ===== -->
     <section class="section" id="section-money-planner">
       <button class="module-detail-back" type="button" onclick="navigateTo('spreadsheets')">← Back to member tools</button>
@@ -2936,7 +3035,7 @@ const MODULES = [
 ];
 
 const SHEETS = [
-  { module:1, name:'Foundation Plan', desc:'A printable plan for your 12-month target, operating standards, weekly blocks, and commitment.', asset:'/assets/surplus-foundation-plan.pdf', action:'Open plan', format:'Printable PDF' },
+  { module:1, name:'Foundation Plan', desc:'Set a 12-month target, two operating standards, and protected weekly blocks.', tool:'foundation-plan', action:'Open Foundation Plan', format:'Interactive member tool' },
   { module:2, name:'Money System Planner', desc:'Use your real numbers to see your surplus, assign each dollar, and build your buffer.', tool:'money-planner', action:'Open Money Planner', format:'Interactive member tool' },
   { module:3, name:'Offer & Outreach Tracker', desc:'Build one useful offer, track real outreach, and use the replies to improve your next move.', tool:'offer-tracker', action:'Open Offer Tracker', format:'Interactive member tool' },
   { name:'Net Worth Tracker', desc:'A simple view of cash, investments, equity, and liabilities.', comingSoon:true },
@@ -2949,7 +3048,7 @@ const SHEETS = [
 ];
 
 const MODULE_TOOLS = {
-  1: { title:'Open Foundation Plan', copy:'Printable Module 1 worksheet', icon:'1', href:'/assets/surplus-foundation-plan.pdf' },
+  1: { title:'Open Foundation Plan', copy:'Interactive Module 1 operating-plan tool', icon:'1', section:'foundation-plan' },
   2: { title:'Open Money System Planner', copy:'Interactive Module 2 money tool', icon:'2', section:'money-planner' },
   3: { title:'Open Offer & Outreach Tracker', copy:'Interactive Module 3 offer and outreach tool', icon:'3', section:'offer-tracker' },
 };
@@ -3041,7 +3140,7 @@ const PALETTE_ITEMS = [
   { type:'Module', label:'Snowball vs avalanche',     section:'modules' },
   { type:'Module', label:'Your first $500 in side income', section:'modules' },
   { type:'Module', label:'Salary negotiation playbook',section:'modules' },
-  { type:'Tool',   label:'Foundation Plan',            section:'spreadsheets' },
+  { type:'Tool',   label:'Foundation Plan',            section:'foundation-plan' },
   { type:'Tool',   label:'Money System Planner',       section:'money-planner' },
   { type:'Tool',   label:'Offer & Outreach Tracker',   section:'offer-tracker' },
   { type:'Resource', label:'Salary negotiation script',  section:'resources' },
@@ -3658,6 +3757,7 @@ function applyMember(member){
   renderLadder();
   renderGoals();
   renderBuildPlan();
+  renderFoundationPlan();
   renderMoneyPlanner();
   renderOfferTracker();
   if (accountabilityNeedsSave && !IS_PREVIEW_MODE) {
@@ -3747,7 +3847,7 @@ async function openBillingPortal(){
 
 // ---------- NAVIGATION ----------
 const PRIMARY_MOBILE_SECTIONS = new Set(['home','modules','goals','community']);
-const MOBILE_MORE_SECTIONS = new Set(['ladder','spreadsheets','money-planner','offer-tracker','resources','workshops','replays','refer','profile','settings']);
+const MOBILE_MORE_SECTIONS = new Set(['ladder','spreadsheets','foundation-plan','money-planner','offer-tracker','resources','workshops','replays','refer','profile','settings']);
 
 function updateMobileNavigation(id){
   const activePrimary = id === 'module-detail' ? 'modules' : id;
@@ -3785,7 +3885,7 @@ function openMobileMoreSection(id){
 }
 
 function navigateTo(id){
-  const navSection = ['money-planner','offer-tracker'].includes(id) ? 'spreadsheets' : id;
+  const navSection = ['foundation-plan','money-planner','offer-tracker'].includes(id) ? 'spreadsheets' : id;
   document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.section === navSection));
   updateMobileNavigation(id);
   document.querySelectorAll('.section').forEach(el => el.classList.toggle('active', el.id === `section-${id}`));
@@ -3930,8 +4030,8 @@ function renderSheets(){
         <div class="sheet-name">${s.name}</div>
         <p class="sheet-desc">${s.desc}</p>
         <div class="sheet-foot">
-          ${s.tool === 'money-planner' || s.tool === 'offer-tracker'
-            ? `<button class="btn btn-primary btn-sm" style="flex:1; justify-content:center" type="button" onclick="${s.tool === 'money-planner' ? 'openMoneyPlanner' : 'openOfferTracker'}()">${s.action} →</button>`
+          ${['foundation-plan','money-planner','offer-tracker'].includes(s.tool)
+            ? `<button class="btn btn-primary btn-sm" style="flex:1; justify-content:center" type="button" onclick="openMemberTool('${s.tool}')">${s.action} →</button>`
             : available
             ? `<a class="btn btn-primary btn-sm" style="flex:1; justify-content:center" href="${s.asset}" target="_blank" rel="noopener">${s.action} →</a>`
             : `<button class="btn btn-ghost btn-sm coming-soon-btn" style="flex:1; justify-content:center" type="button" disabled>Coming soon</button>`}
@@ -3940,6 +4040,208 @@ function renderSheets(){
     </div>`;
   }).join('');
 }
+
+// ---------- FOUNDATION PLAN ----------
+const FOUNDATION_TARGET_FIELDS = ['twelveMonthVision','incomeTarget','debtCashTarget','skillBusinessTarget','personalOperatingTarget','successDefinition'];
+const FOUNDATION_STANDARD_FIELDS = ['name','whyItMatters','minimumWeeklyBehavior'];
+const FOUNDATION_BLOCK_FIELDS = ['label','day','startTime','durationMinutes'];
+const FOUNDATION_DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+let FOUNDATION_PLAN_DRAFT = null;
+
+function foundationText(value, limit = 2000){
+  return typeof value === 'string' ? value.slice(0, limit) : '';
+}
+
+function createFoundationStandard(index){
+  return {id:'standard-' + (index + 1), name:'', whyItMatters:'', minimumWeeklyBehavior:''};
+}
+
+function createFoundationBlock(index){
+  return {id:'block-' + (index + 1), label:'', day:'', startTime:'', durationMinutes:''};
+}
+
+function normalizeFoundationPlan(saved = {}){
+  const target = {};
+  FOUNDATION_TARGET_FIELDS.forEach(field => { target[field] = foundationText(saved.target?.[field]); });
+  const standards = [0,1].map(index => {
+    const source = Array.isArray(saved.standards) ? saved.standards[index] : null;
+    const standard = createFoundationStandard(index);
+    FOUNDATION_STANDARD_FIELDS.forEach(field => { standard[field] = foundationText(source?.[field], 1000); });
+    return standard;
+  });
+  const weeklyBlocks = [0,1].map(index => {
+    const source = Array.isArray(saved.weeklyBlocks) ? saved.weeklyBlocks[index] : null;
+    const block = createFoundationBlock(index);
+    FOUNDATION_BLOCK_FIELDS.forEach(field => { block[field] = foundationText(source?.[field], 100); });
+    return block;
+  });
+  return {
+    target,
+    standards,
+    weeklyBlocks,
+    stopDoing:foundationText(saved.stopDoing),
+    startDate:foundationText(saved.startDate, 20),
+    updatedAt:typeof saved.updatedAt === 'string' ? saved.updatedAt : null
+  };
+}
+
+function getFoundationPlanData(){
+  return normalizeFoundationPlan(MEMBER_PROGRESS?.tools?.foundationPlan || {});
+}
+
+function canUseFoundationPlan(){
+  return !IS_PREVIEW_MODE && ['active','trialing'].includes(CURRENT_MEMBER?.subscriptionStatus);
+}
+
+function setFoundationPlanSaveStatus(message, state = ''){
+  const status = document.getElementById('foundationPlanSaveStatus');
+  if (!status) return;
+  status.className = 'foundation-plan-save-status' + (state ? ' ' + state : '');
+  status.textContent = message;
+}
+
+function foundationDate(value){
+  if (!value) return '';
+  const parsed = new Date(value + 'T00:00:00');
+  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleDateString();
+}
+
+function renderFoundationStandards(){
+  const container = document.getElementById('foundationStandards');
+  if (!container || !FOUNDATION_PLAN_DRAFT) return;
+  container.innerHTML = FOUNDATION_PLAN_DRAFT.standards.map((standard, index) =>
+    '<div class="foundation-plan-row">' +
+      '<div class="foundation-plan-row-title">Standard ' + (index + 1) + '</div>' +
+      '<div class="tool-form-grid">' +
+        '<div class="tool-field"><label>Standard</label><input data-foundation-standard="' + index + '" data-foundation-standard-field="name" type="text" value="' + escapeHtml(standard.name) + '" placeholder="Example: Review money every Sunday"></div>' +
+        '<div class="tool-field"><label>Why it matters</label><input data-foundation-standard="' + index + '" data-foundation-standard-field="whyItMatters" type="text" value="' + escapeHtml(standard.whyItMatters) + '" placeholder="Example: I need to know where money went"></div>' +
+        '<div class="tool-field wide"><label>Minimum weekly behavior</label><input data-foundation-standard="' + index + '" data-foundation-standard-field="minimumWeeklyBehavior" type="text" value="' + escapeHtml(standard.minimumWeeklyBehavior) + '" placeholder="Example: 20-minute Sunday review"></div>' +
+      '</div>' +
+    '</div>'
+  ).join('');
+}
+
+function renderFoundationBlocks(){
+  const container = document.getElementById('foundationWeeklyBlocks');
+  if (!container || !FOUNDATION_PLAN_DRAFT) return;
+  container.innerHTML = FOUNDATION_PLAN_DRAFT.weeklyBlocks.map((block, index) => {
+    const days = FOUNDATION_DAYS.map(day => '<option value="' + day + '"' + (block.day === day ? ' selected' : '') + '>' + day + '</option>').join('');
+    return '<div class="foundation-plan-row">' +
+      '<div class="foundation-plan-row-title">Block ' + (index + 1) + '</div>' +
+      '<div class="tool-form-grid">' +
+        '<div class="tool-field"><label>Block name / purpose</label><input data-foundation-block="' + index + '" data-foundation-block-field="label" type="text" value="' + escapeHtml(block.label) + '" placeholder="Example: Income building"></div>' +
+        '<div class="tool-field"><label>Day</label><select data-foundation-block="' + index + '" data-foundation-block-field="day"><option value="">Choose a day</option>' + days + '</select></div>' +
+        '<div class="tool-field"><label>Start time</label><input data-foundation-block="' + index + '" data-foundation-block-field="startTime" type="time" value="' + escapeHtml(block.startTime) + '"></div>' +
+        '<div class="tool-field"><label>Duration (minutes)</label><input data-foundation-block="' + index + '" data-foundation-block-field="durationMinutes" type="number" inputmode="numeric" min="0" step="15" value="' + escapeHtml(block.durationMinutes) + '" placeholder="60"></div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderFoundationPlanSummary(){
+  const target = FOUNDATION_PLAN_DRAFT?.target || {};
+  const summary = [];
+  const definition = target.successDefinition || target.twelveMonthVision;
+  if (definition) summary.push('<li><strong>12-month direction:</strong> ' + escapeHtml(definition) + '</li>');
+  if (target.incomeTarget) summary.push('<li><strong>Income:</strong> ' + escapeHtml(target.incomeTarget) + '</li>');
+  if (target.debtCashTarget) summary.push('<li><strong>Debt / cash:</strong> ' + escapeHtml(target.debtCashTarget) + '</li>');
+  const protectedBlocks = (FOUNDATION_PLAN_DRAFT?.weeklyBlocks || []).filter(block => block.label || block.day || block.startTime || block.durationMinutes);
+  if (protectedBlocks.length) summary.push('<li><strong>Protected blocks:</strong> ' + protectedBlocks.length + ' each week</li>');
+  if (FOUNDATION_PLAN_DRAFT?.startDate) summary.push('<li><strong>Start date:</strong> ' + escapeHtml(foundationDate(FOUNDATION_PLAN_DRAFT.startDate)) + '</li>');
+  const container = document.getElementById('foundationPlanSummary');
+  if (!container) return;
+  container.innerHTML = '<div class="foundation-plan-summary-label">Your plan</div>' + (summary.length ? '<ul>' + summary.join('') + '</ul>' : 'Fill in the target and commitments that will guide the next 12 months.');
+}
+
+function renderFoundationPlan(){
+  const workspace = document.getElementById('foundationPlanWorkspace');
+  const locked = document.getElementById('foundationPlanLocked');
+  if (!workspace || !locked) return;
+  const allowed = canUseFoundationPlan();
+  workspace.hidden = !allowed;
+  locked.hidden = allowed;
+  if (!allowed) return;
+  FOUNDATION_PLAN_DRAFT = getFoundationPlanData();
+  document.querySelectorAll('[data-foundation-target]').forEach(input => {
+    input.value = FOUNDATION_PLAN_DRAFT.target[input.dataset.foundationTarget] || '';
+  });
+  document.querySelector('[data-foundation-commitment="stopDoing"]').value = FOUNDATION_PLAN_DRAFT.stopDoing || '';
+  document.querySelector('[data-foundation-commitment="startDate"]').value = FOUNDATION_PLAN_DRAFT.startDate || '';
+  renderFoundationStandards();
+  renderFoundationBlocks();
+  renderFoundationPlanSummary();
+  setFoundationPlanSaveStatus(
+    FOUNDATION_PLAN_DRAFT.updatedAt ? 'Saved · ' + new Date(FOUNDATION_PLAN_DRAFT.updatedAt).toLocaleString() + '.' : 'Your plan saves only when you choose Save Foundation Plan.',
+    FOUNDATION_PLAN_DRAFT.updatedAt ? 'success' : ''
+  );
+}
+
+function openFoundationPlan(){
+  if (IS_PREVIEW_MODE) { window.location.href = '/surplus.html#pricing'; return; }
+  renderFoundationPlan();
+  analytics('foundation_plan_opened');
+  navigateTo('foundation-plan');
+}
+
+function openMemberTool(section){
+  if (section === 'foundation-plan') return openFoundationPlan();
+  if (section === 'money-planner') return openMoneyPlanner();
+  if (section === 'offer-tracker') return openOfferTracker();
+}
+
+function updateFoundationPlanFromControl(control){
+  if (!FOUNDATION_PLAN_DRAFT) return;
+  if (control.dataset.foundationTarget) {
+    FOUNDATION_PLAN_DRAFT.target[control.dataset.foundationTarget] = foundationText(control.value);
+  } else if (control.dataset.foundationCommitment) {
+    FOUNDATION_PLAN_DRAFT[control.dataset.foundationCommitment] = foundationText(control.value, 4000);
+  } else if (control.dataset.foundationStandard !== undefined) {
+    const standard = FOUNDATION_PLAN_DRAFT.standards[Number(control.dataset.foundationStandard)];
+    if (standard) standard[control.dataset.foundationStandardField] = foundationText(control.value, 1000);
+  } else if (control.dataset.foundationBlock !== undefined) {
+    const block = FOUNDATION_PLAN_DRAFT.weeklyBlocks[Number(control.dataset.foundationBlock)];
+    if (block) block[control.dataset.foundationBlockField] = foundationText(control.value, 100);
+  } else {
+    return;
+  }
+  renderFoundationPlanSummary();
+  setFoundationPlanSaveStatus('Unsaved changes');
+}
+
+async function saveFoundationPlan(){
+  if (!canUseFoundationPlan()) { resubscribe(); return; }
+  const previousProgress = cloneProgress();
+  const button = document.getElementById('saveFoundationPlanButton');
+  FOUNDATION_PLAN_DRAFT.updatedAt = new Date().toISOString();
+  MEMBER_PROGRESS = {
+    ...MEMBER_PROGRESS,
+    tools: {
+      ...(MEMBER_PROGRESS.tools && typeof MEMBER_PROGRESS.tools === 'object' ? MEMBER_PROGRESS.tools : {}),
+      foundationPlan: normalizeFoundationPlan(FOUNDATION_PLAN_DRAFT)
+    }
+  };
+  button.disabled = true;
+  setFoundationPlanSaveStatus('Saving your foundation plan...');
+  try {
+    await saveMemberState();
+    setFoundationPlanSaveStatus('Saved · just now.', 'success');
+    analytics('foundation_plan_saved');
+  } catch (error) {
+    MEMBER_PROGRESS = previousProgress;
+    setFoundationPlanSaveStatus("Couldn't save - try again. Your entries are still here.", 'error');
+  } finally {
+    button.disabled = false;
+  }
+}
+
+document.addEventListener('input', event => {
+  if (event.target.matches('[data-foundation-target],[data-foundation-commitment],[data-foundation-standard],[data-foundation-block]')) {
+    updateFoundationPlanFromControl(event.target);
+  }
+});
+document.addEventListener('change', event => {
+  if (event.target.matches('[data-foundation-block]')) updateFoundationPlanFromControl(event.target);
+});
 
 // ---------- MONEY SYSTEM PLANNER ----------
 const MONEY_SNAPSHOT_FIELDS = ['takeHomeIncome','housing','utilities','transportation','insurance','groceries','otherEssentials','debtMinimums','discretionarySpending','otherOutflow'];
@@ -4901,7 +5203,7 @@ function renderModuleDetail(){
     moduleToolLink.removeAttribute('rel');
     moduleToolLink.onclick = event => {
       event.preventDefault();
-      openMoneyPlanner();
+      openMemberTool(moduleTool.section);
     };
   } else if (moduleTool) {
     moduleToolLink.href = moduleTool.href;
@@ -5021,6 +5323,7 @@ renderBuildPlan();
 renderNotifs();
 setDate();
 setState('active');
+renderFoundationPlan();
 renderMoneyPlanner();
 renderOfferTracker();
 if (IS_PREVIEW_MODE) {
