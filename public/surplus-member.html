@@ -502,7 +502,7 @@
   .module-thumb-status.in-progress{color:var(--gold-bright)}
   .module-thumb-status.locked{color:var(--ink-faint)}
 
-  /* SPREADSHEETS */
+  /* TOOLS & TEMPLATES */
   .sheets-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:18px}
   .sheet-card{padding:0; overflow:hidden; display:flex; flex-direction:column}
   .sheet-preview{
@@ -526,7 +526,7 @@
 
   /* MONEY SYSTEM PLANNER */
   .money-planner-intro{margin-bottom:24px; padding:16px 18px; border:1px solid var(--line); border-radius:14px; background:var(--glass); color:var(--ink-dim); font-size:13px; line-height:1.6}
-  .money-planner-grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px}
+  .money-planner-grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; align-items:start}
   .money-planner-card{padding:24px}
   .money-planner-card.wide{grid-column:1 / -1}
   .money-planner-card h2{font-family:var(--serif); font-weight:500; font-size:24px; letter-spacing:-.015em; margin-bottom:6px}
@@ -534,7 +534,9 @@
   .money-field-list{display:grid; gap:9px}
   .money-field{display:grid; grid-template-columns:minmax(0,1fr) 132px; gap:12px; align-items:center; min-height:42px}
   .money-field label{color:var(--ink-dim); font-size:13px; line-height:1.3}
-  .money-field input{width:100%; min-width:0; padding:10px 12px; border:1px solid var(--line); border-radius:9px; background:var(--bg-2); color:var(--ink); font:inherit; font-variant-numeric:tabular-nums}
+  .money-input{position:relative; width:100%}
+  .money-currency{position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--ink-faint); font-size:13px; pointer-events:none}
+  .money-field input{width:100%; min-width:0; padding:10px 12px 10px 27px; border:1px solid var(--line); border-radius:9px; background:var(--bg-2); color:var(--ink); font:inherit; font-variant-numeric:tabular-nums}
   .money-field input:focus{outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(185,154,85,.1)}
   .money-calculations{margin-top:18px; padding-top:14px; border-top:1px solid var(--line); display:grid; gap:9px}
   .money-calculation{display:flex; align-items:center; justify-content:space-between; gap:16px; color:var(--ink-dim); font-size:13px}
@@ -546,6 +548,9 @@
   .money-plan-state{margin-top:12px; padding:10px 12px; border-radius:9px; background:rgba(185,154,85,.07); border:1px solid var(--line); color:var(--ink-dim); font-size:12px; line-height:1.5}
   .money-plan-state.balanced{background:rgba(126,196,134,.1); border-color:rgba(126,196,134,.24); color:var(--good)}
   .money-plan-state.over{background:rgba(217,112,112,.09); border-color:rgba(217,112,112,.22); color:var(--bad)}
+  .money-buffer-progress{height:7px; overflow:hidden; margin:16px 0 0; border-radius:100px; background:var(--bg-2); border:1px solid var(--line)}
+  .money-buffer-progress-fill{height:100%; width:0; border-radius:inherit; background:linear-gradient(90deg,var(--gold-bright),var(--gold-deep)); transition:width .25s var(--ease)}
+  .money-planner-card.wide .money-field-list{grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:28px}
   .money-planner-actions{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:22px; padding:16px 18px; border:1px solid var(--line); border-radius:14px; background:var(--glass); flex-wrap:wrap}
   .money-planner-save-status{color:var(--ink-dim); font-size:12px; line-height:1.5}
   .money-planner-save-status.success{color:var(--good)}
@@ -559,6 +564,7 @@
     .money-planner-card{padding:20px}
     .money-field{grid-template-columns:1fr; gap:6px; padding:7px 0}
     .money-field input{min-height:44px; font-size:16px}
+    .money-planner-card.wide .money-field-list{grid-template-columns:1fr}
     .money-planner-actions{align-items:stretch}
     .money-planner-actions .btn{width:100%; justify-content:center; min-height:46px}
   }
@@ -1560,7 +1566,7 @@
     </a>
     <a class="nav-item" data-section="spreadsheets">
       <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
-      <span>Spreadsheets</span>
+      <span>Tools</span>
       <span class="nav-meta"><span class="nav-lock" aria-label="Locked">🔒</span></span>
     </a>
     <a class="nav-item" data-section="ladder">
@@ -1645,7 +1651,7 @@
     <div class="topbar">
       <div class="topbar-search" onclick="openPalette()">
         <svg class="ico" viewBox="0 0 24 24" style="opacity:.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <span class="topbar-search-text">Search modules, spreadsheets, workshops…</span>
+        <span class="topbar-search-text">Search modules, tools, workshops…</span>
         <span class="topbar-search-kbd"><kbd>⌘</kbd><kbd>K</kbd></span>
       </div>
       <div class="topbar-spacer"></div>
@@ -1826,7 +1832,7 @@
     <section class="section" id="section-spreadsheets">
       <div class="page-head">
         <div>
-          <div class="page-eyebrow">Member Tools</div>
+          <div class="page-eyebrow">Tools &amp; Templates</div>
           <h1 class="page-title">Tools for the <em>work.</em></h1>
           <p class="page-sub">Three practical member tools are ready now. More will be added here as they are finished.</p>
         </div>
@@ -1904,6 +1910,7 @@
               <div class="money-calculation"><span>Percent complete</span><strong id="bufferPercent">0%</strong></div>
               <div class="money-calculation emphasis"><span>Estimated months to target</span><strong id="bufferMonths">—</strong></div>
             </div>
+            <div class="money-buffer-progress" id="bufferProgress" role="progressbar" aria-label="Buffer target progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="money-buffer-progress-fill" id="bufferProgressFill"></div></div>
           </section>
 
           <section class="card money-planner-card wide">
@@ -2701,7 +2708,7 @@
 <!-- ============ COMMAND PALETTE (search) ============ -->
 <div class="palette-overlay" id="palette" onclick="closePalette()">
   <div class="palette" onclick="event.stopPropagation()">
-    <input type="text" class="palette-input" id="paletteInput" placeholder="Search modules, spreadsheets, workshops, resources…" oninput="filterPalette(this.value)">
+    <input type="text" class="palette-input" id="paletteInput" placeholder="Search modules, tools, workshops, resources…" oninput="filterPalette(this.value)">
     <div class="palette-results" id="paletteResults"></div>
     <div class="palette-foot">
       <span><kbd>↑↓</kbd> navigate</span>
@@ -3667,7 +3674,8 @@ function openMobileMoreSection(id){
 }
 
 function navigateTo(id){
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.section === id));
+  const navSection = id === 'money-planner' ? 'spreadsheets' : id;
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.section === navSection));
   updateMobileNavigation(id);
   document.querySelectorAll('.section').forEach(el => el.classList.toggle('active', el.id === `section-${id}`));
   window.scrollTo({top:0, behavior:'smooth'});
@@ -3868,6 +3876,27 @@ function collectMoneyPlannerData(){
   };
 }
 
+function prepareMoneyInputs(){
+  document.querySelectorAll('[data-money-snapshot],[data-money-plan],[data-money-buffer]').forEach(input => {
+    if (input.parentElement.classList.contains('money-input')) return;
+    const wrapper = document.createElement('div');
+    wrapper.className = 'money-input';
+    const currency = document.createElement('span');
+    currency.className = 'money-currency';
+    currency.textContent = '$';
+    input.parentNode.insertBefore(wrapper, input);
+    wrapper.append(currency, input);
+  });
+}
+
+function setMoneyPlannerSaveStatus(message, state = ''){
+  const status = document.getElementById('moneyPlannerSaveStatus');
+  if (!status) return;
+  status.className = `money-planner-save-status${state ? ` ${state}` : ''}`;
+  status.dataset.saveState = state;
+  status.textContent = message;
+}
+
 function updateMoneyPlannerCalculations(){
   const data = collectMoneyPlannerData();
   const snapshotOutflow = MONEY_SNAPSHOT_FIELDS.filter(field => field !== 'takeHomeIncome').reduce((total, field) => total + data.snapshot[field], 0);
@@ -3891,6 +3920,8 @@ function updateMoneyPlannerCalculations(){
   document.getElementById('bufferRemaining').textContent = moneyFormat(remaining);
   document.getElementById('bufferPercent').textContent = `${Math.round(percent)}%`;
   document.getElementById('bufferMonths').textContent = months === null ? '—' : months === 0 ? 'Complete' : `${months} month${months === 1 ? '' : 's'}`;
+  document.getElementById('bufferProgressFill').style.width = `${percent}%`;
+  document.getElementById('bufferProgress').setAttribute('aria-valuenow', String(Math.round(percent)));
 
   const planMessage = document.getElementById('planStateMessage');
   planMessage.className = 'money-plan-state';
@@ -3915,15 +3946,15 @@ function renderMoneyPlanner(){
   workspace.hidden = !allowed;
   locked.hidden = allowed;
   if (!allowed) return;
+  prepareMoneyInputs();
   const data = getMoneyPlannerData();
   document.querySelectorAll('[data-money-snapshot]').forEach(input => { input.value = plannerInputValue(data.snapshot[input.dataset.moneySnapshot]); });
   document.querySelectorAll('[data-money-plan]').forEach(input => { input.value = plannerInputValue(data.monthlyPlan[input.dataset.moneyPlan]); });
   document.querySelectorAll('[data-money-buffer]').forEach(input => { input.value = plannerInputValue(data.buffer[input.dataset.moneyBuffer]); });
-  const status = document.getElementById('moneyPlannerSaveStatus');
-  status.className = 'money-planner-save-status';
-  status.textContent = data.updatedAt
-    ? `Last saved ${new Date(data.updatedAt).toLocaleString()}.`
-    : 'Your entries save only when you choose Save Money Plan.';
+  setMoneyPlannerSaveStatus(
+    data.updatedAt ? `Saved · ${new Date(data.updatedAt).toLocaleString()}.` : 'Your entries save only when you choose Save Money Plan.',
+    data.updatedAt ? 'success' : ''
+  );
   updateMoneyPlannerCalculations();
 }
 
@@ -3937,7 +3968,6 @@ function openMoneyPlanner(){
 async function saveMoneyPlanner(){
   if (!canUseMoneyPlanner()) { resubscribe(); return; }
   const previousProgress = cloneProgress();
-  const status = document.getElementById('moneyPlannerSaveStatus');
   const button = document.getElementById('saveMoneyPlannerButton');
   const data = collectMoneyPlannerData();
   MEMBER_PROGRESS = {
@@ -3948,24 +3978,24 @@ async function saveMoneyPlanner(){
     }
   };
   button.disabled = true;
-  status.className = 'money-planner-save-status';
-  status.textContent = 'Saving your money plan...';
+  setMoneyPlannerSaveStatus('Saving your money plan...');
   try {
     await saveMemberState();
-    status.className = 'money-planner-save-status success';
-    status.textContent = 'Money plan saved.';
+    setMoneyPlannerSaveStatus('Saved · just now.', 'success');
     analytics('money_planner_saved');
   } catch (error) {
     MEMBER_PROGRESS = previousProgress;
-    status.className = 'money-planner-save-status error';
-    status.textContent = 'Your plan was not saved. Please try again; your entries are still here.';
+    setMoneyPlannerSaveStatus("Couldn't save - try again. Your entries are still here.", 'error');
   } finally {
     button.disabled = false;
   }
 }
 
 document.addEventListener('input', event => {
-  if (event.target.matches('[data-money-snapshot],[data-money-plan],[data-money-buffer]')) updateMoneyPlannerCalculations();
+  if (event.target.matches('[data-money-snapshot],[data-money-plan],[data-money-buffer]')) {
+    updateMoneyPlannerCalculations();
+    setMoneyPlannerSaveStatus('Unsaved changes');
+  }
 });
 
 // ---------- RENDER LADDER ----------
