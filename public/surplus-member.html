@@ -510,6 +510,11 @@
     background:rgba(0,0,0,.2);
     border-bottom:1px solid var(--line);
   }
+  .tool-preview{display:flex; min-height:100%; flex-direction:column; justify-content:space-between; gap:14px}
+  .tool-preview-label{font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold-bright); font-weight:600}
+  .tool-preview-title{font-family:var(--serif); font-weight:500; font-size:23px; line-height:1.08; color:var(--ink); max-width:240px}
+  .tool-preview-meta{font-size:11px; color:var(--ink-dim); line-height:1.45}
+  .tool-preview-coming{color:var(--ink-faint)}
   .sheet-mini-row{display:flex; justify-content:space-between; font-size:11px; color:var(--ink-dim); padding:6px 0; border-bottom:1px solid var(--line-soft)}
   .sheet-mini-row:last-child{border:none}
   .sheet-mini-row strong{color:var(--ink); font-family:var(--serif); font-weight:500}
@@ -1748,7 +1753,7 @@
         <div>
           <div class="page-eyebrow">Course Roadmap</div>
           <h1 class="page-title">Modules &amp; <em>lessons.</em></h1>
-          <p class="page-sub">Work through six practical modules at your pace. Written lessons and progress are ready now; videos and downloadable tools will be added later.</p>
+          <p class="page-sub">Work through six practical modules at your pace. Written lessons, saved progress, and three member tools are ready now. Videos and additional tools will be added later.</p>
         </div>
       </div>
 
@@ -1782,9 +1787,9 @@
     <section class="section" id="section-spreadsheets">
       <div class="page-head">
         <div>
-          <div class="page-eyebrow">Toolkit Preview</div>
-          <h1 class="page-title">Prebuilt <em>spreadsheets.</em></h1>
-          <p class="page-sub">Preview the tools being prepared for Google Sheets and Excel. Downloads will be added here when they are ready.</p>
+          <div class="page-eyebrow">Member Tools</div>
+          <h1 class="page-title">Tools for the <em>work.</em></h1>
+          <p class="page-sub">Three practical member tools are ready now. More will be added here as they are finished.</p>
         </div>
       </div>
 
@@ -1794,7 +1799,7 @@
             <div>
               <div class="expired-eyebrow">Downloads paused</div>
               <h2 class="expired-title">Your <em>tools</em> are right here.</h2>
-              <p class="expired-body">All 12+ spreadsheets you've used remain in your account. Resubscribe to download the latest versions and receive new templates each month.</p>
+              <p class="expired-body">Your current member tools remain linked to your account. Resubscribe to access the toolkit and future additions.</p>
               <button class="btn btn-primary" onclick="resubscribe()">View membership options →</button>
             </div>
           </div>
@@ -2159,10 +2164,10 @@
                 <span class="side-action-icon">→</span>
                 <div><div id="moduleAssignmentTitle">Complete the module assignment</div><div id="moduleAssignmentCopy" style="font-size:11px; color:var(--ink-dim)"></div></div>
               </div>
-              <button class="side-action" onclick="navigateTo('spreadsheets')">
-                <span class="side-action-icon">X</span>
-                <div><div>Template library</div><div style="font-size:11px; color:var(--ink-dim)">Preview tools being prepared</div></div>
-              </button>
+              <a class="side-action" id="moduleToolLink" href="#section-spreadsheets">
+                <span class="side-action-icon" id="moduleToolIcon">X</span>
+                <div><div id="moduleToolTitle">Member tools</div><div id="moduleToolCopy" style="font-size:11px; color:var(--ink-dim)">Three practical tools are available now</div></div>
+              </a>
             </div>
           </div>
           <div class="side-card">
@@ -2687,16 +2692,23 @@ const MODULES = [
 ];
 
 const SHEETS = [
-  { name:'Monthly Budget',           desc:'Zero-based budgeting with category alerts and rollovers.',  rows:[['Housing','$1,820'],['Groceries','$612'],['Savings','$1,400'],['Surplus','$340']], highlight:3 },
-  { name:'Net Worth Tracker',        desc:'Auto-charts your trajectory across cash, investments, equity, and liabilities.', rows:[['Cash & Savings','$18,420'],['Investments','$42,800'],['Real Estate','$89,000'],['Net Worth','$126,020']], highlight:3 },
-  { name:'Debt Snowball + Avalanche',desc:'Side-by-side payoff calculators with month-by-month projections.', rows:[['Card · Visa','$1,840'],['Car loan','$6,320'],['Student loan','$14,800'],['Payoff date','Jul 2027']], highlight:3 },
-  { name:'Side Income Tracker',      desc:'By gig, hour, and effective rate. Spot what\'s actually worth your time.', rows:[['Freelance','$1,420'],['Resale flips','$680'],['Tutoring','$320'],['Month total','$2,420']], highlight:3 },
-  { name:'Sinking Funds Planner',    desc:'Irregular expenses that wreck budgets — solved.', rows:[['Car maintenance','$45/mo'],['Holidays','$80/mo'],['Annual subs','$22/mo'],['Total','$147/mo']], highlight:3 },
-  { name:'Emergency Fund Builder',   desc:'1–6 month runway with smart targets based on your monthly burn.', rows:[['Current','$1,840'],['Target','$8,400'],['Gap','$6,560'],['ETA','7 months']], highlight:3 },
-  { name:'Savings Goals',            desc:'Multiple goals running in parallel — house, vacation, car — without confusion.', rows:[['Down payment','45%'],['Vacation','82%'],['New laptop','30%'],['Combined','52%']], highlight:3 },
-  { name:'Expense Audit',            desc:'Find your leaks. Drag, tag, and categorize a year of statements in an hour.', rows:[['Subscriptions','$284/mo'],['Dining','$612/mo'],['Identified leaks','$842'],['Annual save','$10,104']], highlight:3 },
-  { name:'Salary Calculator',        desc:'Effective hourly, take-home math, and the offer-comparison tool.', rows:[['Gross','$72,000'],['Take-home','$54,420'],['Eff. hourly','$26.16'],['Vs offer','+$8,200']], highlight:3 },
+  { module:1, name:'Foundation Plan', desc:'A printable plan for your 12-month target, operating standards, weekly blocks, and commitment.', asset:'/assets/surplus-foundation-plan.pdf', action:'Open plan', format:'Printable PDF' },
+  { module:2, name:'Money System Planner', desc:'Editable Money Snapshot, zero-based Monthly Plan, and Buffer Target workbook.', asset:'/assets/surplus-money-system-planner.xlsx', action:'Download Excel', format:'Excel workbook' },
+  { module:3, name:'Offer & Outreach Tracker', desc:'Define a useful offer, send real outreach, and track the replies that improve it.', asset:'/assets/surplus-offer-outreach-tracker.xlsx', action:'Download Excel', format:'Excel workbook' },
+  { name:'Net Worth Tracker', desc:'A simple view of cash, investments, equity, and liabilities.', comingSoon:true },
+  { name:'Debt Payoff Planner', desc:'A focused way to compare payoff methods and keep your next move visible.', comingSoon:true },
+  { name:'Sinking Funds Planner', desc:'Plan for irregular expenses before they become emergencies.', comingSoon:true },
+  { name:'Emergency Fund Builder', desc:'Build a practical cash runway based on your real monthly needs.', comingSoon:true },
+  { name:'Savings Goals', desc:'Run multiple savings priorities without losing the bigger plan.', comingSoon:true },
+  { name:'Expense Audit', desc:'Find repeat outflow and decide what should stay, change, or go.', comingSoon:true },
+  { name:'Salary Calculator', desc:'Compare offers and understand the hourly value of your time.', comingSoon:true },
 ];
+
+const MODULE_TOOLS = {
+  1: { title:'Open Foundation Plan', copy:'Printable Module 1 worksheet', icon:'1', href:'/assets/surplus-foundation-plan.pdf' },
+  2: { title:'Download Money System Planner', copy:'Excel workbook for your Module 2 money system', icon:'2', href:'/assets/surplus-money-system-planner.xlsx' },
+  3: { title:'Download Offer & Outreach Tracker', copy:'Excel workbook for your Module 3 offer and outreach', icon:'3', href:'/assets/surplus-offer-outreach-tracker.xlsx' },
+};
 
 const LADDER = [
   { n:1, stage:'Rock Bottom',  title:'Know your true number',          desc:'Run the audit. Map every dollar.',                                              status:'done' },
@@ -2753,12 +2765,12 @@ const RESOURCES = [
   { tag:'Script', name:'Lender rate-reduction call', desc:'Lower your credit card APR by 5-15% in one 10-minute call.', icon:'%', meta:['3 pages','Phone script'] },
   { tag:'Template', name:'Freelance proposal template', desc:'The exact structure that closes 60%+ of inbound leads.', icon:'P', meta:['Google Doc','Customizable'] },
   { tag:'Template', name:'Cold outreach email pack', desc:'12 templates for cold outreach across business, real estate, and AI.', icon:'@', meta:['12 emails','Tested'] },
-  { tag:'Calculator', name:'BRRRR cash-on-cash', desc:'Plug in your numbers, get cap rate, COC return, and refi viability.', icon:'B', meta:['Google Sheets','Auto-calc'] },
-  { tag:'Calculator', name:'Rental property analyzer', desc:'Full ROI breakdown including taxes, vacancy, capex, management.', icon:'R', meta:['Google Sheets','7 inputs'] },
-  { tag:'Calculator', name:'House hack cash flow', desc:'Will your duplex pay for itself? Find out in 60 seconds.', icon:'H', meta:['Google Sheets','Beginner-friendly'] },
+  { tag:'Calculator', name:'BRRRR cash-on-cash', desc:'A planned property calculator for future release.', icon:'B', meta:['Coming soon','Planned calculator'] },
+  { tag:'Calculator', name:'Rental property analyzer', desc:'A planned property calculator for future release.', icon:'R', meta:['Coming soon','Planned calculator'] },
+  { tag:'Calculator', name:'House hack cash flow', desc:'A planned property calculator for future release.', icon:'H', meta:['Coming soon','Planned calculator'] },
   { tag:'Book', name:'Recommended reading list', desc:'12 books Rosario actually read and applied. Ranked by impact.', icon:'L', meta:['Updated quarterly'] },
   { tag:'Software', name:'The Surplus tool stack', desc:'Every app Rosario uses for business, real estate, AI — and the prices.', icon:'S', meta:['Living doc'] },
-  { tag:'Template', name:'Real estate deal analyzer', desc:'Underwrite any property in 15 minutes with this template.', icon:'D', meta:['Excel + Sheets'] },
+  { tag:'Template', name:'Real estate deal analyzer', desc:'A planned property template for future release.', icon:'D', meta:['Coming soon','Planned template'] },
   { tag:'Script', name:'Asking for a raise', desc:'The 3-part framework. Bring data, anchor high, hold silence.', icon:'↑', meta:['Email + in-person'] },
 ];
 
@@ -2771,7 +2783,7 @@ const REPLAYS = [
 const NOTIFS = [
   { icon:'R', title:'Rosario replied to your question in #ask-rosario',  meta:'12 min ago', unread:true },
   { icon:'L', title:'New live workshop Thursday — Killing high-interest debt', meta:'2h ago', unread:true },
-  { icon:'M', title:'Module 5 was updated with new worksheet',           meta:'1d ago', unread:true },
+  { icon:'M', title:'Module 5 lesson is ready to review',                meta:'1d ago', unread:true },
   { icon:'🔥',title:'You\'re on a 12-day streak — keep it alive today',  meta:'1d ago', unread:false },
   { icon:'$', title:'Your referral Sarah K. just joined Surplus — +1 month free', meta:'2d ago', unread:false },
   { icon:'🏆',title:'Sarah K. shared a $5K MRR win in the community',     meta:'2d ago', unread:false },
@@ -2785,10 +2797,9 @@ const PALETTE_ITEMS = [
   { type:'Module', label:'Snowball vs avalanche',     section:'modules' },
   { type:'Module', label:'Your first $500 in side income', section:'modules' },
   { type:'Module', label:'Salary negotiation playbook',section:'modules' },
-  { type:'Sheet',  label:'Monthly Budget',            section:'spreadsheets' },
-  { type:'Sheet',  label:'Net Worth Tracker',         section:'spreadsheets' },
-  { type:'Sheet',  label:'Debt Snowball + Avalanche', section:'spreadsheets' },
-  { type:'Sheet',  label:'Side Income Tracker',       section:'spreadsheets' },
+  { type:'Tool',   label:'Foundation Plan',            section:'spreadsheets' },
+  { type:'Tool',   label:'Money System Planner',       section:'spreadsheets' },
+  { type:'Tool',   label:'Offer & Outreach Tracker',   section:'spreadsheets' },
   { type:'Resource', label:'Salary negotiation script',  section:'resources' },
   { type:'Resource', label:'BRRRR cash-on-cash calculator', section:'resources' },
   { type:'Resource', label:'Recommended reading list', section:'resources' },
@@ -3657,23 +3668,28 @@ function renderContinueCard(){
 // ---------- RENDER SHEETS ----------
 function renderSheets(){
   const grid = document.getElementById('sheetsGrid');
-  grid.innerHTML = SHEETS.map(s => `
+  grid.innerHTML = SHEETS.map(s => {
+    const available = Boolean(s.asset);
+    return `
     <div class="card sheet-card hover-lift">
       <div class="sheet-preview">
-        ${s.rows.map((r,i) => `
-          <div class="sheet-mini-row${i === s.highlight ? ' highlight' : ''}">
-            <span>${r[0]}</span><strong>${r[1]}</strong>
-          </div>`).join('')}
+        <div class="tool-preview">
+          <div class="tool-preview-label">${available ? `Module ${s.module} member tool` : 'Coming soon'}</div>
+          <div class="tool-preview-title${available ? '' : ' tool-preview-coming'}">${s.name}</div>
+          <div class="tool-preview-meta">${available ? s.format : 'Not available to download yet'}</div>
+        </div>
       </div>
       <div class="sheet-body">
         <div class="sheet-name">${s.name}</div>
         <p class="sheet-desc">${s.desc}</p>
         <div class="sheet-foot">
-          <button class="btn btn-primary btn-sm coming-soon-btn" style="flex:1; justify-content:center" disabled>Google Sheets · soon</button>
-          <button class="btn btn-ghost btn-sm coming-soon-btn" style="flex:1; justify-content:center" disabled>Excel · soon</button>
+          ${available
+            ? `<a class="btn btn-primary btn-sm" style="flex:1; justify-content:center" href="${s.asset}" target="_blank" rel="noopener">${s.action} →</a>`
+            : `<button class="btn btn-ghost btn-sm coming-soon-btn" style="flex:1; justify-content:center" type="button" disabled>Coming soon</button>`}
         </div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 // ---------- RENDER LADDER ----------
@@ -4222,6 +4238,27 @@ function renderModuleDetail(){
   document.getElementById('moduleDetailDuration').textContent = module.duration;
   document.getElementById('moduleAssignmentTitle').textContent = 'Complete the module assignment';
   document.getElementById('moduleAssignmentCopy').textContent = module.assignment;
+  const moduleTool = MODULE_TOOLS[module.n];
+  const moduleToolLink = document.getElementById('moduleToolLink');
+  document.getElementById('moduleToolIcon').textContent = moduleTool ? moduleTool.icon : 'X';
+  document.getElementById('moduleToolTitle').textContent = moduleTool ? moduleTool.title : 'Member tools';
+  document.getElementById('moduleToolCopy').textContent = moduleTool
+    ? moduleTool.copy
+    : 'Three practical tools are available now; more are coming soon.';
+  if (moduleTool) {
+    moduleToolLink.href = moduleTool.href;
+    moduleToolLink.target = '_blank';
+    moduleToolLink.rel = 'noopener';
+    moduleToolLink.onclick = null;
+  } else {
+    moduleToolLink.href = '#section-spreadsheets';
+    moduleToolLink.removeAttribute('target');
+    moduleToolLink.removeAttribute('rel');
+    moduleToolLink.onclick = event => {
+      event.preventDefault();
+      navigateTo('spreadsheets');
+    };
+  }
   document.getElementById('moduleCompletionState').innerHTML = moduleIsComplete
     ? `<div class="module-complete-state"><strong>Module complete.</strong> ${nextModule ? `Keep moving while the work is fresh.<br><button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="openModuleDetail(${nextModule.n})">Continue to Module ${nextModule.n} →</button>` : 'You completed the full Surplus course path. Revisit the lesson that will create the most useful action this week.'}</div>`
     : `<div style="font-size:12px; color:var(--ink-dim); line-height:1.55">Complete each written lesson to finish this module. Completion is saved to your member account.</div>`;
