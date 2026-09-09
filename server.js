@@ -39,6 +39,11 @@ const magicLinkMinutes = 20;
 const rateLimitWindowMs = 15 * 60 * 1000;
 const rateLimitMax = 5;
 const signupAttempts = new Map();
+const PROTECTED_MEMBER_TOOLS = new Map([
+  ["moneyPlanner", "Money System Planner"],
+  ["foundationPlan", "Foundation Plan"],
+  ["offerOutreach", "Offer & Outreach Tracker"]
+]);
 
 const types = {
   ".html": "text/html; charset=utf-8",
@@ -123,6 +128,21 @@ function normalizeCode(value, maxLength = 80) {
     .toLowerCase()
     .replace(/[^a-z0-9_-]/g, "")
     .slice(0, maxLength);
+}
+
+function getChangedProtectedMemberTool(existingProgress, requestedProgress) {
+  const existingTools = existingProgress?.tools && typeof existingProgress.tools === "object"
+    ? existingProgress.tools
+    : {};
+  const requestedTools = requestedProgress?.tools && typeof requestedProgress.tools === "object"
+    ? requestedProgress.tools
+    : {};
+  for (const toolName of PROTECTED_MEMBER_TOOLS.keys()) {
+    if (JSON.stringify(existingTools[toolName] || null) !== JSON.stringify(requestedTools[toolName] || null)) {
+      return toolName;
+    }
+  }
+  return null;
 }
 
 function isValidEmail(email) {
@@ -1434,23 +1454,11 @@ async function handleMemberState(req, res) {
     update.onboarding = body.onboarding;
   }
   if (body.progress && typeof body.progress === "object" && !Array.isArray(body.progress)) {
-    const currentPlanner = member.progress?.tools?.moneyPlanner || null;
-    const requestedPlanner = body.progress?.tools?.moneyPlanner || null;
-    const plannerChanged = JSON.stringify(currentPlanner) !== JSON.stringify(requestedPlanner);
-    if (plannerChanged && !membershipAllowsAccess(member.subscription_status)) {
-      return sendJson(res, 403, { error: "An active Surplus membership is required to update the Money System Planner." });
-    }
-    const currentFoundationPlan = member.progress?.tools?.foundationPlan || null;
-    const requestedFoundationPlan = body.progress?.tools?.foundationPlan || null;
-    const foundationPlanChanged = JSON.stringify(currentFoundationPlan) !== JSON.stringify(requestedFoundationPlan);
-    if (foundationPlanChanged && !membershipAllowsAccess(member.subscription_status)) {
-      return sendJson(res, 403, { error: "An active Surplus membership is required to update the Foundation Plan." });
-    }
-    const currentOfferTracker = member.progress?.tools?.offerOutreach || null;
-    const requestedOfferTracker = body.progress?.tools?.offerOutreach || null;
-    const offerTrackerChanged = JSON.stringify(currentOfferTracker) !== JSON.stringify(requestedOfferTracker);
-    if (offerTrackerChanged && !membershipAllowsAccess(member.subscription_status)) {
-      return sendJson(res, 403, { error: "An active Surplus membership is required to update the Offer & Outreach Tracker." });
+    const changedProtectedTool = getChangedProtectedMemberTool(member.progress, body.progress);
+    if (changedProtectedTool && !membershipAllowsAccess(member.subscription_status)) {
+      return sendJson(res, 403, {
+        error: `An active Surplus membership is required to update the ${PROTECTED_MEMBER_TOOLS.get(changedProtectedTool)}.`
+      });
     }
     update.progress = body.progress;
   }
