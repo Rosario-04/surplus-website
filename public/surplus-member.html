@@ -680,6 +680,34 @@
   .service-operations-locked{padding:28px;max-width:680px}
   .service-operations-locked h2{font-family:var(--serif);font-size:30px;font-weight:400;margin-bottom:8px}
   .service-operations-locked p{color:var(--ink-dim);line-height:1.6;margin-bottom:18px}
+
+  /* PROPERTY READINESS */
+  .property-readiness-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr);gap:18px;align-items:start}
+  .property-readiness-card{padding:24px}
+  .property-readiness-card h2{font-family:var(--serif);font-weight:500;font-size:24px;letter-spacing:-.015em;margin-bottom:6px}
+  .property-readiness-card > p{color:var(--ink-dim);font-size:13px;line-height:1.55;margin-bottom:18px}
+  .property-readiness-summary{padding:18px;border-radius:12px;border:1px solid var(--line-gold);background:rgba(185,154,85,.07);color:var(--ink-dim);font-size:13px;line-height:1.65}
+  .property-readiness-summary strong{color:var(--ink);font-weight:500}
+  .property-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}
+  .property-metric{padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--glass)}
+  .property-metric strong{display:block;font-family:var(--serif);color:var(--gold-bright);font-size:22px;font-weight:500;line-height:1.1}
+  .property-metric span{display:block;margin-top:5px;color:var(--ink-faint);font-size:10px;line-height:1.35}
+  .property-capital-list{display:grid;gap:9px}
+  .property-capital-row{display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid var(--line-soft)}
+  .property-capital-row:last-child{border-bottom:0}
+  .property-capital-order{width:24px;flex:0 0 24px;color:var(--gold-bright);font-family:var(--serif);font-size:16px;text-align:center}
+  .property-capital-row input{flex:1;min-width:0;min-height:40px;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--bg-2);color:var(--ink);font:inherit}
+  .property-capital-row input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(185,154,85,.1)}
+  .property-capital-controls{display:flex;gap:4px}
+  .property-capital-controls button{border:0;background:none;color:var(--ink-faint);font:inherit;cursor:pointer;padding:6px}
+  .property-capital-controls button:hover{color:var(--gold-bright)}
+  .property-readiness-actions{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:22px;padding:16px 18px;border:1px solid var(--line);border-radius:14px;background:var(--glass);flex-wrap:wrap}
+  .property-readiness-status{color:var(--ink-dim);font-size:12px;line-height:1.5}
+  .property-readiness-status.success{color:var(--good)}
+  .property-readiness-status.error{color:var(--bad)}
+  .property-readiness-locked{padding:28px;max-width:680px}
+  .property-readiness-locked h2{font-family:var(--serif);font-size:30px;font-weight:400;margin-bottom:8px}
+  .property-readiness-locked p{color:var(--ink-dim);line-height:1.6;margin-bottom:18px}
   @media(max-width:760px){
     .money-planner-grid{grid-template-columns:1fr}
     .money-planner-card.wide{grid-column:auto}
@@ -711,6 +739,11 @@
     .service-operations-actions{align-items:stretch}
     .service-operations-actions .btn{width:100%;justify-content:center;min-height:46px}
     .service-list-row{align-items:flex-start}
+    .property-readiness-grid{grid-template-columns:1fr}
+    .property-readiness-card{padding:20px}
+    .property-readiness-actions{align-items:stretch}
+    .property-readiness-actions .btn{width:100%;justify-content:center;min-height:46px}
+    .property-metrics{grid-template-columns:1fr}
   }
 
   /* LADDER */
@@ -2353,6 +2386,26 @@ Reusable template</div>
       </div>
     </section>
 
+    <!-- ===== PROPERTY READINESS ===== -->
+    <section class="section" id="section-property-readiness">
+      <button class="module-detail-back" type="button" onclick="navigateTo('spreadsheets')">← Back to member tools</button>
+      <div class="page-head"><div><div class="page-eyebrow">Module 6 Member Tool</div><h1 class="page-title">Property <em>Readiness.</em></h1><p class="page-sub">Use your numbers to plan before you pursue a property. Costs, reserves, repairs, and financing assumptions all deserve a real review.</p></div></div>
+      <div class="card property-readiness-locked" id="propertyReadinessLocked" hidden><div class="page-eyebrow">Membership required</div><h2>Your property plan is saved.</h2><p>An active Surplus membership is required to use and update Property Readiness. Resubscribe to return to your plan.</p><button class="btn btn-primary" type="button" onclick="resubscribe()">View membership options →</button></div>
+      <div id="propertyReadinessWorkspace">
+        <div class="property-readiness-grid">
+          <section class="card property-readiness-card"><h2>Property Readiness Screen</h2><p>These fields help surface areas to review before pursuing property. They are not an approval score.</p><div class="tool-form-grid"><div class="tool-field"><label for="propertyIncome">Monthly take-home income</label><input id="propertyIncome" data-property-readiness-field="monthlyIncome" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div><div class="tool-field"><label for="propertySurplus">Current monthly surplus</label><input id="propertySurplus" data-property-readiness-field="monthlySurplus" type="number" inputmode="decimal" step="0.01" placeholder="0.00"></div><div class="tool-field"><label for="propertyReserve">Emergency reserve</label><input id="propertyReserve" data-property-readiness-field="emergencyReserve" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div><div class="tool-field"><label for="propertyDebt">Consumer debt balance</label><input id="propertyDebt" data-property-readiness-field="consumerDebt" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div><div class="tool-field"><label for="propertyCreditReady">Credit / financing readiness</label><select id="propertyCreditReady" data-property-readiness-field="creditReady"><option value="">Not reviewed</option><option value="Needs work">Needs work</option><option value="Improving">Improving</option><option value="Ready to explore">Ready to explore</option></select></div><div class="tool-field"><label for="propertyRepairReserve">Repair reserve</label><input id="propertyRepairReserve" data-property-readiness-field="repairReserve" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div><div class="tool-field wide"><label for="propertyFinancingNotes">Financing notes</label><textarea id="propertyFinancingNotes" data-property-readiness-field="financingNotes" maxlength="2000" placeholder="Questions, constraints, or terms you need to verify."></textarea></div></div><button class="btn btn-ghost btn-sm" type="button" style="margin-top:14px" onclick="useMoneyPlannerSurplus()">Use my Money Planner surplus</button></section>
+          <aside class="card property-readiness-card"><h2>Areas to review</h2><p>Property costs extend beyond the purchase price and down payment. Verify financing terms, repairs, vacancies, taxes, insurance, carrying costs, and professional requirements before making a decision.</p><div class="property-readiness-summary" id="propertyReadinessSummary"></div></aside>
+        </div>
+
+        <div class="property-readiness-grid" style="margin-top:18px"><section class="card property-readiness-card"><h2>Monthly Carrying Cost</h2><p>Estimate the full monthly obligation, then compare it with your current surplus without treating the result as an affordability verdict.</p><div class="tool-form-grid"><div class="tool-field"><label for="propertyMortgage">Mortgage / loan payment</label><input id="propertyMortgage" data-property-carrying-field="mortgage" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div><div class="tool-field"><label for="propertyTaxes">Property taxes</label><input id="propertyTaxes" data-property-carrying-field="taxes" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div><div class="tool-field"><label for="propertyInsurance">Insurance</label><input id="propertyInsurance" data-property-carrying-field="insurance" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div><div class="tool-field"><label for="propertyHoa">HOA</label><input id="propertyHoa" data-property-carrying-field="hoa" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div><div class="tool-field"><label for="propertyMaintenance">Maintenance reserve</label><input id="propertyMaintenance" data-property-carrying-field="maintenanceReserve" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div><div class="tool-field"><label for="propertyVacancy">Vacancy reserve</label><input id="propertyVacancy" data-property-carrying-field="vacancyReserve" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div><div class="tool-field"><label for="propertyUtilities">Utilities</label><input id="propertyUtilities" data-property-carrying-field="utilities" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div><div class="tool-field"><label for="propertyOther">Other</label><input id="propertyOther" data-property-carrying-field="other" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div></div></section><aside class="card property-readiness-card"><h2>Carrying cost view</h2><p>Positive remaining surplus is only a planning input. It does not mean a property is affordable or a good investment.</p><div class="property-metrics"><div class="property-metric"><strong id="propertyCarryingTotal">$0</strong><span>Total monthly carrying cost</span></div><div class="property-metric"><strong id="propertyRemainingSurplus">Add current surplus</strong><span>Remaining surplus after carrying cost</span></div></div></aside></div>
+
+        <div class="property-readiness-grid" style="margin-top:18px"><section class="card property-readiness-card"><h2>Property Buy Box</h2><p>Set your rules before a listing creates pressure. Your minimum target can differ by strategy.</p><div class="tool-form-grid"><div class="tool-field"><label for="propertyArea">Target area</label><input id="propertyArea" data-property-buybox-field="targetArea" type="text" maxlength="500" placeholder="Example: Phoenix metro"></div><div class="tool-field"><label for="propertyType">Property type</label><input id="propertyType" data-property-buybox-field="propertyType" type="text" maxlength="300" placeholder="Example: 2-3 bedroom home"></div><div class="tool-field"><label for="propertyMaxPrice">Maximum purchase price</label><input id="propertyMaxPrice" data-property-buybox-field="maxPurchasePrice" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div><div class="tool-field"><label for="propertyMinReserve">Minimum cash reserve after closing</label><input id="propertyMinReserve" data-property-buybox-field="minCashReserve" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div><div class="tool-field"><label for="propertyMaxRehab">Maximum rehab budget</label><input id="propertyMaxRehab" data-property-buybox-field="maxRehabBudget" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div><div class="tool-field"><label for="propertyStrategy">Strategy</label><select id="propertyStrategy" data-property-buybox-field="strategy"><option value="">Choose a strategy</option><option>Primary residence</option><option>House hack</option><option>Long-term rental</option><option>Value-add / renovation</option><option>Other</option></select></div><div class="tool-field wide"><label for="propertyMinimumTarget">Minimum target / requirement</label><textarea id="propertyMinimumTarget" data-property-buybox-field="minimumTarget" maxlength="1500" placeholder="Example: Keep $20,000 reserve after closing; no plan dependent on immediate appreciation."></textarea></div></div></section><aside class="card property-readiness-card"><h2>Rehab Contingency</h2><p>Unknowns are part of planning. A contingency is not a guarantee that costs will stay within budget.</p><div class="tool-form-grid"><div class="tool-field"><label for="propertyEstimatedRehab">Estimated renovation cost</label><input id="propertyEstimatedRehab" data-property-rehab-field="estimatedRehab" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div><div class="tool-field"><label for="propertyContingency">Contingency %</label><input id="propertyContingency" data-property-rehab-field="contingencyPercent" type="number" inputmode="decimal" min="0" step="0.1" placeholder="15"></div></div><div class="property-metrics"><div class="property-metric"><strong id="propertyContingencyAmount">$0</strong><span>Contingency amount</span></div><div class="property-metric"><strong id="propertyPlanningRehab">$0</strong><span>Planning rehab budget</span></div></div></aside></div>
+
+        <div class="property-readiness-grid" style="margin-top:18px"><section class="card property-readiness-card"><h2>Capital Order</h2><p>Choose where future surplus goes before it turns into unplanned spending.</p><div class="property-capital-list" id="propertyCapitalOrder"></div><button class="btn btn-ghost btn-sm" type="button" style="margin-top:14px" onclick="addPropertyCapitalItem()">Add priority</button></section><aside class="card property-readiness-card"><h2>Starter order</h2><p>Load this as a draft, then make it reflect your current responsibilities and risk.</p><button class="service-starter" type="button" onclick="loadPropertyCapitalStarter()"><strong>Load capital-order starter</strong><span>Bills, reserve, debt, earning capacity, long-term growth, then property.</span></button></aside></div>
+        <div class="property-readiness-actions"><div class="property-readiness-status" id="propertyReadinessSaveStatus" aria-live="polite">Your property plan saves only when you choose Save Property Plan.</div><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" type="button" onclick="openModuleDetail(6)">Return to Module 6</button><button class="btn btn-primary" type="button" id="savePropertyReadinessButton" onclick="savePropertyReadiness()">Save Property Plan</button></div></div>
+      </div>
+    </section>
+
     <!-- ===== LADDER ===== -->
     <section class="section" id="section-ladder">
       <div class="page-head">
@@ -3241,6 +3294,7 @@ const SHEETS = [
   { module:3, name:'Offer & Outreach Tracker', desc:'Build one useful offer, track real outreach, and use the replies to improve your next move.', tool:'offer-tracker', action:'Open Offer Tracker', format:'Interactive member tool' },
   { module:4, name:'AI Workbench', desc:'Build reusable prompts and human-reviewed workflows for planning, communication, and research.', tool:'ai-workbench', action:'Open AI Workbench', format:'Interactive member tool' },
   { module:5, name:'Service Operations', desc:'Build the scope, quality checks, closeout process, and messages that make delivery repeatable.', tool:'service-operations', action:'Open Service Operations', format:'Interactive member tool' },
+  { module:6, name:'Property Readiness', desc:'Plan your readiness, carrying costs, buy box, reserves, and capital order before pursuing property.', tool:'property-readiness', action:'Open Property Readiness', format:'Interactive member tool' },
   { name:'Net Worth Tracker', desc:'A simple view of cash, investments, equity, and liabilities.', comingSoon:true },
   { name:'Debt Payoff Planner', desc:'A focused way to compare payoff methods and keep your next move visible.', comingSoon:true },
   { name:'Sinking Funds Planner', desc:'Plan for irregular expenses before they become emergencies.', comingSoon:true },
@@ -3256,6 +3310,7 @@ const MODULE_TOOLS = {
   3: { title:'Open Offer & Outreach Tracker', copy:'Interactive Module 3 offer and outreach tool', icon:'3', section:'offer-tracker' },
   4: { title:'Open AI Workbench', copy:'Interactive Module 4 prompt and workflow tool', icon:'4', section:'ai-workbench' },
   5: { title:'Open Service Operations', copy:'Interactive Module 5 delivery-system tool', icon:'5', section:'service-operations' },
+  6: { title:'Open Property Readiness', copy:'Interactive Module 6 property-planning tool', icon:'6', section:'property-readiness' },
 };
 
 const LADDER = [
@@ -3350,6 +3405,7 @@ const PALETTE_ITEMS = [
   { type:'Tool',   label:'Offer & Outreach Tracker',   section:'offer-tracker' },
   { type:'Tool',   label:'AI Workbench',                section:'ai-workbench' },
   { type:'Tool',   label:'Service Operations',          section:'service-operations' },
+  { type:'Tool',   label:'Property Readiness',          section:'property-readiness' },
   { type:'Resource', label:'Salary negotiation script',  section:'resources' },
   { type:'Resource', label:'BRRRR cash-on-cash calculator', section:'resources' },
   { type:'Resource', label:'Recommended reading list', section:'resources' },
@@ -3969,6 +4025,7 @@ function applyMember(member){
   renderOfferTracker();
   renderAiWorkbench();
   renderServiceOperations();
+  renderPropertyReadiness();
   if (accountabilityNeedsSave && !IS_PREVIEW_MODE) {
     saveMemberState().catch(() => {
       MEMBER_PROGRESS = progressBeforeAccountabilityNormalization;
@@ -4056,7 +4113,7 @@ async function openBillingPortal(){
 
 // ---------- NAVIGATION ----------
 const PRIMARY_MOBILE_SECTIONS = new Set(['home','modules','goals','community']);
-const MOBILE_MORE_SECTIONS = new Set(['ladder','spreadsheets','foundation-plan','money-planner','offer-tracker','ai-workbench','service-operations','resources','workshops','replays','refer','profile','settings']);
+const MOBILE_MORE_SECTIONS = new Set(['ladder','spreadsheets','foundation-plan','money-planner','offer-tracker','ai-workbench','service-operations','property-readiness','resources','workshops','replays','refer','profile','settings']);
 
 function updateMobileNavigation(id){
   const activePrimary = id === 'module-detail' ? 'modules' : id;
@@ -4094,7 +4151,7 @@ function openMobileMoreSection(id){
 }
 
 function navigateTo(id){
-  const navSection = ['foundation-plan','money-planner','offer-tracker','ai-workbench','service-operations'].includes(id) ? 'spreadsheets' : id;
+  const navSection = ['foundation-plan','money-planner','offer-tracker','ai-workbench','service-operations','property-readiness'].includes(id) ? 'spreadsheets' : id;
   document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.section === navSection));
   updateMobileNavigation(id);
   document.querySelectorAll('.section').forEach(el => el.classList.toggle('active', el.id === `section-${id}`));
@@ -4239,7 +4296,7 @@ function renderSheets(){
         <div class="sheet-name">${s.name}</div>
         <p class="sheet-desc">${s.desc}</p>
         <div class="sheet-foot">
-          ${['foundation-plan','money-planner','offer-tracker','ai-workbench','service-operations'].includes(s.tool)
+          ${['foundation-plan','money-planner','offer-tracker','ai-workbench','service-operations','property-readiness'].includes(s.tool)
             ? `<button class="btn btn-primary btn-sm" style="flex:1; justify-content:center" type="button" onclick="openMemberTool('${s.tool}')">${s.action} →</button>`
             : available
             ? `<a class="btn btn-primary btn-sm" style="flex:1; justify-content:center" href="${s.asset}" target="_blank" rel="noopener">${s.action} →</a>`
@@ -4398,6 +4455,7 @@ function openMemberTool(section){
   if (section === 'offer-tracker') return openOfferTracker();
   if (section === 'ai-workbench') return openAiWorkbench();
   if (section === 'service-operations') return openServiceOperations();
+  if (section === 'property-readiness') return openPropertyReadiness();
 }
 
 function updateFoundationPlanFromControl(control){
@@ -5119,6 +5177,109 @@ document.addEventListener('input', event => { if (event.target.matches('[data-se
 document.addEventListener('change', event => { if (event.target.matches('[data-service-check-kind]')) updateServiceOperationsControl(event.target); });
 document.addEventListener('click', event => { const scope = event.target.closest('[data-remove-service-scope]'); if (scope) removeServiceScopeItem(scope.dataset.removeServiceScope,scope.dataset.serviceScopeIndex); const check = event.target.closest('[data-remove-service-check]'); if (check) removeServiceChecklistItem(check.dataset.removeServiceCheck,check.dataset.serviceCheckIndex); });
 
+// ---------- PROPERTY READINESS ----------
+const PROPERTY_READINESS_FIELDS = ['monthlyIncome','monthlySurplus','emergencyReserve','consumerDebt','creditReady','financingNotes','repairReserve'];
+const PROPERTY_CARRYING_FIELDS = ['mortgage','taxes','insurance','hoa','maintenanceReserve','vacancyReserve','utilities','other'];
+const PROPERTY_BUYBOX_FIELDS = ['targetArea','propertyType','maxPurchasePrice','minCashReserve','maxRehabBudget','strategy','minimumTarget'];
+const PROPERTY_CAPITAL_LIMIT = 10;
+const PROPERTY_CAPITAL_STARTER = ['Keep required bills current','Maintain emergency reserve','Address expensive or high-risk debt','Reinvest into earning capacity or business','Invest for long-term growth','Consider property or opportunities when ready'];
+let PROPERTY_READINESS_DRAFT = null;
+let PROPERTY_READINESS_SAVING = false;
+
+function propertyNumber(value){ const number = Number(value); return Number.isFinite(number) && number >= 0 ? number : 0; }
+function propertyOptionalNumber(value, allowNegative = false){ if (value === '' || value === null || value === undefined) return null; const number = Number(value); return Number.isFinite(number) ? (allowNegative ? number : Math.max(0,number)) : 0; }
+function propertyText(value, limit = 1500){ return typeof value === 'string' ? value.slice(0,limit) : ''; }
+function propertyMoney(value){ const number = Number(value); return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(Number.isFinite(number) ? number : 0); }
+function propertyInputValue(value){ return value === null || value === undefined || value === 0 ? '' : String(value); }
+function createPropertyCapitalItem(label = ''){ return {id:createAiWorkbenchId('capital'),label:propertyText(label,300),priority:0}; }
+function normalizePropertyReadiness(source = {}){
+  const readiness = {}; PROPERTY_READINESS_FIELDS.forEach(field => { readiness[field] = ['creditReady','financingNotes'].includes(field) ? propertyText(source.readiness?.[field],field === 'financingNotes' ? 2000 : 100) : propertyOptionalNumber(source.readiness?.[field],field === 'monthlySurplus'); });
+  if (!['','Needs work','Improving','Ready to explore'].includes(readiness.creditReady)) readiness.creditReady = '';
+  const carryingCost = {}; PROPERTY_CARRYING_FIELDS.forEach(field => { carryingCost[field] = propertyOptionalNumber(source.carryingCost?.[field]); });
+  const buyBox = {}; PROPERTY_BUYBOX_FIELDS.forEach(field => { buyBox[field] = ['targetArea','propertyType','strategy','minimumTarget'].includes(field) ? propertyText(source.buyBox?.[field],field === 'minimumTarget' ? 1500 : 500) : propertyOptionalNumber(source.buyBox?.[field]); });
+  if (!['','Primary residence','House hack','Long-term rental','Value-add / renovation','Other'].includes(buyBox.strategy)) buyBox.strategy = '';
+  const rehab = {estimatedRehab:propertyOptionalNumber(source.rehab?.estimatedRehab),contingencyPercent:propertyOptionalNumber(source.rehab?.contingencyPercent)};
+  const capitalOrder = Array.isArray(source.capitalOrder) ? source.capitalOrder.slice(0,PROPERTY_CAPITAL_LIMIT).map((item,index) => ({id:propertyText(item?.id,100) || createPropertyCapitalItem().id,label:propertyText(item?.label,300),priority:index + 1})) : [];
+  return {readiness,carryingCost,buyBox,rehab,capitalOrder,updatedAt:typeof source.updatedAt === 'string' ? source.updatedAt : null};
+}
+function getPropertyReadinessData(){ return normalizePropertyReadiness(MEMBER_PROGRESS?.tools?.propertyReadiness || {}); }
+function canUsePropertyReadiness(){ return !IS_PREVIEW_MODE && ['active','trialing'].includes(CURRENT_MEMBER?.subscriptionStatus); }
+function setPropertyReadinessStatus(message,state = ''){ const node = document.getElementById('propertyReadinessSaveStatus'); if (!node) return; node.className = 'property-readiness-status' + (state ? ' ' + state : ''); node.textContent = message; }
+function getPropertyCalculations(){
+  const carryingTotal = PROPERTY_CARRYING_FIELDS.reduce((total,field) => total + propertyNumber(PROPERTY_READINESS_DRAFT?.carryingCost?.[field]),0);
+  const hasSurplus = PROPERTY_READINESS_DRAFT?.readiness?.monthlySurplus !== null && PROPERTY_READINESS_DRAFT?.readiness?.monthlySurplus !== undefined;
+  const remainingSurplus = hasSurplus ? Number(PROPERTY_READINESS_DRAFT.readiness.monthlySurplus) - carryingTotal : null;
+  const estimatedRehab = propertyNumber(PROPERTY_READINESS_DRAFT?.rehab?.estimatedRehab);
+  const contingencyPercent = propertyNumber(PROPERTY_READINESS_DRAFT?.rehab?.contingencyPercent);
+  const contingencyAmount = estimatedRehab * contingencyPercent / 100;
+  return {carryingTotal,hasSurplus,remainingSurplus,contingencyAmount,planningRehab:estimatedRehab + contingencyAmount};
+}
+function renderPropertyCalculations(){
+  if (!PROPERTY_READINESS_DRAFT) return; const calc = getPropertyCalculations();
+  document.getElementById('propertyCarryingTotal').textContent = propertyMoney(calc.carryingTotal);
+  document.getElementById('propertyRemainingSurplus').textContent = calc.hasSurplus ? propertyMoney(calc.remainingSurplus) : 'Add current surplus';
+  document.getElementById('propertyContingencyAmount').textContent = propertyMoney(calc.contingencyAmount);
+  document.getElementById('propertyPlanningRehab').textContent = propertyMoney(calc.planningRehab);
+  const summary = [];
+  if (PROPERTY_READINESS_DRAFT.buyBox.targetArea) summary.push('<strong>Target area:</strong> ' + escapeHtml(PROPERTY_READINESS_DRAFT.buyBox.targetArea));
+  if (PROPERTY_READINESS_DRAFT.buyBox.maxPurchasePrice !== null) summary.push('<strong>Max purchase price:</strong> ' + propertyMoney(PROPERTY_READINESS_DRAFT.buyBox.maxPurchasePrice));
+  if (calc.carryingTotal > 0) summary.push('<strong>Total estimated carrying cost:</strong> ' + propertyMoney(calc.carryingTotal) + '/mo');
+  if (PROPERTY_READINESS_DRAFT.rehab.estimatedRehab !== null) summary.push('<strong>Planning rehab budget:</strong> ' + propertyMoney(calc.planningRehab));
+  if (PROPERTY_READINESS_DRAFT.buyBox.minCashReserve !== null) summary.push('<strong>Cash reserve target:</strong> ' + propertyMoney(PROPERTY_READINESS_DRAFT.buyBox.minCashReserve));
+  document.getElementById('propertyReadinessSummary').innerHTML = summary.length ? '<div class="ai-preview-label">Property plan</div>' + summary.join('<br>') : 'Add the fields that matter to you. This summary only reflects your own planning inputs.';
+}
+function renderPropertyCapitalOrder(){
+  const container = document.getElementById('propertyCapitalOrder'); if (!container || !PROPERTY_READINESS_DRAFT) return;
+  const items = PROPERTY_READINESS_DRAFT.capitalOrder;
+  container.innerHTML = items.length ? items.map((item,index) => '<div class="property-capital-row"><span class="property-capital-order">' + (index + 1) + '</span><input type="text" data-property-capital-index="' + index + '" value="' + escapeHtml(item.label) + '" maxlength="300" placeholder="Priority"><div class="property-capital-controls"><button type="button" data-property-capital-action="up" data-property-capital-index="' + index + '" aria-label="Move priority up"' + (index === 0 ? ' disabled' : '') + '>↑</button><button type="button" data-property-capital-action="down" data-property-capital-index="' + index + '" aria-label="Move priority down"' + (index === items.length - 1 ? ' disabled' : '') + '>↓</button><button type="button" data-property-capital-action="remove" data-property-capital-index="' + index + '" aria-label="Remove priority">×</button></div></div>').join('') : '<div class="ai-library-empty">No priorities yet. Load the starter or add the order that fits your current plan.</div>';
+}
+function renderPropertyReadiness(){
+  const workspace = document.getElementById('propertyReadinessWorkspace'); const locked = document.getElementById('propertyReadinessLocked'); if (!workspace || !locked) return;
+  const allowed = canUsePropertyReadiness(); workspace.hidden = !allowed; locked.hidden = allowed; if (!allowed) return;
+  PROPERTY_READINESS_DRAFT = getPropertyReadinessData();
+  document.querySelectorAll('[data-property-readiness-field]').forEach(input => { input.value = ['monthlyIncome','monthlySurplus','emergencyReserve','consumerDebt','repairReserve'].includes(input.dataset.propertyReadinessField) ? propertyInputValue(PROPERTY_READINESS_DRAFT.readiness[input.dataset.propertyReadinessField]) : PROPERTY_READINESS_DRAFT.readiness[input.dataset.propertyReadinessField] || ''; });
+  document.querySelectorAll('[data-property-carrying-field]').forEach(input => { input.value = propertyInputValue(PROPERTY_READINESS_DRAFT.carryingCost[input.dataset.propertyCarryingField]); });
+  document.querySelectorAll('[data-property-buybox-field]').forEach(input => { input.value = ['maxPurchasePrice','minCashReserve','maxRehabBudget'].includes(input.dataset.propertyBuyboxField) ? propertyInputValue(PROPERTY_READINESS_DRAFT.buyBox[input.dataset.propertyBuyboxField]) : PROPERTY_READINESS_DRAFT.buyBox[input.dataset.propertyBuyboxField] || ''; });
+  document.querySelectorAll('[data-property-rehab-field]').forEach(input => { input.value = propertyInputValue(PROPERTY_READINESS_DRAFT.rehab[input.dataset.propertyRehabField]); });
+  renderPropertyCalculations(); renderPropertyCapitalOrder();
+  setPropertyReadinessStatus(PROPERTY_READINESS_DRAFT.updatedAt ? 'Saved · ' + new Date(PROPERTY_READINESS_DRAFT.updatedAt).toLocaleString() + '.' : 'Your property plan saves only when you choose Save Property Plan.',PROPERTY_READINESS_DRAFT.updatedAt ? 'success' : '');
+}
+function openPropertyReadiness(){ if (IS_PREVIEW_MODE) { window.location.href = '/surplus.html#pricing'; return; } renderPropertyReadiness(); analytics('property_readiness_opened'); navigateTo('property-readiness'); }
+function updatePropertyReadinessControl(input){
+  if (!PROPERTY_READINESS_DRAFT) return;
+  if (input.dataset.propertyReadinessField) { const key = input.dataset.propertyReadinessField; PROPERTY_READINESS_DRAFT.readiness[key] = ['creditReady','financingNotes'].includes(key) ? propertyText(input.value,key === 'financingNotes' ? 2000 : 100) : propertyOptionalNumber(input.value,key === 'monthlySurplus'); }
+  if (input.dataset.propertyCarryingField) PROPERTY_READINESS_DRAFT.carryingCost[input.dataset.propertyCarryingField] = propertyOptionalNumber(input.value);
+  if (input.dataset.propertyBuyboxField) { const key = input.dataset.propertyBuyboxField; PROPERTY_READINESS_DRAFT.buyBox[key] = ['targetArea','propertyType','strategy','minimumTarget'].includes(key) ? propertyText(input.value,key === 'minimumTarget' ? 1500 : 500) : propertyOptionalNumber(input.value); }
+  if (input.dataset.propertyRehabField) PROPERTY_READINESS_DRAFT.rehab[input.dataset.propertyRehabField] = propertyOptionalNumber(input.value);
+  if (input.dataset.propertyCapitalIndex !== undefined) PROPERTY_READINESS_DRAFT.capitalOrder[Number(input.dataset.propertyCapitalIndex)].label = propertyText(input.value,300);
+  renderPropertyCalculations(); setPropertyReadinessStatus('Unsaved changes');
+}
+function useMoneyPlannerSurplus(){
+  const snapshot = MEMBER_PROGRESS?.tools?.moneyPlanner?.snapshot; if (!snapshot || typeof snapshot !== 'object') { showToast('Set up your Money Planner first, then use this optional shortcut.'); return; }
+  const income = propertyNumber(snapshot.takeHomeIncome); const outflow = ['housing','utilities','transportation','insurance','groceries','otherEssentials','debtMinimums','discretionarySpending','otherOutflow'].reduce((total,key) => total + propertyNumber(snapshot[key]),0);
+  PROPERTY_READINESS_DRAFT.readiness.monthlySurplus = income - outflow; document.getElementById('propertySurplus').value = propertyInputValue(PROPERTY_READINESS_DRAFT.readiness.monthlySurplus); renderPropertyCalculations(); setPropertyReadinessStatus('Money Planner surplus loaded as an unsaved value.');
+}
+function addPropertyCapitalItem(){ if (!canUsePropertyReadiness()) { resubscribe(); return; } if (PROPERTY_READINESS_DRAFT.capitalOrder.length >= PROPERTY_CAPITAL_LIMIT) { showToast('Capital Order supports up to ' + PROPERTY_CAPITAL_LIMIT + ' priorities.'); return; } PROPERTY_READINESS_DRAFT.capitalOrder.push(createPropertyCapitalItem()); renderPropertyCapitalOrder(); setPropertyReadinessStatus('Unsaved changes'); }
+function loadPropertyCapitalStarter(){ PROPERTY_READINESS_DRAFT.capitalOrder = PROPERTY_CAPITAL_STARTER.map(createPropertyCapitalItem); renderPropertyCapitalOrder(); setPropertyReadinessStatus('Starter loaded as an unsaved draft.'); }
+function changePropertyCapitalOrder(action,index){
+  const items = PROPERTY_READINESS_DRAFT.capitalOrder; const current = Number(index); if (!items[current]) return;
+  if (action === 'remove') items.splice(current,1);
+  if (action === 'up' && current > 0) [items[current - 1],items[current]] = [items[current],items[current - 1]];
+  if (action === 'down' && current < items.length - 1) [items[current + 1],items[current]] = [items[current],items[current + 1]];
+  renderPropertyCapitalOrder(); setPropertyReadinessStatus('Unsaved changes');
+}
+async function savePropertyReadiness(){
+  if (!canUsePropertyReadiness()) { resubscribe(); return; } if (PROPERTY_READINESS_SAVING) return;
+  const button = document.getElementById('savePropertyReadinessButton'); const previousProgress = cloneProgress(); const saved = normalizePropertyReadiness({...PROPERTY_READINESS_DRAFT,updatedAt:new Date().toISOString()});
+  PROPERTY_READINESS_SAVING = true; button.disabled = true; setPropertyReadinessStatus('Saving...'); MEMBER_PROGRESS = {...MEMBER_PROGRESS,tools:{...(MEMBER_PROGRESS.tools && typeof MEMBER_PROGRESS.tools === 'object' ? MEMBER_PROGRESS.tools : {}),propertyReadiness:saved}};
+  try { await saveMemberState(); PROPERTY_READINESS_DRAFT = getPropertyReadinessData(); setPropertyReadinessStatus('Saved · just now.','success'); analytics('property_readiness_saved'); }
+  catch (error) { MEMBER_PROGRESS = previousProgress; setPropertyReadinessStatus("Couldn't save - try again. Your entries are still here.",'error'); }
+  finally { PROPERTY_READINESS_SAVING = false; button.disabled = false; }
+}
+document.addEventListener('input', event => { if (event.target.matches('[data-property-readiness-field],[data-property-carrying-field],[data-property-buybox-field],[data-property-rehab-field],[data-property-capital-index]')) updatePropertyReadinessControl(event.target); });
+document.addEventListener('change', event => { if (event.target.matches('[data-property-readiness-field],[data-property-carrying-field],[data-property-buybox-field],[data-property-rehab-field]')) updatePropertyReadinessControl(event.target); });
+document.addEventListener('click', event => { const button = event.target.closest('[data-property-capital-action]'); if (button) changePropertyCapitalOrder(button.dataset.propertyCapitalAction,button.dataset.propertyCapitalIndex); });
+
 // ---------- RENDER LADDER ----------
 function renderLadder(){
   const cont = document.getElementById('ladderRungs');
@@ -5803,6 +5964,7 @@ renderMoneyPlanner();
 renderOfferTracker();
 renderAiWorkbench();
 renderServiceOperations();
+renderPropertyReadiness();
 if (IS_PREVIEW_MODE) {
   document.body.classList.add('preview-mode');
   document.getElementById('signin')?.classList.add('hidden');

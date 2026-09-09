@@ -44,7 +44,8 @@ const PROTECTED_MEMBER_TOOLS = new Map([
   ["foundationPlan", "Foundation Plan"],
   ["offerOutreach", "Offer & Outreach Tracker"],
   ["aiWorkbench", "AI Workbench"],
-  ["serviceOperations", "Service Operations"]
+  ["serviceOperations", "Service Operations"],
+  ["propertyReadiness", "Property Readiness"]
 ]);
 
 const types = {
