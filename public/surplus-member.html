@@ -649,6 +649,37 @@
   .ai-workbench-locked{padding:28px; max-width:680px}
   .ai-workbench-locked h2{font-family:var(--serif); font-size:30px; font-weight:400; margin-bottom:8px}
   .ai-workbench-locked p{color:var(--ink-dim); line-height:1.6; margin-bottom:18px}
+
+  /* SERVICE OPERATIONS */
+  .service-operations-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr);gap:18px;align-items:start}
+  .service-operations-card{padding:24px}
+  .service-operations-card h2{font-family:var(--serif);font-weight:500;font-size:24px;letter-spacing:-.015em;margin-bottom:6px}
+  .service-operations-card > p{color:var(--ink-dim);font-size:13px;line-height:1.55;margin-bottom:18px}
+  .service-operations-card.wide{grid-column:1 / -1}
+  .service-list{display:grid;gap:9px}
+  .service-list-row{display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid var(--line-soft)}
+  .service-list-row:last-child{border-bottom:0}
+  .service-list-row input{flex:1;min-width:0;min-height:40px;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--bg-2);color:var(--ink);font:inherit}
+  .service-list-row input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(185,154,85,.1)}
+  .service-list-remove{border:0;background:none;color:var(--ink-faint);font:inherit;font-size:12px;cursor:pointer;padding:8px 2px}
+  .service-list-remove:hover{color:var(--bad)}
+  .service-check-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line-soft)}
+  .service-check-row:last-child{border-bottom:0}
+  .service-check-row input[type="checkbox"]{width:18px;height:18px;accent-color:var(--gold);flex-shrink:0}
+  .service-check-row input[type="text"]{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:inherit}
+  .service-check-row input[type="text"]:focus{outline:none}
+  .service-check-row.done input[type="text"]{color:var(--ink-faint);text-decoration:line-through}
+  .service-starter{width:100%;border:0;border-bottom:1px solid var(--line-soft);background:transparent;color:inherit;text-align:left;padding:12px 0;cursor:pointer;font:inherit}
+  .service-starter:last-child{border-bottom:0}
+  .service-starter strong{display:block;color:var(--ink);font-size:13px;font-weight:500}
+  .service-starter span{display:block;color:var(--ink-faint);font-size:11px;margin-top:3px}
+  .service-operations-actions{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:22px;padding:16px 18px;border:1px solid var(--line);border-radius:14px;background:var(--glass);flex-wrap:wrap}
+  .service-operations-status{color:var(--ink-dim);font-size:12px;line-height:1.5}
+  .service-operations-status.success{color:var(--good)}
+  .service-operations-status.error{color:var(--bad)}
+  .service-operations-locked{padding:28px;max-width:680px}
+  .service-operations-locked h2{font-family:var(--serif);font-size:30px;font-weight:400;margin-bottom:8px}
+  .service-operations-locked p{color:var(--ink-dim);line-height:1.6;margin-bottom:18px}
   @media(max-width:760px){
     .money-planner-grid{grid-template-columns:1fr}
     .money-planner-card.wide{grid-column:auto}
@@ -674,6 +705,12 @@
     .ai-library{grid-template-columns:1fr}
     .ai-workbench-actions{align-items:stretch}
     .ai-workbench-actions .btn{width:100%; justify-content:center; min-height:46px}
+    .service-operations-grid{grid-template-columns:1fr}
+    .service-operations-card.wide{grid-column:auto}
+    .service-operations-card{padding:20px}
+    .service-operations-actions{align-items:stretch}
+    .service-operations-actions .btn{width:100%;justify-content:center;min-height:46px}
+    .service-list-row{align-items:flex-start}
   }
 
   /* LADDER */
@@ -2277,6 +2314,45 @@ Reusable template</div>
       </div>
     </section>
 
+    <!-- ===== SERVICE OPERATIONS ===== -->
+    <section class="section" id="section-service-operations">
+      <button class="module-detail-back" type="button" onclick="navigateTo('spreadsheets')">← Back to member tools</button>
+      <div class="page-head"><div><div class="page-eyebrow">Module 5 Member Tool</div><h1 class="page-title">Service <em>Operations.</em></h1><p class="page-sub">Turn a service offer into a repeatable delivery process: clear scope, consistent quality, and better customer follow-through.</p></div></div>
+      <div class="card service-operations-locked" id="serviceOperationsLocked" hidden><div class="page-eyebrow">Membership required</div><h2>Your service system is saved.</h2><p>An active Surplus membership is required to use and update Service Operations. Resubscribe to return to your work.</p><button class="btn btn-primary" type="button" onclick="resubscribe()">View membership options →</button></div>
+      <div id="serviceOperationsWorkspace">
+        <div class="service-operations-grid">
+          <section class="card service-operations-card">
+            <h2>Service Offer</h2><p>Module 3 helps you sell the offer. This is where you make delivery consistent.</p>
+            <div class="tool-form-grid">
+              <div class="tool-field"><label for="serviceName">Service name</label><input id="serviceName" data-service-offer-field="serviceName" type="text" maxlength="300" placeholder="Example: fixture replacement"></div>
+              <div class="tool-field"><label for="serviceCustomerType">Customer type</label><input id="serviceCustomerType" data-service-offer-field="customerType" type="text" maxlength="300" placeholder="Example: homeowners"></div>
+              <div class="tool-field"><label for="serviceResult">Result delivered</label><input id="serviceResult" data-service-offer-field="result" type="text" maxlength="500" placeholder="Example: tested replacement installed"></div>
+              <div class="tool-field"><label for="servicePricingMethod">Pricing method</label><input id="servicePricingMethod" data-service-offer-field="pricingMethod" type="text" maxlength="300" placeholder="Example: fixed price plus materials"></div>
+              <div class="tool-field wide"><label for="serviceScopeSummary">Scope summary</label><textarea id="serviceScopeSummary" data-service-offer-field="scopeSummary" maxlength="2000" placeholder="Describe the repeatable work you are agreeing to deliver."></textarea></div>
+            </div>
+          </section>
+          <aside class="card service-operations-card"><h2>Responsible delivery</h2><p>Work only within your competence. Follow applicable licensing, permit, code, and safety requirements. These templates support good communication and consistency; they never replace trade-specific inspection, judgment, or professional responsibility.</p><div class="offer-preview"><div class="offer-preview-label">Operating principle</div>Clear scope before work. Verify quality before closeout. Communicate changes before they become surprises.</div></aside>
+        </div>
+
+        <div class="service-operations-grid" style="margin-top:18px">
+          <section class="card service-operations-card"><h2>Scope &amp; Expectations</h2><p>Use simple line items to make the agreed work and boundaries visible before you begin.</p><div id="serviceScopeLists"></div><div class="tool-field" style="margin-top:16px"><label for="serviceChangeRule">Change / additional-work rule</label><textarea id="serviceChangeRule" data-service-scope-field="changeOrderRule" maxlength="1200" placeholder="Example: Additional work outside the agreed scope requires approval before proceeding."></textarea></div></section>
+          <aside class="card service-operations-card"><h2>Scope examples</h2><p>These examples are not saved to your account. Load only the list items you want to adapt.</p><button class="service-starter" type="button" onclick="loadServiceScopeStarter()"><strong>Load sample scope lists</strong><span>Included work, exclusions, and customer responsibilities as editable drafts.</span></button></aside>
+        </div>
+
+        <div class="service-operations-grid" style="margin-top:18px">
+          <section class="card service-operations-card"><h2>Quality Checklist</h2><p>A reusable operating template, not a job-history log.</p><div class="service-list" id="serviceQualityChecklist"></div><button class="btn btn-ghost btn-sm" type="button" onclick="addServiceChecklistItem('quality')">Add quality item</button></section>
+          <aside class="card service-operations-card"><h2>Closeout Checklist</h2><p>Use a separate finish process so the last five minutes are not an afterthought.</p><div class="service-list" id="serviceCloseoutChecklist"></div><button class="btn btn-ghost btn-sm" type="button" onclick="addServiceChecklistItem('closeout')">Add closeout item</button><div class="ai-starter-list" style="margin-top:14px"><button class="service-starter" type="button" onclick="loadServiceChecklistStarter('quality')"><strong>Load quality starter</strong><span>Seven practical delivery checks.</span></button><button class="service-starter" type="button" onclick="loadServiceChecklistStarter('closeout')"><strong>Load closeout starter</strong><span>Six finish and follow-up checks.</span></button></div></aside>
+        </div>
+
+        <div class="service-operations-grid" style="margin-top:18px">
+          <section class="card service-operations-card"><h2>Customer Communication</h2><p>Save clear reusable drafts. Personalize and verify details before you send anything.</p><div class="tool-form-grid"><div class="tool-field wide"><label for="serviceScopeMessage">Scope Confirmation</label><textarea id="serviceScopeMessage" data-service-message-field="scopeConfirmation" maxlength="2500" placeholder="Hi [Name], just confirming the work we discussed..."></textarea><button class="btn btn-ghost btn-sm" type="button" onclick="copyServiceMessage('scopeConfirmation')">Copy scope message</button></div><div class="tool-field wide"><label for="serviceScheduleMessage">Schedule Confirmation</label><textarea id="serviceScheduleMessage" data-service-message-field="scheduleConfirmation" maxlength="2500" placeholder="Hi [Name], confirming we are scheduled for..."></textarea><button class="btn btn-ghost btn-sm" type="button" onclick="copyServiceMessage('scheduleConfirmation')">Copy schedule message</button></div><div class="tool-field wide"><label for="serviceCompletionMessage">Completion Follow-Up</label><textarea id="serviceCompletionMessage" data-service-message-field="completionFollowUp" maxlength="2500" placeholder="Hi [Name], thanks again for having me out today..."></textarea><button class="btn btn-ghost btn-sm" type="button" onclick="copyServiceMessage('completionFollowUp')">Copy follow-up</button></div></div></section>
+          <aside class="card service-operations-card"><h2>Message starters</h2><p>Load concise professional templates as drafts, then make them yours.</p><div class="ai-starter-list"><button class="service-starter" type="button" onclick="loadServiceMessageStarter('scopeConfirmation')"><strong>Scope confirmation</strong><span>Confirm scope, price, timing, and approval for changes.</span></button><button class="service-starter" type="button" onclick="loadServiceMessageStarter('scheduleConfirmation')"><strong>Schedule confirmation</strong><span>Confirm arrival window and any preparation needed.</span></button><button class="service-starter" type="button" onclick="loadServiceMessageStarter('completionFollowUp')"><strong>Completion follow-up</strong><span>Close the loop after the work is complete.</span></button></div></aside>
+        </div>
+
+        <div class="service-operations-actions"><div class="service-operations-status" id="serviceOperationsSaveStatus" aria-live="polite">Your service system saves only when you choose Save Service Operations.</div><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" type="button" onclick="openModuleDetail(5)">Return to Module 5</button><button class="btn btn-primary" type="button" id="saveServiceOperationsButton" onclick="saveServiceOperations()">Save Service Operations</button></div></div>
+      </div>
+    </section>
+
     <!-- ===== LADDER ===== -->
     <section class="section" id="section-ladder">
       <div class="page-head">
@@ -3164,6 +3240,7 @@ const SHEETS = [
   { module:2, name:'Money System Planner', desc:'Use your real numbers to see your surplus, assign each dollar, and build your buffer.', tool:'money-planner', action:'Open Money Planner', format:'Interactive member tool' },
   { module:3, name:'Offer & Outreach Tracker', desc:'Build one useful offer, track real outreach, and use the replies to improve your next move.', tool:'offer-tracker', action:'Open Offer Tracker', format:'Interactive member tool' },
   { module:4, name:'AI Workbench', desc:'Build reusable prompts and human-reviewed workflows for planning, communication, and research.', tool:'ai-workbench', action:'Open AI Workbench', format:'Interactive member tool' },
+  { module:5, name:'Service Operations', desc:'Build the scope, quality checks, closeout process, and messages that make delivery repeatable.', tool:'service-operations', action:'Open Service Operations', format:'Interactive member tool' },
   { name:'Net Worth Tracker', desc:'A simple view of cash, investments, equity, and liabilities.', comingSoon:true },
   { name:'Debt Payoff Planner', desc:'A focused way to compare payoff methods and keep your next move visible.', comingSoon:true },
   { name:'Sinking Funds Planner', desc:'Plan for irregular expenses before they become emergencies.', comingSoon:true },
@@ -3178,6 +3255,7 @@ const MODULE_TOOLS = {
   2: { title:'Open Money System Planner', copy:'Interactive Module 2 money tool', icon:'2', section:'money-planner' },
   3: { title:'Open Offer & Outreach Tracker', copy:'Interactive Module 3 offer and outreach tool', icon:'3', section:'offer-tracker' },
   4: { title:'Open AI Workbench', copy:'Interactive Module 4 prompt and workflow tool', icon:'4', section:'ai-workbench' },
+  5: { title:'Open Service Operations', copy:'Interactive Module 5 delivery-system tool', icon:'5', section:'service-operations' },
 };
 
 const LADDER = [
@@ -3271,6 +3349,7 @@ const PALETTE_ITEMS = [
   { type:'Tool',   label:'Money System Planner',       section:'money-planner' },
   { type:'Tool',   label:'Offer & Outreach Tracker',   section:'offer-tracker' },
   { type:'Tool',   label:'AI Workbench',                section:'ai-workbench' },
+  { type:'Tool',   label:'Service Operations',          section:'service-operations' },
   { type:'Resource', label:'Salary negotiation script',  section:'resources' },
   { type:'Resource', label:'BRRRR cash-on-cash calculator', section:'resources' },
   { type:'Resource', label:'Recommended reading list', section:'resources' },
@@ -3889,6 +3968,7 @@ function applyMember(member){
   renderMoneyPlanner();
   renderOfferTracker();
   renderAiWorkbench();
+  renderServiceOperations();
   if (accountabilityNeedsSave && !IS_PREVIEW_MODE) {
     saveMemberState().catch(() => {
       MEMBER_PROGRESS = progressBeforeAccountabilityNormalization;
@@ -3976,7 +4056,7 @@ async function openBillingPortal(){
 
 // ---------- NAVIGATION ----------
 const PRIMARY_MOBILE_SECTIONS = new Set(['home','modules','goals','community']);
-const MOBILE_MORE_SECTIONS = new Set(['ladder','spreadsheets','foundation-plan','money-planner','offer-tracker','ai-workbench','resources','workshops','replays','refer','profile','settings']);
+const MOBILE_MORE_SECTIONS = new Set(['ladder','spreadsheets','foundation-plan','money-planner','offer-tracker','ai-workbench','service-operations','resources','workshops','replays','refer','profile','settings']);
 
 function updateMobileNavigation(id){
   const activePrimary = id === 'module-detail' ? 'modules' : id;
@@ -4014,7 +4094,7 @@ function openMobileMoreSection(id){
 }
 
 function navigateTo(id){
-  const navSection = ['foundation-plan','money-planner','offer-tracker','ai-workbench'].includes(id) ? 'spreadsheets' : id;
+  const navSection = ['foundation-plan','money-planner','offer-tracker','ai-workbench','service-operations'].includes(id) ? 'spreadsheets' : id;
   document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.section === navSection));
   updateMobileNavigation(id);
   document.querySelectorAll('.section').forEach(el => el.classList.toggle('active', el.id === `section-${id}`));
@@ -4159,7 +4239,7 @@ function renderSheets(){
         <div class="sheet-name">${s.name}</div>
         <p class="sheet-desc">${s.desc}</p>
         <div class="sheet-foot">
-          ${['foundation-plan','money-planner','offer-tracker','ai-workbench'].includes(s.tool)
+          ${['foundation-plan','money-planner','offer-tracker','ai-workbench','service-operations'].includes(s.tool)
             ? `<button class="btn btn-primary btn-sm" style="flex:1; justify-content:center" type="button" onclick="openMemberTool('${s.tool}')">${s.action} →</button>`
             : available
             ? `<a class="btn btn-primary btn-sm" style="flex:1; justify-content:center" href="${s.asset}" target="_blank" rel="noopener">${s.action} →</a>`
@@ -4317,6 +4397,7 @@ function openMemberTool(section){
   if (section === 'money-planner') return openMoneyPlanner();
   if (section === 'offer-tracker') return openOfferTracker();
   if (section === 'ai-workbench') return openAiWorkbench();
+  if (section === 'service-operations') return openServiceOperations();
 }
 
 function updateFoundationPlanFromControl(control){
@@ -4946,6 +5027,97 @@ document.addEventListener('click', event => {
   const promptAction = event.target.closest('[data-ai-prompt-action]'); if (promptAction) changeAiLibraryItem('prompt',promptAction.dataset.aiPromptId,promptAction.dataset.aiPromptAction,promptAction);
   const workflowAction = event.target.closest('[data-ai-workflow-action]'); if (workflowAction) changeAiLibraryItem('workflow',workflowAction.dataset.aiWorkflowId,workflowAction.dataset.aiWorkflowAction,workflowAction);
 });
+
+// ---------- SERVICE OPERATIONS ----------
+const SERVICE_OFFER_FIELDS = ['serviceName','customerType','result','pricingMethod','scopeSummary'];
+const SERVICE_SCOPE_LISTS = {included:{label:'Included in scope',limit:10,placeholder:'Example: Test operation'},excluded:{label:'Excluded from scope',limit:10,placeholder:'Example: Hidden damage'},customerResponsibilities:{label:'Customer responsibilities',limit:10,placeholder:'Example: Provide access'}};
+const SERVICE_CHECKLIST_LIMITS = {quality:15,closeout:10};
+const SERVICE_MESSAGE_STARTERS = {
+  scopeConfirmation:'Hi [Name], just confirming the work we discussed: [Scope]. The agreed price is [Price], and we are scheduled for [Date/Time]. If anything outside the agreed scope comes up, I will review it with you before proceeding.',
+  scheduleConfirmation:'Hi [Name], confirming we are scheduled for [Date/Time] at [Location]. Please make sure [Preparation Needed] is handled before arrival. Reply here if anything changes.',
+  completionFollowUp:'Hi [Name], thanks again for having me out today. We completed [Work]. Please keep an eye on [Relevant Item] and let me know if you have any questions. I appreciate the opportunity to help.'
+};
+const SERVICE_SCOPE_STARTER = {included:['Remove existing fixture','Install customer-approved replacement','Test operation','Clean work area'],excluded:['Hidden damage','Permit fees unless stated','Additional electrical or plumbing repairs'],customerResponsibilities:['Provide access','Remove personal items','Approve changes before additional work'],changeOrderRule:'Additional work outside the agreed scope requires approval before proceeding.'};
+const SERVICE_QUALITY_STARTER = ['Confirm agreed scope','Protect the work area','Communicate unexpected conditions','Verify final function','Clean the work area','Complete customer walkthrough','Take completion photos if appropriate'];
+const SERVICE_CLOSEOUT_STARTER = ['Function verified','Work area cleaned','Final scope reviewed','Customer questions answered','Completion documented','Follow-up scheduled if necessary'];
+let SERVICE_OPERATIONS_DRAFT = null;
+let SERVICE_OPERATIONS_SAVING = false;
+
+function serviceText(value, limit = 2000){ return typeof value === 'string' ? value.slice(0,limit) : ''; }
+function createServiceItem(text = ''){ return {id:createAiWorkbenchId('service'),text:serviceText(text,500),done:false}; }
+function normalizeServiceChecklist(items, limit){
+  return Array.isArray(items) ? items.slice(0,limit).map(item => ({id:serviceText(item?.id,100) || createServiceItem().id,text:serviceText(item?.text,500),done:Boolean(item?.done)})) : [];
+}
+function normalizeServiceOperations(source = {}){
+  const offer = {}; SERVICE_OFFER_FIELDS.forEach(field => { offer[field] = serviceText(source.offer?.[field], field === 'scopeSummary' ? 2000 : 500); });
+  const scopeChecklist = {changeOrderRule:serviceText(source.scopeChecklist?.changeOrderRule,1200)};
+  Object.keys(SERVICE_SCOPE_LISTS).forEach(key => { scopeChecklist[key] = Array.isArray(source.scopeChecklist?.[key]) ? source.scopeChecklist[key].slice(0,SERVICE_SCOPE_LISTS[key].limit).map(item => serviceText(item,500)) : []; });
+  const messages = {}; ['scopeConfirmation','scheduleConfirmation','completionFollowUp'].forEach(key => { messages[key] = serviceText(source.messages?.[key],2500); });
+  return {offer,scopeChecklist,qualityChecklist:normalizeServiceChecklist(source.qualityChecklist,SERVICE_CHECKLIST_LIMITS.quality),closeoutChecklist:normalizeServiceChecklist(source.closeoutChecklist,SERVICE_CHECKLIST_LIMITS.closeout),messages,updatedAt:typeof source.updatedAt === 'string' ? source.updatedAt : null};
+}
+function getServiceOperationsData(){ return normalizeServiceOperations(MEMBER_PROGRESS?.tools?.serviceOperations || {}); }
+function canUseServiceOperations(){ return !IS_PREVIEW_MODE && ['active','trialing'].includes(CURRENT_MEMBER?.subscriptionStatus); }
+function setServiceOperationsStatus(message,state = ''){ const node = document.getElementById('serviceOperationsSaveStatus'); if (!node) return; node.className = 'service-operations-status' + (state ? ' ' + state : ''); node.textContent = message; }
+function renderServiceScopeLists(){
+  const container = document.getElementById('serviceScopeLists'); if (!container || !SERVICE_OPERATIONS_DRAFT) return;
+  container.innerHTML = Object.entries(SERVICE_SCOPE_LISTS).map(([key,config]) => '<div class="service-operations-card" style="padding:0 0 16px"><div class="ai-preview-label">' + config.label + '</div><div class="service-list">' + SERVICE_OPERATIONS_DRAFT.scopeChecklist[key].map((item,index) => '<div class="service-list-row"><input type="text" data-service-scope-list="' + key + '" data-service-scope-index="' + index + '" value="' + escapeHtml(item) + '" placeholder="' + escapeHtml(config.placeholder) + '"><button class="service-list-remove" type="button" data-remove-service-scope="' + key + '" data-service-scope-index="' + index + '">Remove</button></div>').join('') + '</div><button class="btn btn-ghost btn-sm" style="margin-top:9px" type="button" onclick="addServiceScopeItem(\'' + key + '\')">Add item</button></div>').join('');
+  document.getElementById('serviceChangeRule').value = SERVICE_OPERATIONS_DRAFT.scopeChecklist.changeOrderRule || '';
+}
+function renderServiceChecklist(kind){
+  const key = kind === 'quality' ? 'qualityChecklist' : 'closeoutChecklist'; const container = document.getElementById(kind === 'quality' ? 'serviceQualityChecklist' : 'serviceCloseoutChecklist'); if (!container || !SERVICE_OPERATIONS_DRAFT) return;
+  container.innerHTML = SERVICE_OPERATIONS_DRAFT[key].length ? SERVICE_OPERATIONS_DRAFT[key].map((item,index) => '<div class="service-check-row' + (item.done ? ' done' : '') + '"><input type="checkbox" data-service-check-kind="' + kind + '" data-service-check-index="' + index + '"' + (item.done ? ' checked' : '') + ' aria-label="Mark checklist item complete"><input type="text" data-service-check-kind="' + kind + '" data-service-check-index="' + index + '" value="' + escapeHtml(item.text) + '" placeholder="Checklist item"><button class="service-list-remove" type="button" data-remove-service-check="' + kind + '" data-service-check-index="' + index + '">Remove</button></div>').join('') : '<div class="ai-library-empty">No checklist items yet. Load a starter or add the first step you want to repeat.</div>';
+}
+function renderServiceOperations(){
+  const workspace = document.getElementById('serviceOperationsWorkspace'); const locked = document.getElementById('serviceOperationsLocked'); if (!workspace || !locked) return;
+  const allowed = canUseServiceOperations(); workspace.hidden = !allowed; locked.hidden = allowed; if (!allowed) return;
+  SERVICE_OPERATIONS_DRAFT = getServiceOperationsData();
+  document.querySelectorAll('[data-service-offer-field]').forEach(input => { input.value = SERVICE_OPERATIONS_DRAFT.offer[input.dataset.serviceOfferField] || ''; });
+  document.querySelectorAll('[data-service-message-field]').forEach(input => { input.value = SERVICE_OPERATIONS_DRAFT.messages[input.dataset.serviceMessageField] || ''; });
+  renderServiceScopeLists(); renderServiceChecklist('quality'); renderServiceChecklist('closeout');
+  setServiceOperationsStatus(SERVICE_OPERATIONS_DRAFT.updatedAt ? 'Saved · ' + new Date(SERVICE_OPERATIONS_DRAFT.updatedAt).toLocaleString() + '.' : 'Your service system saves only when you choose Save Service Operations.',SERVICE_OPERATIONS_DRAFT.updatedAt ? 'success' : '');
+}
+function openServiceOperations(){ if (IS_PREVIEW_MODE) { window.location.href = '/surplus.html#pricing'; return; } renderServiceOperations(); analytics('service_operations_opened'); navigateTo('service-operations'); }
+function addServiceScopeItem(key){
+  if (!canUseServiceOperations()) { resubscribe(); return; } const config = SERVICE_SCOPE_LISTS[key]; const list = SERVICE_OPERATIONS_DRAFT.scopeChecklist[key];
+  if (list.length >= config.limit) { showToast('This list supports up to ' + config.limit + ' items.'); return; } list.push(''); renderServiceScopeLists(); setServiceOperationsStatus('Unsaved changes');
+}
+function loadServiceScopeStarter(){
+  Object.keys(SERVICE_SCOPE_LISTS).forEach(key => { SERVICE_OPERATIONS_DRAFT.scopeChecklist[key] = SERVICE_SCOPE_STARTER[key].slice(0,SERVICE_SCOPE_LISTS[key].limit); });
+  SERVICE_OPERATIONS_DRAFT.scopeChecklist.changeOrderRule = SERVICE_SCOPE_STARTER.changeOrderRule; renderServiceScopeLists(); setServiceOperationsStatus('Sample scope lists loaded as an unsaved draft.');
+}
+function addServiceChecklistItem(kind){
+  if (!canUseServiceOperations()) { resubscribe(); return; } const key = kind === 'quality' ? 'qualityChecklist' : 'closeoutChecklist'; const list = SERVICE_OPERATIONS_DRAFT[key]; const limit = SERVICE_CHECKLIST_LIMITS[kind];
+  if (list.length >= limit) { showToast('This checklist supports up to ' + limit + ' items.'); return; } list.push(createServiceItem()); renderServiceChecklist(kind); setServiceOperationsStatus('Unsaved changes');
+}
+function loadServiceChecklistStarter(kind){ const key = kind === 'quality' ? 'qualityChecklist' : 'closeoutChecklist'; const starter = kind === 'quality' ? SERVICE_QUALITY_STARTER : SERVICE_CLOSEOUT_STARTER; SERVICE_OPERATIONS_DRAFT[key] = starter.slice(0,SERVICE_CHECKLIST_LIMITS[kind]).map(createServiceItem); renderServiceChecklist(kind); setServiceOperationsStatus('Starter loaded as an unsaved draft.'); }
+function loadServiceMessageStarter(key){ SERVICE_OPERATIONS_DRAFT.messages[key] = SERVICE_MESSAGE_STARTERS[key]; document.querySelector('[data-service-message-field="' + key + '"]').value = SERVICE_OPERATIONS_DRAFT.messages[key]; setServiceOperationsStatus('Message starter loaded as an unsaved draft.'); }
+function updateServiceOperationsControl(input){
+  if (!SERVICE_OPERATIONS_DRAFT) return;
+  if (input.dataset.serviceOfferField) SERVICE_OPERATIONS_DRAFT.offer[input.dataset.serviceOfferField] = serviceText(input.value,input.dataset.serviceOfferField === 'scopeSummary' ? 2000 : 500);
+  if (input.dataset.serviceMessageField) SERVICE_OPERATIONS_DRAFT.messages[input.dataset.serviceMessageField] = serviceText(input.value,2500);
+  if (input.dataset.serviceScopeField) SERVICE_OPERATIONS_DRAFT.scopeChecklist[input.dataset.serviceScopeField] = serviceText(input.value,1200);
+  if (input.dataset.serviceScopeList) SERVICE_OPERATIONS_DRAFT.scopeChecklist[input.dataset.serviceScopeList][Number(input.dataset.serviceScopeIndex)] = serviceText(input.value,500);
+  if (input.dataset.serviceCheckKind) { const item = SERVICE_OPERATIONS_DRAFT[input.dataset.serviceCheckKind === 'quality' ? 'qualityChecklist' : 'closeoutChecklist'][Number(input.dataset.serviceCheckIndex)]; if (input.type === 'checkbox') { item.done = input.checked; renderServiceChecklist(input.dataset.serviceCheckKind); } else item.text = serviceText(input.value,500); }
+  setServiceOperationsStatus('Unsaved changes');
+}
+function removeServiceScopeItem(key,index){ SERVICE_OPERATIONS_DRAFT.scopeChecklist[key].splice(Number(index),1); renderServiceScopeLists(); setServiceOperationsStatus('Unsaved changes'); }
+function removeServiceChecklistItem(kind,index){ const key = kind === 'quality' ? 'qualityChecklist' : 'closeoutChecklist'; SERVICE_OPERATIONS_DRAFT[key].splice(Number(index),1); renderServiceChecklist(kind); setServiceOperationsStatus('Unsaved changes'); }
+async function copyServiceMessage(key){
+  const text = SERVICE_OPERATIONS_DRAFT?.messages?.[key] || ''; if (!text) { showToast('Add a message before copying it.'); return; }
+  try { if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(text); else throw new Error('Clipboard unavailable'); showToast('Message copied.'); }
+  catch { const area = document.createElement('textarea'); area.value = text; area.style.position = 'fixed'; area.style.opacity = '0'; document.body.appendChild(area); area.select(); const copied = document.execCommand('copy'); area.remove(); showToast(copied ? 'Message copied.' : "Couldn't copy - select the message and copy it."); }
+}
+async function saveServiceOperations(){
+  if (!canUseServiceOperations()) { resubscribe(); return; } if (SERVICE_OPERATIONS_SAVING) return;
+  const button = document.getElementById('saveServiceOperationsButton'); const previousProgress = cloneProgress(); const saved = normalizeServiceOperations({...SERVICE_OPERATIONS_DRAFT,updatedAt:new Date().toISOString()});
+  SERVICE_OPERATIONS_SAVING = true; button.disabled = true; setServiceOperationsStatus('Saving...'); MEMBER_PROGRESS = {...MEMBER_PROGRESS,tools:{...(MEMBER_PROGRESS.tools && typeof MEMBER_PROGRESS.tools === 'object' ? MEMBER_PROGRESS.tools : {}),serviceOperations:saved}};
+  try { await saveMemberState(); SERVICE_OPERATIONS_DRAFT = getServiceOperationsData(); setServiceOperationsStatus('Saved · just now.','success'); analytics('service_operations_saved'); }
+  catch (error) { MEMBER_PROGRESS = previousProgress; setServiceOperationsStatus("Couldn't save - try again. Your entries are still here.",'error'); }
+  finally { SERVICE_OPERATIONS_SAVING = false; button.disabled = false; }
+}
+document.addEventListener('input', event => { if (event.target.matches('[data-service-offer-field],[data-service-message-field],[data-service-scope-field],[data-service-scope-list],[data-service-check-kind]')) updateServiceOperationsControl(event.target); });
+document.addEventListener('change', event => { if (event.target.matches('[data-service-check-kind]')) updateServiceOperationsControl(event.target); });
+document.addEventListener('click', event => { const scope = event.target.closest('[data-remove-service-scope]'); if (scope) removeServiceScopeItem(scope.dataset.removeServiceScope,scope.dataset.serviceScopeIndex); const check = event.target.closest('[data-remove-service-check]'); if (check) removeServiceChecklistItem(check.dataset.removeServiceCheck,check.dataset.serviceCheckIndex); });
 
 // ---------- RENDER LADDER ----------
 function renderLadder(){
@@ -5630,6 +5802,7 @@ renderFoundationPlan();
 renderMoneyPlanner();
 renderOfferTracker();
 renderAiWorkbench();
+renderServiceOperations();
 if (IS_PREVIEW_MODE) {
   document.body.classList.add('preview-mode');
   document.getElementById('signin')?.classList.add('hidden');
