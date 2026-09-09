@@ -406,6 +406,7 @@
   .build-plan-count{color:var(--gold-bright); font-size:12px; white-space:nowrap; padding-top:4px}
   .build-plan-copy{color:var(--ink-dim); font-size:13px; line-height:1.55; max-width:680px; margin-bottom:18px}
   .build-plan-list{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); border-top:1px solid var(--line)}
+  .build-plan-list.is-single-focus{grid-template-columns:1fr}
   .build-plan-item{display:flex; gap:12px; min-width:0; padding:18px 18px 0 0}
   .build-plan-item + .build-plan-item{padding-left:18px; border-left:1px solid var(--line)}
   .build-plan-marker{display:grid; place-items:center; width:26px; height:26px; flex:0 0 26px; border:1px solid var(--line-gold); border-radius:50%; color:var(--gold-bright); font-family:var(--serif); font-size:13px}
@@ -424,8 +425,7 @@
     .build-plan-item + .build-plan-item{padding-left:0; border-left:0; border-top:1px solid var(--line)}
   }
 
-  .home-grid{display:grid; grid-template-columns:1.4fr 1fr; gap:20px}
-  @media(max-width:980px){.home-grid{grid-template-columns:1fr}}
+  .home-grid{display:block}
 
   .continue-card{padding:0; overflow:hidden; position:relative}
   .continue-thumb{
@@ -1928,44 +1928,18 @@
             <h3 class="card-title" id="continueModuleTitle">The Wake-Up</h3>
             <div class="continue-meta">
               <span id="continueModuleDuration">38 min</span>
-              <span>Assignment included</span>
-              <span>Progress saved</span>
+              <span id="continueModuleContext">Assignment included</span>
+              <span id="continueModuleState">Progress saved</span>
             </div>
             <p class="card-sub" id="continueModuleDescription" style="margin-bottom:14px">Set the standard, define the target, and build a schedule you can actually hold.</p>
-            <div class="progress-bar"><div class="progress-fill" id="continueModuleProgressBar" style="width:0"></div></div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px">
+            <div id="continueModuleProgressWrap"><div class="progress-bar"><div class="progress-fill" id="continueModuleProgressBar" style="width:0"></div></div></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px" id="continueModuleFooter">
               <span id="continueModuleProgressText" style="font-size:12px; color:var(--ink-dim)">0% complete</span>
               <button class="btn btn-primary btn-sm" id="continueModuleButton" onclick="openModuleDetail(1)">Start →</button>
             </div>
           </div>
         </div>
 
-        <div>
-          <h3 class="card-title" style="margin-bottom:14px; padding-left:4px">Up next</h3>
-          <div class="next-up">
-            <div class="next-item" onclick="navigateTo('workshops')">
-              <div class="next-icon">L</div>
-              <div class="next-text">
-                <div class="next-title">Next live member workshop</div>
-                <div class="next-sub">Schedule announced in Discord</div>
-              </div>
-            </div>
-            <div class="next-item" onclick="navigateTo('spreadsheets')">
-              <div class="next-icon">$</div>
-              <div class="next-text">
-                <div class="next-title">Monthly money system</div>
-                <div class="next-sub">Open the first action-ready money tool</div>
-              </div>
-            </div>
-            <div class="next-item" onclick="navigateTo('ladder')">
-              <div class="next-icon">↗</div>
-              <div class="next-text">
-                <div class="next-title">The seven-rung roadmap</div>
-                <div class="next-sub">See where your current stage leads next</div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -3313,6 +3287,24 @@ const MODULE_TOOLS = {
   6: { title:'Open Property Readiness', copy:'Interactive Module 6 property-planning tool', icon:'6', section:'property-readiness' },
 };
 
+const MODULE_TOOL_STATE_KEYS = {
+  1:'foundationPlan',
+  2:'moneyPlanner',
+  3:'offerOutreach',
+  4:'aiWorkbench',
+  5:'serviceOperations',
+  6:'propertyReadiness'
+};
+
+const MODULE_TOOL_RECOMMENDATIONS = {
+  1:'Turn your target and standards into a weekly operating plan.',
+  2:'Turn your money audit into a working monthly plan.',
+  3:'Put your offer into the market and track your outreach.',
+  4:'Turn this module into reusable prompts and workflows.',
+  5:'Turn your service into a repeatable delivery process.',
+  6:'Put your property assumptions into one working plan.'
+};
+
 const LADDER = [
   { n:1, stage:'Rock Bottom',  title:'Know your true number',          desc:'Run the audit. Map every dollar.',                                              status:'done' },
   { n:2, stage:'Stability',    title:'Build a $1,000 buffer',          desc:'A starter emergency fund that breaks the panic loop.',                          status:'done' },
@@ -3670,7 +3662,7 @@ async function persistAccountabilityChange(previousProgress, successMessage, ana
   } catch (error) {
     MEMBER_PROGRESS = previousProgress;
     renderGoals();
-    renderBuildPlan();
+    renderHomeNextAction();
     updateAccountabilitySummary();
     showToast('That change could not be saved. Please try again.');
   } finally {
@@ -3858,93 +3850,210 @@ function getStartingRung(){
   return index >= 0 ? index + 1 : null;
 }
 
-function renderBuildPlan(){
+function hasMeaningfulToolValue(value){
+  if (Array.isArray(value)) return value.some(hasMeaningfulToolValue);
+  if (!value || typeof value !== 'object') return typeof value === 'string' ? Boolean(value.trim()) : Boolean(value);
+  return Object.entries(value).some(([key, child]) => key !== 'id' && key !== 'updatedAt' && hasMeaningfulToolValue(child));
+}
+
+function hasStartedModuleTool(module){
+  const key = MODULE_TOOL_STATE_KEYS[module.n];
+  const tool = key && MEMBER_PROGRESS?.tools?.[key];
+  if (!tool || typeof tool !== 'object' || Array.isArray(tool)) return false;
+  return Boolean(tool.updatedAt) || hasMeaningfulToolValue(tool);
+}
+
+function getResumeLessonAction(){
+  const candidates = MODULES.map(module => {
+    if (isModuleComplete(module)) return null;
+    const stored = MEMBER_PROGRESS.lessonProgress?.[String(module.n)];
+    if (!stored || typeof stored !== 'object') return null;
+    const lessonState = getModuleLessonState(module);
+    const lesson = getLessonById(module, lessonState.currentLessonId);
+    if (!lesson || lessonState.completedLessonIds.includes(lesson.id)) return null;
+    if (!stored.currentLessonId && lessonState.completedLessonIds.length === 0) return null;
+    return {module, lesson, updatedAt:Date.parse(stored.updatedAt || '') || 0};
+  }).filter(Boolean).sort((a,b) => b.updatedAt - a.updatedAt || a.module.n - b.module.n);
+  const candidate = candidates[0];
+  if (!candidate) return null;
+  const lessonNumber = candidate.module.lessons.findIndex(lesson => lesson.id === candidate.lesson.id) + 1;
+  return {
+    type:'lesson',
+    title:`Continue Module ${candidate.module.n}`,
+    description:`${candidate.module.title} · Lesson ${lessonNumber}: ${candidate.lesson.title}`,
+    ctaLabel:'Resume Lesson',
+    target:'lesson',
+    moduleId:candidate.module.n,
+    lessonId:candidate.lesson.id,
+    context:`Module ${candidate.module.n} · Lesson ${lessonNumber}`,
+    progress:getModuleProgressPercent(candidate.module)
+  };
+}
+
+function getWeeklyGoalAction(accountability){
+  const unfinishedGoal = accountability.weekly.goals.find(item => !item.completedAt);
+  if (unfinishedGoal) {
+    return {
+      type:'weekly-goal',
+      title:'Weekly goal',
+      description:unfinishedGoal.text,
+      ctaLabel:'Open Goals',
+      target:'goals',
+      context:'Weekly accountability',
+      memberInput:true
+    };
+  }
+  return null;
+}
+
+function resolveNextAction(){
+  if (!MEMBER_ONBOARDING.completed) {
+    return {
+      type:'onboarding',
+      title:'Finish setup',
+      description:'Choose your path, primary goal, and starting stage so Surplus can guide the next move.',
+      ctaLabel:'Finish setup',
+      target:'onboarding',
+      context:'Member setup'
+    };
+  }
+
+  const resumeLesson = getResumeLessonAction();
+  if (resumeLesson) return resumeLesson;
+
+  const accountability = getAccountability();
+  const firstDailyAction = accountability.daily.actions.find(item => !item.completedAt);
+  const courseComplete = MODULES.every(isModuleComplete);
+  if (courseComplete) {
+    if (firstDailyAction) {
+      return {
+        type:'daily-action', title:'Today\'s action', description:firstDailyAction.text,
+        ctaLabel:'Open Goals', target:'goals', context:'Daily accountability', memberInput:true
+      };
+    }
+    const weeklyAction = getWeeklyGoalAction(accountability);
+    if (weeklyAction) return weeklyAction;
+    return {
+      type:'tool-review', title:'Review your Money System',
+      description:'Use your Money System Planner to review your current plan and make your next dollars intentional.',
+      ctaLabel:'Review Money Planner', target:'tool', toolName:'money-planner',
+      context:'Ongoing money review'
+    };
+  }
+
+  const completedModuleMissingTool = MODULES.find(module => isModuleComplete(module) && !hasStartedModuleTool(module));
+  if (completedModuleMissingTool) {
+    const tool = MODULE_TOOLS[completedModuleMissingTool.n];
+    return {
+      type:'tool',
+      title:`Put Module ${completedModuleMissingTool.n} into practice`,
+      description:MODULE_TOOL_RECOMMENDATIONS[completedModuleMissingTool.n],
+      ctaLabel:tool.title,
+      target:'tool',
+      moduleId:completedModuleMissingTool.n,
+      toolName:tool.section,
+      context:`Module ${completedModuleMissingTool.n} tool`
+    };
+  }
+
+  if (firstDailyAction) {
+    return {
+      type:'daily-action', title:'Today\'s action', description:firstDailyAction.text,
+      ctaLabel:'Open Goals', target:'goals', context:'Daily accountability', memberInput:true
+    };
+  }
+
+  const weeklyAction = getWeeklyGoalAction(accountability);
+  if (weeklyAction) return weeklyAction;
+
+  const nextModule = getNextModule();
+  if (nextModule) {
+    return {
+      type:'module',
+      title:`Start Module ${nextModule.n}`,
+      description:nextModule.desc,
+      ctaLabel:'Start Module',
+      target:'module',
+      moduleId:nextModule.n,
+      context:`Module ${nextModule.n} · ${nextModule.stage}`,
+      progress:getModuleProgressPercent(nextModule)
+    };
+  }
+
+  return {
+    type:'tool-review', title:'Review your Money System',
+    description:'Use your Money System Planner to review your current plan and make your next dollars intentional.',
+    ctaLabel:'Review Money Planner', target:'tool', toolName:'money-planner',
+    context:'Ongoing money review'
+  };
+}
+
+let CURRENT_NEXT_ACTION = null;
+
+function runNextAction(){
+  const action = CURRENT_NEXT_ACTION || resolveNextAction();
+  if (action.target === 'onboarding') return openWizard();
+  if (action.target === 'lesson') return openModuleDetail(action.moduleId, action.lessonId);
+  if (action.target === 'module') return openModuleDetail(action.moduleId);
+  if (action.target === 'tool') return openMemberTool(action.toolName);
+  if (action.target === 'goals') return navigateTo('goals');
+}
+
+function renderBuildPlan(action){
   const list = document.getElementById('buildPlanList');
   if (!list) return;
-
-  const onboardingDone = Boolean(MEMBER_ONBOARDING.completed);
-  const discordConnected = Boolean(CURRENT_MEMBER?.discord?.connected);
-  const nextModule = getNextModule();
-  const accountabilityStats = getAccountabilityStats();
-  const nextLabel = nextModule
-    ? `Start Module ${nextModule.n}: ${nextModule.title}`
-    : 'Review your capital plan';
-  const nextDetail = nextModule
-    ? `One action: ${nextModule.assignment}`
-    : 'You have completed the full course path. Revisit the plan that matters most right now.';
-
-  const items = [
-    {
-      title: onboardingDone ? 'Your build path is set' : 'Complete your build path',
-      detail: onboardingDone
-        ? `${MEMBER_ONBOARDING.goal || 'Your primary target'} · ${MEMBER_ONBOARDING.stage || 'Foundation'}`
-        : 'Choose your goal and current stage so Surplus can guide the next move.',
-      done: onboardingDone,
-      action: onboardingDone ? "navigateTo('profile')" : 'openWizard()',
-      actionLabel: onboardingDone ? 'View profile' : 'Start onboarding'
-    },
-    {
-      title: discordConnected ? 'Discord is connected' : 'Connect the member room',
-      detail: discordConnected
-        ? `Connected as ${CURRENT_MEMBER?.discord?.username || 'your Discord account'}. Your access role is active.`
-        : 'Get your member role, meet the room, and post your first commitment.',
-      done: discordConnected,
-      action: "navigateTo('community')",
-      actionLabel: discordConnected ? 'Open community' : 'Connect Discord'
-    },
-    {
-      title: nextLabel,
-      detail: nextDetail,
-      done: !nextModule,
-      action: nextModule ? `openModuleDetail(${nextModule.n})` : 'openModuleDetail(6)',
-      actionLabel: nextModule ? 'Start module' : 'Review module'
-    }
-  ];
-
-  list.innerHTML = items.map((item, index) => `
+  const detail = action.memberInput ? escapeGoalText(action.description) : action.description;
+  list.classList.add('is-single-focus');
+  list.innerHTML = `
     <div class="build-plan-item">
-      <div class="build-plan-marker${item.done ? ' is-done' : ''}">${item.done ? '✓' : index + 1}</div>
+      <div class="build-plan-marker">→</div>
       <div class="build-plan-item-body">
-        <div class="build-plan-item-title">${item.title}</div>
-        <div class="build-plan-item-detail">${item.detail}</div>
-        <button class="build-plan-action" onclick="${item.action}">${item.actionLabel} →</button>
+        <div class="build-plan-item-title">${action.title}</div>
+        <div class="build-plan-item-detail">${detail}</div>
+        <button class="build-plan-action" type="button" onclick="runNextAction()">${action.ctaLabel} →</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  document.getElementById('buildPlanCount').textContent = action.context;
+  document.getElementById('buildPlanCopy').textContent = 'One clear action now is more useful than five competing priorities.';
+}
 
-  document.getElementById('buildPlanCount').textContent = `${items.filter(item => item.done).length} / ${items.length} complete`;
-  document.getElementById('buildPlanCopy').textContent = onboardingDone
-    ? 'Keep the plan small: take one useful action, then return tomorrow with proof that you moved.'
-    : 'Set your starting point first. A clear path beats trying to fix everything at once.';
-
+function renderContinueCard(action){
+  const module = action.moduleId ? getModule(action.moduleId) : null;
+  const detail = action.memberInput ? action.description : action.description;
+  document.getElementById('continueModuleBadge').textContent = action.context;
+  document.getElementById('continueModuleTitle').textContent = action.title;
+  document.getElementById('continueModuleDuration').textContent = module ? module.duration : 'Current focus';
+  document.getElementById('continueModuleContext').textContent = module ? `${module.lessons.length} lessons` : 'Progress saved';
+  document.getElementById('continueModuleState').textContent = action.type === 'tool' ? 'Member tool' : action.type === 'daily-action' || action.type === 'weekly-goal' || action.type === 'weekly-plan' ? 'Accountability' : 'Saved to your account';
+  document.getElementById('continueModuleDescription').textContent = detail;
+  const progressWrap = document.getElementById('continueModuleProgressWrap');
+  const footer = document.getElementById('continueModuleFooter');
+  progressWrap.hidden = !module;
+  if (module) {
+    const progress = action.progress ?? getModuleProgressPercent(module);
+    document.getElementById('continueModuleProgressBar').style.width = `${progress}%`;
+    document.getElementById('continueModuleProgressText').textContent = `${getModuleLessonState(module).completedLessonIds.length} / ${module.lessons.length} lessons · ${progress}% complete`;
+  } else {
+    document.getElementById('continueModuleProgressText').textContent = action.context;
+  }
+  footer.querySelector('span').hidden = !module;
   const primaryButton = document.getElementById('homePrimaryAction');
   const actionValue = document.getElementById('homeActionValue');
   const actionMeta = document.getElementById('homeActionMeta');
-  if (!onboardingDone) {
-    primaryButton.textContent = 'Finish onboarding →';
-    primaryButton.onclick = openWizard;
-    actionValue.textContent = 'Start';
-    actionMeta.textContent = 'Complete onboarding';
-  } else if (!discordConnected) {
-    primaryButton.textContent = 'Connect Discord →';
-    primaryButton.onclick = () => navigateTo('community');
-    actionValue.textContent = 'Connect';
-    actionMeta.textContent = 'Join the member room';
-  } else if (nextModule) {
-    primaryButton.textContent = `Continue Module ${nextModule.n} →`;
-    primaryButton.onclick = () => openModuleDetail(nextModule.n);
-    actionValue.textContent = `Module ${nextModule.n}`;
-    actionMeta.textContent = nextModule.title;
-  } else {
-    primaryButton.textContent = 'Review your plan →';
-    primaryButton.onclick = () => openModuleDetail(6);
-    actionValue.textContent = 'Review';
-    actionMeta.textContent = 'Revisit your capital plan';
-  }
+  primaryButton.textContent = `${action.ctaLabel} →`;
+  primaryButton.onclick = runNextAction;
+  actionValue.textContent = action.type === 'lesson' ? `Module ${action.moduleId}` : action.type === 'module' ? `Module ${action.moduleId}` : action.type === 'tool' || action.type === 'tool-review' ? 'Tool' : action.type === 'daily-action' ? 'Today' : action.type === 'weekly-goal' || action.type === 'weekly-plan' ? 'Week' : 'Setup';
+  actionMeta.textContent = action.title;
+  const button = document.getElementById('continueModuleButton');
+  button.textContent = `${action.ctaLabel} →`;
+  button.onclick = runNextAction;
+}
 
-  document.getElementById('homeActionCount').textContent = `${accountabilityStats.daily.completed} / ${accountabilityStats.daily.total || 3}`;
-  document.getElementById('homeActionCountMeta').textContent = accountabilityStats.daily.total === 0
-    ? 'Add one action you can finish today'
-    : `${accountabilityStats.daily.completed} of ${accountabilityStats.daily.total} complete today`;
+function renderHomeNextAction(){
+  const action = resolveNextAction();
+  CURRENT_NEXT_ACTION = action;
+  renderBuildPlan(action);
+  renderContinueCard(action);
 }
 
 function applyMember(member){
@@ -4016,10 +4125,9 @@ function applyMember(member){
   document.querySelector('.demo-toggle')?.remove();
   setState(member.subscriptionStatus === 'active' || member.subscriptionStatus === 'trialing' ? 'active' : 'expired');
   renderModules();
-  renderContinueCard();
+  renderHomeNextAction();
   renderLadder();
   renderGoals();
-  renderBuildPlan();
   renderFoundationPlan();
   renderMoneyPlanner();
   renderOfferTracker();
@@ -4083,7 +4191,7 @@ function updateDiscordConnection(discord = {}){
   document.querySelectorAll('[data-discord-disconnect]').forEach((button) => {
     button.hidden = !connected;
   });
-  if (!IS_PREVIEW_MODE) renderBuildPlan();
+  if (!IS_PREVIEW_MODE) renderHomeNextAction();
 }
 
 async function disconnectDiscord(){
@@ -4155,6 +4263,7 @@ function navigateTo(id){
   document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.section === navSection));
   updateMobileNavigation(id);
   document.querySelectorAll('.section').forEach(el => el.classList.toggle('active', el.id === `section-${id}`));
+  if (id === 'home') renderHomeNextAction();
   window.scrollTo({top:0, behavior:'smooth'});
   analytics('dashboard_section_viewed',{section:id});
   closePalette();
@@ -4260,22 +4369,6 @@ function renderModules(){
       </div>
     </div>`;
   }).join('');
-}
-
-function renderContinueCard(){
-  const nextModule = getNextModule() || MODULES[MODULES.length - 1];
-  const progress = getModuleProgressPercent(nextModule);
-  const lessonState = getModuleLessonState(nextModule);
-  const completedLessons = lessonState.completedLessonIds.length;
-  document.getElementById('continueModuleBadge').textContent = `Module ${nextModule.n} · ${nextModule.stage}`;
-  document.getElementById('continueModuleTitle').textContent = nextModule.title;
-  document.getElementById('continueModuleDuration').textContent = nextModule.duration;
-  document.getElementById('continueModuleDescription').textContent = nextModule.desc;
-  document.getElementById('continueModuleProgressBar').style.width = `${progress}%`;
-  document.getElementById('continueModuleProgressText').textContent = `${completedLessons} / ${nextModule.lessons.length} lessons · ${progress}% complete`;
-  const button = document.getElementById('continueModuleButton');
-  button.textContent = progress > 0 ? 'Resume →' : 'Start →';
-  button.onclick = () => openModuleDetail(nextModule.n);
 }
 
 // ---------- RENDER SHEETS ----------
@@ -5704,7 +5797,7 @@ async function addAccountabilityItem(type, input){
   list.push(item);
   input.value = '';
   renderGoals();
-  renderBuildPlan();
+  renderHomeNextAction();
   updateAccountabilitySummary();
   const metadata = type === 'daily'
     ? {goalId:item.id,goalType:'daily',localDate:accountability.daily.date}
@@ -5729,7 +5822,7 @@ async function toggleAccountabilityItem(type, id){
   const completing = !item.completedAt;
   item.completedAt = completing ? new Date().toISOString() : null;
   renderGoals();
-  renderBuildPlan();
+  renderHomeNextAction();
   updateAccountabilitySummary();
   const metadata = type === 'daily'
     ? {goalId:item.id,goalType:'daily',localDate:accountability.daily.date}
@@ -5746,7 +5839,7 @@ async function deleteAccountabilityItem(type, id){
   const previousProgress = cloneProgress();
   list.splice(index,1);
   renderGoals();
-  renderBuildPlan();
+  renderHomeNextAction();
   updateAccountabilitySummary();
   await persistAccountabilityChange(previousProgress,'Item removed.');
 }
@@ -5923,8 +6016,7 @@ async function completeActiveLesson(){
     await saveMemberState();
     ACTIVE_LESSON_ID = state.currentLessonId;
     renderModules();
-    renderContinueCard();
-    renderBuildPlan();
+    renderHomeNextAction();
     renderModuleDetail();
     analytics('lesson_completed',{module:module.n,lesson:lessonId});
     if (allComplete && !wasModuleComplete) {
@@ -5936,8 +6028,7 @@ async function completeActiveLesson(){
   } catch (error) {
     MEMBER_PROGRESS = previousProgress;
     renderModules();
-    renderContinueCard();
-    renderBuildPlan();
+    renderHomeNextAction();
     renderModuleDetail();
     showToast(error.message);
   }
@@ -5955,7 +6046,7 @@ renderOnboard();
 renderResources();
 renderReplays();
 renderGoals();
-renderBuildPlan();
+renderHomeNextAction();
 renderNotifs();
 setDate();
 setState('active');
