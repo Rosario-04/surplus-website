@@ -42,7 +42,8 @@ const signupAttempts = new Map();
 const PROTECTED_MEMBER_TOOLS = new Map([
   ["moneyPlanner", "Money System Planner"],
   ["foundationPlan", "Foundation Plan"],
-  ["offerOutreach", "Offer & Outreach Tracker"]
+  ["offerOutreach", "Offer & Outreach Tracker"],
+  ["aiWorkbench", "AI Workbench"]
 ]);
 
 const types = {

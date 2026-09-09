@@ -620,6 +620,35 @@
   .offer-tracker-locked{padding:28px; max-width:680px}
   .offer-tracker-locked h2{font-family:var(--serif); font-size:30px; font-weight:400; margin-bottom:8px}
   .offer-tracker-locked p{color:var(--ink-dim); line-height:1.6; margin-bottom:18px}
+
+  /* AI WORKBENCH */
+  .ai-workbench-grid{display:grid; grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr); gap:18px; align-items:start}
+  .ai-workbench-card{padding:24px}
+  .ai-workbench-card h2{font-family:var(--serif); font-weight:500; font-size:24px; letter-spacing:-.015em; margin-bottom:6px}
+  .ai-workbench-card > p{color:var(--ink-dim); font-size:13px; line-height:1.55; margin-bottom:18px}
+  .ai-workbench-card.wide{grid-column:1 / -1}
+  .ai-starter-list{display:grid; gap:9px}
+  .ai-starter{display:flex; width:100%; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border:0; border-bottom:1px solid var(--line-soft); background:transparent; color:inherit; text-align:left; cursor:pointer}
+  .ai-starter:last-child{border-bottom:0}
+  .ai-starter-name{font-size:13px; color:var(--ink)}
+  .ai-starter-copy{margin-top:2px; color:var(--ink-faint); font-size:11px; line-height:1.45}
+  .ai-preview{min-height:210px; padding:16px; border:1px solid var(--line-gold); border-radius:12px; background:rgba(185,154,85,.07); color:var(--ink-dim); font:12px/1.6 var(--sans); white-space:pre-wrap}
+  .ai-preview-label{font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold-bright); font-weight:600; margin-bottom:8px}
+  .ai-workbench-actions{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:22px; padding:16px 18px; border:1px solid var(--line); border-radius:14px; background:var(--glass); flex-wrap:wrap}
+  .ai-save-status{color:var(--ink-dim); font-size:12px; line-height:1.5}
+  .ai-save-status.success{color:var(--good)}
+  .ai-save-status.error{color:var(--bad)}
+  .ai-library-head{display:flex; align-items:end; justify-content:space-between; gap:14px; flex-wrap:wrap; margin:28px 0 14px}
+  .ai-library-head h2{font-family:var(--serif); font-size:27px; font-weight:500; letter-spacing:-.015em}
+  .ai-library{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px}
+  .ai-library-card{padding:16px; border:1px solid var(--line); border-radius:12px; background:var(--glass)}
+  .ai-library-card h3{font-family:var(--serif); font-size:17px; font-weight:500; color:var(--ink); margin-bottom:4px}
+  .ai-library-meta{color:var(--ink-faint); font-size:11px; line-height:1.45; margin-bottom:14px}
+  .ai-library-actions{display:flex; gap:8px; flex-wrap:wrap}
+  .ai-library-empty{padding:22px; border:1px dashed var(--line-gold); border-radius:12px; color:var(--ink-dim); font-size:13px; line-height:1.6; text-align:center}
+  .ai-workbench-locked{padding:28px; max-width:680px}
+  .ai-workbench-locked h2{font-family:var(--serif); font-size:30px; font-weight:400; margin-bottom:8px}
+  .ai-workbench-locked p{color:var(--ink-dim); line-height:1.6; margin-bottom:18px}
   @media(max-width:760px){
     .money-planner-grid{grid-template-columns:1fr}
     .money-planner-card.wide{grid-column:auto}
@@ -639,6 +668,12 @@
     .offer-results{grid-template-columns:repeat(2,minmax(0,1fr))}
     .offer-tracker-actions{align-items:stretch}
     .offer-tracker-actions .btn{width:100%; justify-content:center; min-height:46px}
+    .ai-workbench-grid{grid-template-columns:1fr}
+    .ai-workbench-card.wide{grid-column:auto}
+    .ai-workbench-card{padding:20px}
+    .ai-library{grid-template-columns:1fr}
+    .ai-workbench-actions{align-items:stretch}
+    .ai-workbench-actions .btn{width:100%; justify-content:center; min-height:46px}
   }
 
   /* LADDER */
@@ -1906,7 +1941,7 @@
         <div>
           <div class="page-eyebrow">Tools &amp; Templates</div>
           <h1 class="page-title">Tools for the <em>work.</em></h1>
-          <p class="page-sub">Three practical member tools are ready now. More will be added here as they are finished.</p>
+          <p class="page-sub">Four practical member tools are ready now. More will be added here as they are finished.</p>
         </div>
       </div>
 
@@ -2149,6 +2184,96 @@
             <button class="btn btn-primary" type="button" id="saveOfferTrackerButton" onclick="saveOfferTracker()">Save Offer &amp; Outreach</button>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- ===== AI WORKBENCH ===== -->
+    <section class="section" id="section-ai-workbench">
+      <button class="module-detail-back" type="button" onclick="navigateTo('spreadsheets')">← Back to member tools</button>
+      <div class="page-head">
+        <div>
+          <div class="page-eyebrow">Module 4 Member Tool</div>
+          <h1 class="page-title">AI <em>Workbench.</em></h1>
+          <p class="page-sub">Build reusable prompts and reviewable workflows for work you already understand. AI drafts. You verify the final result.</p>
+        </div>
+      </div>
+
+      <div class="card ai-workbench-locked" id="aiWorkbenchLocked" hidden>
+        <div class="page-eyebrow">Membership required</div>
+        <h2>Your prompts and workflows are saved.</h2>
+        <p>An active Surplus membership is required to use and update the AI Workbench. Resubscribe to return to your work.</p>
+        <button class="btn btn-primary" type="button" onclick="resubscribe()">View membership options →</button>
+      </div>
+
+      <div id="aiWorkbenchWorkspace">
+        <div class="ai-workbench-grid">
+          <section class="card ai-workbench-card">
+            <h2>Prompt Builder</h2>
+            <p>Give AI a role, the context, a clear goal, and the format you need back.</p>
+            <div class="tool-form-grid">
+              <div class="tool-field"><label for="aiPromptName">Prompt name</label><input id="aiPromptName" data-ai-prompt-field="name" type="text" maxlength="120" placeholder="Example: Weekly planning"></div>
+              <div class="tool-field"><label for="aiPromptCategory">Category</label><select id="aiPromptCategory" data-ai-prompt-field="category"></select></div>
+              <div class="tool-field"><label for="aiPromptRole">Role</label><textarea id="aiPromptRole" data-ai-prompt-field="role" maxlength="800" placeholder="Example: Practical operations assistant"></textarea></div>
+              <div class="tool-field"><label for="aiPromptGoal">Goal</label><textarea id="aiPromptGoal" data-ai-prompt-field="goal" maxlength="1000" placeholder="What should the first draft help you produce?"></textarea></div>
+              <div class="tool-field"><label for="aiPromptContext">Context</label><textarea id="aiPromptContext" data-ai-prompt-field="context" maxlength="1500" placeholder="Your situation, audience, constraints, or background"></textarea></div>
+              <div class="tool-field"><label for="aiPromptConstraints">Constraints</label><textarea id="aiPromptConstraints" data-ai-prompt-field="constraints" maxlength="1000" placeholder="Tone, length, boundaries, or what not to assume"></textarea></div>
+              <div class="tool-field"><label for="aiPromptInput">Input</label><textarea id="aiPromptInput" data-ai-prompt-field="input" maxlength="3000" placeholder="The notes, numbers, or draft you will provide"></textarea></div>
+              <div class="tool-field"><label for="aiPromptOutput">Output format</label><textarea id="aiPromptOutput" data-ai-prompt-field="outputFormat" maxlength="1000" placeholder="Example: Monday-Sunday table, three priorities, and a risk list"></textarea></div>
+            </div>
+            <div class="ai-workbench-actions">
+              <div class="ai-save-status" id="aiPromptSaveStatus" aria-live="polite">Prompts save only when you choose Save Prompt.</div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" type="button" onclick="newAiPrompt()">New prompt</button><button class="btn btn-primary btn-sm" type="button" id="saveAiPromptButton" onclick="saveAiPrompt()">Save Prompt</button></div>
+            </div>
+          </section>
+          <aside class="card ai-workbench-card">
+            <h2>Prompt Preview</h2>
+            <p>Only the parts you fill in appear here. Review it before you use it.</p>
+            <div class="ai-preview-label">Reusable prompt</div><pre class="ai-preview" id="aiPromptPreview"></pre>
+            <button class="btn btn-ghost btn-sm" type="button" onclick="copyAiPrompt()">Copy prompt</button>
+            <div class="ai-starter-list" id="aiPromptStarters"></div>
+          </aside>
+          <section class="card ai-workbench-card wide">
+            <div class="ai-library-head"><div><h2>Saved Prompts</h2><p>Keep the versions that produce useful, reviewable first drafts.</p></div><span id="aiPromptCount" class="sheet-format">0 / 20</span></div>
+            <div class="ai-library" id="aiPromptLibrary"></div>
+          </section>
+        </div>
+
+        <div class="ai-workbench-grid" style="margin-top:18px">
+          <section class="card ai-workbench-card">
+            <h2>Workflow Builder</h2>
+            <p>Turn a repeated task into a simple sequence with an explicit human review step.</p>
+            <div class="tool-form-grid">
+              <div class="tool-field"><label for="aiWorkflowName">Workflow name</label><input id="aiWorkflowName" data-ai-workflow-field="name" type="text" maxlength="120" placeholder="Example: Client follow-up"></div>
+              <div class="tool-field"><label for="aiWorkflowRawInput">Raw input</label><textarea id="aiWorkflowRawInput" data-ai-workflow-field="rawInput" maxlength="1500" placeholder="What you start with before AI"></textarea></div>
+              <div class="tool-field"><label for="aiWorkflowTask">AI draft / task</label><textarea id="aiWorkflowTask" data-ai-workflow-field="aiTask" maxlength="1500" placeholder="What AI should draft, organize, or compare"></textarea></div>
+              <div class="tool-field"><label for="aiWorkflowReview">Human review</label><textarea id="aiWorkflowReview" data-ai-workflow-field="humanReview" maxlength="1500" placeholder="Facts, scope, names, pricing, dates, safety, or other checks"></textarea></div>
+              <div class="tool-field"><label for="aiWorkflowFinal">Final output</label><textarea id="aiWorkflowFinal" data-ai-workflow-field="finalOutput" maxlength="1200" placeholder="What leaves your hands after review"></textarea></div>
+              <div class="tool-field"><label for="aiWorkflowReuse">Reuse plan</label><textarea id="aiWorkflowReuse" data-ai-workflow-field="reusePlan" maxlength="1200" placeholder="Where the prompt, input format, and checklist will live"></textarea></div>
+            </div>
+            <div class="ai-workbench-actions">
+              <div class="ai-save-status" id="aiWorkflowSaveStatus" aria-live="polite">Workflows save only when you choose Save Workflow.</div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" type="button" onclick="newAiWorkflow()">New workflow</button><button class="btn btn-primary btn-sm" type="button" id="saveAiWorkflowButton" onclick="saveAiWorkflow()">Save Workflow</button></div>
+            </div>
+          </section>
+          <aside class="card ai-workbench-card">
+            <h2>Workflow Pattern</h2><p>Keep the decision and quality check in your hands.</p>
+            <div class="ai-preview">Raw input
+
+AI draft or analysis
+
+Human review
+
+Final output
+
+Reusable template</div>
+            <div class="ai-starter-list" id="aiWorkflowStarters"></div>
+          </aside>
+          <section class="card ai-workbench-card wide">
+            <div class="ai-library-head"><div><h2>Saved Workflows</h2><p>Build repeatable systems instead of starting from a blank page each time.</p></div><span id="aiWorkflowCount" class="sheet-format">0 / 10</span></div>
+            <div class="ai-library" id="aiWorkflowLibrary"></div>
+          </section>
+        </div>
+        <div class="ai-workbench-actions"><div class="ai-save-status">Use this workbench to build drafts and systems. You remain responsible for facts, safety, scope, pricing, and final decisions.</div><button class="btn btn-ghost btn-sm" type="button" onclick="openModuleDetail(4)">Return to Module 4</button></div>
       </div>
     </section>
 
@@ -2509,7 +2634,7 @@
               </div>
               <a class="side-action" id="moduleToolLink" href="#section-spreadsheets">
                 <span class="side-action-icon" id="moduleToolIcon">X</span>
-                <div><div id="moduleToolTitle">Member tools</div><div id="moduleToolCopy" style="font-size:11px; color:var(--ink-dim)">Three practical tools are available now</div></div>
+                <div><div id="moduleToolTitle">Member tools</div><div id="moduleToolCopy" style="font-size:11px; color:var(--ink-dim)">Four practical tools are available now</div></div>
               </a>
             </div>
           </div>
@@ -3038,6 +3163,7 @@ const SHEETS = [
   { module:1, name:'Foundation Plan', desc:'Set a 12-month target, two operating standards, and protected weekly blocks.', tool:'foundation-plan', action:'Open Foundation Plan', format:'Interactive member tool' },
   { module:2, name:'Money System Planner', desc:'Use your real numbers to see your surplus, assign each dollar, and build your buffer.', tool:'money-planner', action:'Open Money Planner', format:'Interactive member tool' },
   { module:3, name:'Offer & Outreach Tracker', desc:'Build one useful offer, track real outreach, and use the replies to improve your next move.', tool:'offer-tracker', action:'Open Offer Tracker', format:'Interactive member tool' },
+  { module:4, name:'AI Workbench', desc:'Build reusable prompts and human-reviewed workflows for planning, communication, and research.', tool:'ai-workbench', action:'Open AI Workbench', format:'Interactive member tool' },
   { name:'Net Worth Tracker', desc:'A simple view of cash, investments, equity, and liabilities.', comingSoon:true },
   { name:'Debt Payoff Planner', desc:'A focused way to compare payoff methods and keep your next move visible.', comingSoon:true },
   { name:'Sinking Funds Planner', desc:'Plan for irregular expenses before they become emergencies.', comingSoon:true },
@@ -3051,6 +3177,7 @@ const MODULE_TOOLS = {
   1: { title:'Open Foundation Plan', copy:'Interactive Module 1 operating-plan tool', icon:'1', section:'foundation-plan' },
   2: { title:'Open Money System Planner', copy:'Interactive Module 2 money tool', icon:'2', section:'money-planner' },
   3: { title:'Open Offer & Outreach Tracker', copy:'Interactive Module 3 offer and outreach tool', icon:'3', section:'offer-tracker' },
+  4: { title:'Open AI Workbench', copy:'Interactive Module 4 prompt and workflow tool', icon:'4', section:'ai-workbench' },
 };
 
 const LADDER = [
@@ -3143,6 +3270,7 @@ const PALETTE_ITEMS = [
   { type:'Tool',   label:'Foundation Plan',            section:'foundation-plan' },
   { type:'Tool',   label:'Money System Planner',       section:'money-planner' },
   { type:'Tool',   label:'Offer & Outreach Tracker',   section:'offer-tracker' },
+  { type:'Tool',   label:'AI Workbench',                section:'ai-workbench' },
   { type:'Resource', label:'Salary negotiation script',  section:'resources' },
   { type:'Resource', label:'BRRRR cash-on-cash calculator', section:'resources' },
   { type:'Resource', label:'Recommended reading list', section:'resources' },
@@ -3760,6 +3888,7 @@ function applyMember(member){
   renderFoundationPlan();
   renderMoneyPlanner();
   renderOfferTracker();
+  renderAiWorkbench();
   if (accountabilityNeedsSave && !IS_PREVIEW_MODE) {
     saveMemberState().catch(() => {
       MEMBER_PROGRESS = progressBeforeAccountabilityNormalization;
@@ -3847,7 +3976,7 @@ async function openBillingPortal(){
 
 // ---------- NAVIGATION ----------
 const PRIMARY_MOBILE_SECTIONS = new Set(['home','modules','goals','community']);
-const MOBILE_MORE_SECTIONS = new Set(['ladder','spreadsheets','foundation-plan','money-planner','offer-tracker','resources','workshops','replays','refer','profile','settings']);
+const MOBILE_MORE_SECTIONS = new Set(['ladder','spreadsheets','foundation-plan','money-planner','offer-tracker','ai-workbench','resources','workshops','replays','refer','profile','settings']);
 
 function updateMobileNavigation(id){
   const activePrimary = id === 'module-detail' ? 'modules' : id;
@@ -3885,7 +4014,7 @@ function openMobileMoreSection(id){
 }
 
 function navigateTo(id){
-  const navSection = ['foundation-plan','money-planner','offer-tracker'].includes(id) ? 'spreadsheets' : id;
+  const navSection = ['foundation-plan','money-planner','offer-tracker','ai-workbench'].includes(id) ? 'spreadsheets' : id;
   document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.section === navSection));
   updateMobileNavigation(id);
   document.querySelectorAll('.section').forEach(el => el.classList.toggle('active', el.id === `section-${id}`));
@@ -4030,7 +4159,7 @@ function renderSheets(){
         <div class="sheet-name">${s.name}</div>
         <p class="sheet-desc">${s.desc}</p>
         <div class="sheet-foot">
-          ${['foundation-plan','money-planner','offer-tracker'].includes(s.tool)
+          ${['foundation-plan','money-planner','offer-tracker','ai-workbench'].includes(s.tool)
             ? `<button class="btn btn-primary btn-sm" style="flex:1; justify-content:center" type="button" onclick="openMemberTool('${s.tool}')">${s.action} →</button>`
             : available
             ? `<a class="btn btn-primary btn-sm" style="flex:1; justify-content:center" href="${s.asset}" target="_blank" rel="noopener">${s.action} →</a>`
@@ -4187,6 +4316,7 @@ function openMemberTool(section){
   if (section === 'foundation-plan') return openFoundationPlan();
   if (section === 'money-planner') return openMoneyPlanner();
   if (section === 'offer-tracker') return openOfferTracker();
+  if (section === 'ai-workbench') return openAiWorkbench();
 }
 
 function updateFoundationPlanFromControl(control){
@@ -4642,6 +4772,179 @@ document.addEventListener('change', event => {
 document.addEventListener('click', event => {
   const button = event.target.closest('[data-delete-prospect]');
   if (button) deleteOfferProspect(button.dataset.deleteProspect);
+});
+
+// ---------- AI WORKBENCH ----------
+const AI_PROMPT_FIELDS = ['name','category','role','context','goal','constraints','input','outputFormat'];
+const AI_WORKFLOW_FIELDS = ['name','rawInput','aiTask','humanReview','finalOutput','reusePlan'];
+const AI_PROMPT_CATEGORIES = ['Planning','Communication','Research','Operations','Personal','Other'];
+const AI_PROMPT_LIMIT = 20;
+const AI_WORKFLOW_LIMIT = 10;
+const AI_PROMPT_STARTERS = [
+  {name:'Weekly Planning',category:'Planning',role:'Practical operations assistant',context:'I work a full-time job and build income outside it during focused evening and weekend blocks.',goal:'Turn my commitments into a realistic weekly plan.',constraints:'Protect two focused income blocks. Do not schedule more than one major task per evening. Flag conflicts.',input:'Paste shifts, appointments, priorities, and available work blocks.',outputFormat:'Monday-Sunday table, top three priorities, and a short risk list.'},
+  {name:'Customer Communication',category:'Communication',role:'Professional customer-service writer',context:'I need to follow up after a service visit.',goal:'Write a clear, respectful follow-up message.',constraints:'No pressure. No promises beyond approved scope. Keep it under 120 words.',input:'Paste job notes, completed work, and the needed next step.',outputFormat:'Subject line, concise message, and one simple next step.'},
+  {name:'Research Decision Support',category:'Research',role:'Research assistant',context:'I am comparing options before making a practical decision.',goal:'Identify the useful tradeoffs and questions I need to verify.',constraints:'Separate facts from assumptions. Do not make the final decision for me.',input:'Paste the options, budget, and any sources or notes.',outputFormat:'Comparison table, missing information, and three verification questions.'}
+];
+const AI_WORKFLOW_STARTERS = [
+  {name:'Estimate and Scope',rawInput:'Customer notes, photos, measurements, and known constraints.',aiTask:'Organize the notes into a draft scope and a list of clarification questions.',humanReview:'Verify scope, materials, price, schedule, licensing, safety, and any exclusions.',finalOutput:'Approved scope message or estimate draft.',reusePlan:'Save the input checklist, prompt, and scope-message format together.'},
+  {name:'Client Follow-Up',rawInput:'Job notes and the next step the customer needs.',aiTask:'Draft a plain-language follow-up message.',humanReview:'Verify work performed, names, dates, scope, safety language, and next step.',finalOutput:'Approved client follow-up.',reusePlan:'Keep the approved prompt and message format with your closeout checklist.'},
+  {name:'Weekly Planning',rawInput:'Shifts, appointments, commitments, and income priorities.',aiTask:'Turn the raw list into a realistic weekly plan.',humanReview:'Confirm time blocks, workload, deadlines, and what can wait.',finalOutput:'Final Monday-Sunday plan with three priorities.',reusePlan:'Reuse the same input list and planning prompt every week.'},
+  {name:'Compare Options',rawInput:'Options, pricing, constraints, and source links or notes.',aiTask:'Create a comparison and list missing information.',humanReview:'Check source facts, totals, assumptions, and the decision criteria that matter.',finalOutput:'Verified comparison and next research step.',reusePlan:'Save the comparison prompt and a repeatable decision checklist.'}
+];
+let AI_WORKBENCH_DRAFT = null;
+let AI_PROMPT_DRAFT = null;
+let AI_WORKFLOW_DRAFT = null;
+let AI_WORKBENCH_SAVING = false;
+
+function aiText(value, limit = 3000){ return typeof value === 'string' ? value.slice(0, limit) : ''; }
+function createAiWorkbenchId(prefix){ return crypto.randomUUID ? crypto.randomUUID() : prefix + '-' + Date.now() + '-' + Math.random().toString(16).slice(2); }
+function createAiPrompt(){ return {id:null,name:'',category:'',role:'',context:'',goal:'',constraints:'',input:'',outputFormat:'',createdAt:null,updatedAt:null}; }
+function createAiWorkflow(){ return {id:null,name:'',rawInput:'',aiTask:'',humanReview:'',finalOutput:'',reusePlan:'',createdAt:null,updatedAt:null}; }
+function normalizeAiPrompt(source = {}){
+  const prompt = createAiPrompt();
+  AI_PROMPT_FIELDS.forEach(field => { prompt[field] = aiText(source[field], field === 'input' ? 3000 : 1500); });
+  prompt.category = AI_PROMPT_CATEGORIES.includes(prompt.category) ? prompt.category : '';
+  prompt.id = aiText(source.id,100) || null;
+  prompt.createdAt = typeof source.createdAt === 'string' ? source.createdAt : null;
+  prompt.updatedAt = typeof source.updatedAt === 'string' ? source.updatedAt : null;
+  return prompt;
+}
+function normalizeAiWorkflow(source = {}){
+  const workflow = createAiWorkflow();
+  AI_WORKFLOW_FIELDS.forEach(field => { workflow[field] = aiText(source[field],1500); });
+  workflow.id = aiText(source.id,100) || null;
+  workflow.createdAt = typeof source.createdAt === 'string' ? source.createdAt : null;
+  workflow.updatedAt = typeof source.updatedAt === 'string' ? source.updatedAt : null;
+  return workflow;
+}
+function normalizeAiWorkbench(source = {}){
+  return {
+    prompts:Array.isArray(source.prompts) ? source.prompts.slice(0,AI_PROMPT_LIMIT).map(normalizeAiPrompt) : [],
+    workflows:Array.isArray(source.workflows) ? source.workflows.slice(0,AI_WORKFLOW_LIMIT).map(normalizeAiWorkflow) : [],
+    updatedAt:typeof source.updatedAt === 'string' ? source.updatedAt : null
+  };
+}
+function getAiWorkbenchData(){ return normalizeAiWorkbench(MEMBER_PROGRESS?.tools?.aiWorkbench || {}); }
+function canUseAiWorkbench(){ return !IS_PREVIEW_MODE && ['active','trialing'].includes(CURRENT_MEMBER?.subscriptionStatus); }
+function setAiWorkbenchStatus(type, message, state = ''){
+  const node = document.getElementById(type === 'prompt' ? 'aiPromptSaveStatus' : 'aiWorkflowSaveStatus');
+  if (!node) return;
+  node.className = 'ai-save-status' + (state ? ' ' + state : '');
+  node.textContent = message;
+}
+function aiUpdatedLabel(value){ return value ? 'Updated ' + new Date(value).toLocaleString() : 'Not saved yet'; }
+function renderAiPromptText(prompt){
+  const sections = [['Role',prompt.role],['Context',prompt.context],['Goal',prompt.goal],['Constraints',prompt.constraints],['Input',prompt.input],['Output format',prompt.outputFormat]].filter(section => section[1]);
+  return sections.map(section => section[0] + ':\n' + section[1]).join('\n\n');
+}
+function renderAiPromptForm(){
+  if (!AI_PROMPT_DRAFT) return;
+  const category = document.getElementById('aiPromptCategory');
+  if (category) category.innerHTML = '<option value="">Choose a category</option>' + AI_PROMPT_CATEGORIES.map(item => '<option value="' + item + '">' + item + '</option>').join('');
+  document.querySelectorAll('[data-ai-prompt-field]').forEach(input => { input.value = AI_PROMPT_DRAFT[input.dataset.aiPromptField] || ''; });
+  const preview = document.getElementById('aiPromptPreview');
+  if (preview) preview.textContent = renderAiPromptText(AI_PROMPT_DRAFT);
+}
+function renderAiWorkflowForm(){
+  if (!AI_WORKFLOW_DRAFT) return;
+  document.querySelectorAll('[data-ai-workflow-field]').forEach(input => { input.value = AI_WORKFLOW_DRAFT[input.dataset.aiWorkflowField] || ''; });
+}
+function renderAiStarters(){
+  const promptList = document.getElementById('aiPromptStarters');
+  const workflowList = document.getElementById('aiWorkflowStarters');
+  if (promptList) promptList.innerHTML = '<div class="ai-preview-label">Start with an example</div>' + AI_PROMPT_STARTERS.map((item,index) => '<button class="ai-starter" type="button" data-ai-prompt-starter="' + index + '"><span class="ai-starter-name">' + escapeHtml(item.name) + '</span><span class="ai-starter-copy">Load as a draft</span></button>').join('');
+  if (workflowList) workflowList.innerHTML = '<div class="ai-preview-label">Start with an example</div>' + AI_WORKFLOW_STARTERS.map((item,index) => '<button class="ai-starter" type="button" data-ai-workflow-starter="' + index + '"><span class="ai-starter-name">' + escapeHtml(item.name) + '</span><span class="ai-starter-copy">Load as a draft</span></button>').join('');
+}
+function aiLibraryCard(item, type){
+  const detail = type === 'prompt' ? item.category || 'Uncategorized' : item.finalOutput || item.aiTask || 'Workflow draft';
+  const copy = type === 'prompt' ? '<button class="btn btn-ghost btn-sm" type="button" data-ai-prompt-action="copy" data-ai-prompt-id="' + escapeHtml(item.id) + '">Copy</button>' : '';
+  return '<article class="ai-library-card"><div><div class="ai-starter-name">' + escapeHtml(item.name || 'Untitled') + '</div><div class="ai-library-meta">' + escapeHtml(detail) + ' · ' + aiUpdatedLabel(item.updatedAt) + '</div></div><div class="ai-library-actions">' + copy + '<button class="btn btn-ghost btn-sm" type="button" data-ai-' + type + '-action="edit" data-ai-' + type + '-id="' + escapeHtml(item.id) + '">Edit</button><button class="btn btn-ghost btn-sm" type="button" data-ai-' + type + '-action="duplicate" data-ai-' + type + '-id="' + escapeHtml(item.id) + '">Duplicate</button><button class="btn btn-ghost btn-sm" type="button" data-ai-' + type + '-action="delete" data-ai-' + type + '-id="' + escapeHtml(item.id) + '">Delete</button></div></article>';
+}
+function renderAiLibraries(){
+  const prompts = AI_WORKBENCH_DRAFT?.prompts || [];
+  const workflows = AI_WORKBENCH_DRAFT?.workflows || [];
+  document.getElementById('aiPromptCount').textContent = prompts.length + ' / ' + AI_PROMPT_LIMIT;
+  document.getElementById('aiWorkflowCount').textContent = workflows.length + ' / ' + AI_WORKFLOW_LIMIT;
+  document.getElementById('aiPromptLibrary').innerHTML = prompts.length ? prompts.map(item => aiLibraryCard(item,'prompt')).join('') : '<div class="ai-library-empty">Save a prompt you will actually reuse. Starter examples stay drafts until you choose Save Prompt.</div>';
+  document.getElementById('aiWorkflowLibrary').innerHTML = workflows.length ? workflows.map(item => aiLibraryCard(item,'workflow')).join('') : '<div class="ai-library-empty">Save a workflow after you map a real repeated task and its review step.</div>';
+}
+function renderAiWorkbench(){
+  const workspace = document.getElementById('aiWorkbenchWorkspace');
+  const locked = document.getElementById('aiWorkbenchLocked');
+  if (!workspace || !locked) return;
+  const allowed = canUseAiWorkbench();
+  workspace.hidden = !allowed;
+  locked.hidden = allowed;
+  if (!allowed) return;
+  AI_WORKBENCH_DRAFT = getAiWorkbenchData();
+  AI_PROMPT_DRAFT = createAiPrompt();
+  AI_WORKFLOW_DRAFT = createAiWorkflow();
+  renderAiPromptForm(); renderAiWorkflowForm(); renderAiStarters(); renderAiLibraries();
+  setAiWorkbenchStatus('prompt','Prompts save only when you choose Save Prompt.');
+  setAiWorkbenchStatus('workflow','Workflows save only when you choose Save Workflow.');
+}
+function openAiWorkbench(){
+  if (IS_PREVIEW_MODE) { window.location.href = '/surplus.html#pricing'; return; }
+  renderAiWorkbench(); analytics('ai_workbench_opened'); navigateTo('ai-workbench');
+}
+function newAiPrompt(){ AI_PROMPT_DRAFT = createAiPrompt(); renderAiPromptForm(); setAiWorkbenchStatus('prompt','New prompt draft.'); }
+function newAiWorkflow(){ AI_WORKFLOW_DRAFT = createAiWorkflow(); renderAiWorkflowForm(); setAiWorkbenchStatus('workflow','New workflow draft.'); }
+function updateAiPromptField(input){
+  AI_PROMPT_DRAFT[input.dataset.aiPromptField] = aiText(input.value, input.dataset.aiPromptField === 'input' ? 3000 : 1500);
+  const preview = document.getElementById('aiPromptPreview');
+  if (preview) preview.textContent = renderAiPromptText(AI_PROMPT_DRAFT);
+  setAiWorkbenchStatus('prompt','Unsaved changes');
+}
+function updateAiWorkflowField(input){ AI_WORKFLOW_DRAFT[input.dataset.aiWorkflowField] = aiText(input.value,1500); setAiWorkbenchStatus('workflow','Unsaved changes'); }
+function loadAiPromptStarter(index){ AI_PROMPT_DRAFT = normalizeAiPrompt(AI_PROMPT_STARTERS[index]); renderAiPromptForm(); setAiWorkbenchStatus('prompt','Starter loaded as an unsaved draft.'); }
+function loadAiWorkflowStarter(index){ AI_WORKFLOW_DRAFT = normalizeAiWorkflow(AI_WORKFLOW_STARTERS[index]); renderAiWorkflowForm(); setAiWorkbenchStatus('workflow','Starter loaded as an unsaved draft.'); }
+async function saveAiWorkbench(nextData, type, button, message, eventName){
+  if (AI_WORKBENCH_SAVING) return false;
+  const previousProgress = cloneProgress();
+  AI_WORKBENCH_SAVING = true; button.disabled = true; setAiWorkbenchStatus(type,'Saving ' + message + '...');
+  MEMBER_PROGRESS = {...MEMBER_PROGRESS,tools:{...(MEMBER_PROGRESS.tools && typeof MEMBER_PROGRESS.tools === 'object' ? MEMBER_PROGRESS.tools : {}),aiWorkbench:normalizeAiWorkbench(nextData)}};
+  try { await saveMemberState(); AI_WORKBENCH_DRAFT = getAiWorkbenchData(); setAiWorkbenchStatus(type,'Saved · just now.','success'); if (eventName) analytics(eventName); return true; }
+  catch (error) { MEMBER_PROGRESS = previousProgress; AI_WORKBENCH_DRAFT = normalizeAiWorkbench(previousProgress?.tools?.aiWorkbench || {}); setAiWorkbenchStatus(type,"Couldn't save - try again. Your draft is still here.",'error'); return false; }
+  finally { AI_WORKBENCH_SAVING = false; button.disabled = false; }
+}
+async function saveAiPrompt(){
+  if (!canUseAiWorkbench()) { resubscribe(); return; }
+  if (!AI_PROMPT_DRAFT.name.trim()) { setAiWorkbenchStatus('prompt','Add a prompt name before saving.','error'); return; }
+  const next = normalizeAiWorkbench(AI_WORKBENCH_DRAFT); const now = new Date().toISOString(); const index = next.prompts.findIndex(item => item.id === AI_PROMPT_DRAFT.id);
+  if (index < 0 && next.prompts.length >= AI_PROMPT_LIMIT) { setAiWorkbenchStatus('prompt','You can save up to ' + AI_PROMPT_LIMIT + ' prompts.','error'); return; }
+  const saved = normalizeAiPrompt({...AI_PROMPT_DRAFT,id:AI_PROMPT_DRAFT.id || createAiWorkbenchId('prompt'),createdAt:index >= 0 ? next.prompts[index].createdAt : now,updatedAt:now});
+  if (index >= 0) next.prompts[index] = saved; else next.prompts.push(saved); next.updatedAt = now;
+  if (await saveAiWorkbench(next,'prompt',document.getElementById('saveAiPromptButton'),'prompt','ai_prompt_saved')) { AI_PROMPT_DRAFT = saved; renderAiPromptForm(); renderAiLibraries(); }
+}
+async function saveAiWorkflow(){
+  if (!canUseAiWorkbench()) { resubscribe(); return; }
+  if (!AI_WORKFLOW_DRAFT.name.trim()) { setAiWorkbenchStatus('workflow','Add a workflow name before saving.','error'); return; }
+  const next = normalizeAiWorkbench(AI_WORKBENCH_DRAFT); const now = new Date().toISOString(); const index = next.workflows.findIndex(item => item.id === AI_WORKFLOW_DRAFT.id);
+  if (index < 0 && next.workflows.length >= AI_WORKFLOW_LIMIT) { setAiWorkbenchStatus('workflow','You can save up to ' + AI_WORKFLOW_LIMIT + ' workflows.','error'); return; }
+  const saved = normalizeAiWorkflow({...AI_WORKFLOW_DRAFT,id:AI_WORKFLOW_DRAFT.id || createAiWorkbenchId('workflow'),createdAt:index >= 0 ? next.workflows[index].createdAt : now,updatedAt:now});
+  if (index >= 0) next.workflows[index] = saved; else next.workflows.push(saved); next.updatedAt = now;
+  if (await saveAiWorkbench(next,'workflow',document.getElementById('saveAiWorkflowButton'),'workflow','ai_workflow_saved')) { AI_WORKFLOW_DRAFT = saved; renderAiWorkflowForm(); renderAiLibraries(); }
+}
+async function changeAiLibraryItem(type, id, action, button){
+  const key = type === 'prompt' ? 'prompts' : 'workflows'; const source = AI_WORKBENCH_DRAFT[key].find(item => item.id === id); if (!source) return;
+  if (action === 'copy' && type === 'prompt') { copyAiPromptText(renderAiPromptText(source)); return; }
+  if (action === 'edit') { if (type === 'prompt') { AI_PROMPT_DRAFT = normalizeAiPrompt(source); renderAiPromptForm(); } else { AI_WORKFLOW_DRAFT = normalizeAiWorkflow(source); renderAiWorkflowForm(); } setAiWorkbenchStatus(type,'Editing saved ' + type + '. Save changes when ready.'); return; }
+  if (action === 'duplicate') { if (type === 'prompt') { AI_PROMPT_DRAFT = normalizeAiPrompt({...source,id:null,name:source.name + ' copy',createdAt:null,updatedAt:null}); renderAiPromptForm(); } else { AI_WORKFLOW_DRAFT = normalizeAiWorkflow({...source,id:null,name:source.name + ' copy',createdAt:null,updatedAt:null}); renderAiWorkflowForm(); } setAiWorkbenchStatus(type,'Duplicate loaded as an unsaved draft.'); return; }
+  const next = normalizeAiWorkbench(AI_WORKBENCH_DRAFT); next[key] = next[key].filter(item => item.id !== id); next.updatedAt = new Date().toISOString();
+  if (await saveAiWorkbench(next,type,button,type,null)) { if (type === 'prompt' && AI_PROMPT_DRAFT.id === id) newAiPrompt(); if (type === 'workflow' && AI_WORKFLOW_DRAFT.id === id) newAiWorkflow(); renderAiLibraries(); }
+}
+async function copyAiPromptText(text){
+  try { if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(text); else throw new Error('Clipboard unavailable'); showToast('Prompt copied.'); }
+  catch { const area = document.createElement('textarea'); area.value = text; area.style.position = 'fixed'; area.style.opacity = '0'; document.body.appendChild(area); area.select(); const copied = document.execCommand('copy'); area.remove(); showToast(copied ? 'Prompt copied.' : "Couldn't copy - select the preview and copy it."); }
+}
+function copyAiPrompt(){ copyAiPromptText(renderAiPromptText(AI_PROMPT_DRAFT || createAiPrompt())); }
+document.addEventListener('input', event => { if (event.target.matches('[data-ai-prompt-field]')) updateAiPromptField(event.target); if (event.target.matches('[data-ai-workflow-field]')) updateAiWorkflowField(event.target); });
+document.addEventListener('change', event => { if (event.target.matches('[data-ai-prompt-field]')) updateAiPromptField(event.target); });
+document.addEventListener('click', event => {
+  const promptStarter = event.target.closest('[data-ai-prompt-starter]'); if (promptStarter) loadAiPromptStarter(Number(promptStarter.dataset.aiPromptStarter));
+  const workflowStarter = event.target.closest('[data-ai-workflow-starter]'); if (workflowStarter) loadAiWorkflowStarter(Number(workflowStarter.dataset.aiWorkflowStarter));
+  const promptAction = event.target.closest('[data-ai-prompt-action]'); if (promptAction) changeAiLibraryItem('prompt',promptAction.dataset.aiPromptId,promptAction.dataset.aiPromptAction,promptAction);
+  const workflowAction = event.target.closest('[data-ai-workflow-action]'); if (workflowAction) changeAiLibraryItem('workflow',workflowAction.dataset.aiWorkflowId,workflowAction.dataset.aiWorkflowAction,workflowAction);
 });
 
 // ---------- RENDER LADDER ----------
@@ -5196,7 +5499,7 @@ function renderModuleDetail(){
   document.getElementById('moduleToolTitle').textContent = moduleTool ? moduleTool.title : 'Member tools';
   document.getElementById('moduleToolCopy').textContent = moduleTool
     ? moduleTool.copy
-    : 'Three practical tools are available now; more are coming soon.';
+    : 'Four practical tools are available now; more are coming soon.';
   if (moduleTool?.section) {
     moduleToolLink.href = `#section-${moduleTool.section}`;
     moduleToolLink.removeAttribute('target');
@@ -5326,6 +5629,7 @@ setState('active');
 renderFoundationPlan();
 renderMoneyPlanner();
 renderOfferTracker();
+renderAiWorkbench();
 if (IS_PREVIEW_MODE) {
   document.body.classList.add('preview-mode');
   document.getElementById('signin')?.classList.add('hidden');
