@@ -38,6 +38,8 @@ const memberSessionDays = 30;
 const magicLinkMinutes = 20;
 const rateLimitWindowMs = 15 * 60 * 1000;
 const rateLimitMax = 5;
+const defaultJsonBodyLimitBytes = 20_000;
+const memberStateBodyLimitBytes = 512 * 1024;
 const signupAttempts = new Map();
 const PROTECTED_MEMBER_TOOLS = new Map([
   ["moneyPlanner", "Money System Planner"],
@@ -78,17 +80,28 @@ function safePath(urlPath) {
   return filePath;
 }
 
-function readJsonBody(req) {
+function readJsonBody(req, maxBytes = defaultJsonBodyLimitBytes) {
   return new Promise((resolve, reject) => {
     let body = "";
+    let size = 0;
+    let tooLarge = false;
     req.on("data", (chunk) => {
-      body += chunk;
-      if (body.length > 20_000) {
-        reject(new Error("Request too large"));
-        req.destroy();
+      size += chunk.length;
+      if (tooLarge) return;
+      if (size > maxBytes) {
+        tooLarge = true;
+        body = "";
+        return;
       }
+      body += chunk;
     });
     req.on("end", () => {
+      if (tooLarge) {
+        const error = new Error("Request body is too large.");
+        error.statusCode = 413;
+        reject(error);
+        return;
+      }
       try {
         resolve(JSON.parse(body || "{}"));
       } catch {
@@ -1448,8 +1461,13 @@ async function handleMemberState(req, res) {
   if (req.method !== "PATCH") return sendJson(res, 405, { error: "Method not allowed" });
   let body;
   try {
-    body = await readJsonBody(req);
+    body = await readJsonBody(req, memberStateBodyLimitBytes);
   } catch (error) {
+    if (error.statusCode === 413) {
+      return sendJson(res, 413, {
+        error: "Your Surplus workspace is too large to save. Please contact support."
+      });
+    }
     return sendJson(res, 400, { error: error.message });
   }
   const update = { updated_at: new Date().toISOString() };

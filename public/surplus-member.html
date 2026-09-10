@@ -3486,6 +3486,11 @@ async function saveMemberState(){
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({onboarding:MEMBER_ONBOARDING, progress:MEMBER_PROGRESS})
   });
+  if (response.status === 413) {
+    const message = "We couldn't save because your Surplus workspace has grown too large. Please try again or contact support.";
+    showToast(message);
+    throw new Error(message);
+  }
   if (!response.ok) throw new Error('Your dashboard changes could not be saved.');
 }
 
