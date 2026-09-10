@@ -1589,6 +1589,49 @@
     .goal-form{flex-direction:column}
     .goal-form .btn{width:100%; justify-content:center}
   }
+  .tool-accountability-handoff{
+    display:flex; align-items:center; justify-content:space-between; gap:20px;
+    margin:20px 0; padding:20px 22px; border:1px solid var(--line);
+    border-radius:12px; background:rgba(185,154,85,.045);
+  }
+  .tool-accountability-copy h3{font-family:var(--serif); font-size:20px; font-weight:500; margin-bottom:3px}
+  .tool-accountability-copy p{font-size:13px; color:var(--ink-dim); line-height:1.45; margin:0}
+  .tool-accountability-actions{display:flex; gap:9px; flex-wrap:wrap; justify-content:flex-end}
+  .tool-handoff-overlay{
+    position:fixed; inset:0; z-index:240; display:flex; align-items:center; justify-content:center;
+    padding:20px; background:rgba(0,0,0,.7); backdrop-filter:blur(8px);
+  }
+  .tool-handoff-overlay[hidden]{display:none}
+  body.tool-handoff-open{overflow:hidden}
+  .tool-handoff-dialog{
+    width:min(100%,520px); padding:26px; border:1px solid var(--line); border-radius:16px;
+    background:var(--bg-2); box-shadow:0 24px 80px rgba(0,0,0,.5);
+  }
+  .tool-handoff-head{display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin-bottom:18px}
+  .tool-handoff-head h2{font-family:var(--serif); font-size:27px; font-weight:500; line-height:1.1}
+  .tool-handoff-close{
+    width:38px; height:38px; flex:0 0 38px; border:1px solid var(--line); border-radius:50%;
+    background:var(--glass); color:var(--ink); cursor:pointer; font:inherit; font-size:22px; line-height:1;
+  }
+  .tool-handoff-label{display:block; margin-bottom:7px; color:var(--gold-bright); font-size:11px; font-weight:600; letter-spacing:.14em; text-transform:uppercase}
+  .tool-handoff-input{
+    width:100%; min-height:100px; resize:vertical; padding:13px 14px; border:1px solid var(--line);
+    border-radius:9px; background:rgba(10,10,12,.35); color:var(--ink); font:inherit; font-size:14px; line-height:1.5;
+  }
+  .tool-handoff-input:focus{outline:none; border-color:var(--gold)}
+  .tool-handoff-status{min-height:20px; margin-top:9px; color:var(--ink-dim); font-size:12px; line-height:1.45}
+  .tool-handoff-status.error{color:#ef9a9a}
+  .tool-handoff-foot{display:flex; justify-content:flex-end; gap:9px; margin-top:18px; flex-wrap:wrap}
+  @media(max-width:600px){
+    .tool-accountability-handoff{align-items:flex-start; flex-direction:column; padding:18px}
+    .tool-accountability-actions{width:100%; display:grid; grid-template-columns:1fr 1fr}
+    .tool-accountability-actions .btn{width:100%; min-height:44px; justify-content:center; padding-inline:12px}
+    .tool-handoff-overlay{align-items:flex-end; padding:0}
+    .tool-handoff-dialog{max-height:88svh; overflow-y:auto; padding:22px 18px calc(18px + env(safe-area-inset-bottom)); border-radius:18px 18px 0 0; border-bottom:0}
+    .tool-handoff-foot{display:grid; grid-template-columns:1fr 1fr}
+    .tool-handoff-foot .btn{width:100%; min-height:44px; justify-content:center; padding-inline:12px}
+    .tool-handoff-open-goals{grid-column:1 / -1}
+  }
   .badge.locked{opacity:.4}
   .badge-icon{font-size:32px; line-height:1; margin-bottom:8px}
   .badge-name{font-size:11px; font-weight:500; color:var(--ink)}
@@ -3159,6 +3202,29 @@ Reusable template</div>
   </section>
 </div>
 
+<!-- ============ TOOL TO ACCOUNTABILITY ============ -->
+<div class="tool-handoff-overlay" id="toolHandoffOverlay" hidden onclick="if(event.target===this) closeToolAccountabilityHandoff()">
+  <section class="tool-handoff-dialog" role="dialog" aria-modal="true" aria-labelledby="toolHandoffTitle">
+    <div class="tool-handoff-head">
+      <div>
+        <div class="page-eyebrow" id="toolHandoffEyebrow" style="margin-bottom:7px">Next step</div>
+        <h2 id="toolHandoffTitle">Add to Daily Actions</h2>
+      </div>
+      <button class="tool-handoff-close" type="button" onclick="closeToolAccountabilityHandoff()" aria-label="Close">×</button>
+    </div>
+    <div id="toolHandoffEditor">
+      <label class="tool-handoff-label" for="toolHandoffInput">Review and edit</label>
+      <textarea class="tool-handoff-input" id="toolHandoffInput" maxlength="120"></textarea>
+    </div>
+    <div class="tool-handoff-status" id="toolHandoffStatus" aria-live="polite"></div>
+    <div class="tool-handoff-foot">
+      <button class="btn btn-ghost btn-sm" type="button" onclick="closeToolAccountabilityHandoff()">Cancel</button>
+      <button class="btn btn-ghost btn-sm tool-handoff-open-goals" id="toolHandoffGoalsButton" type="button" onclick="openGoalsFromToolHandoff()" hidden>Open Goals</button>
+      <button class="btn btn-primary btn-sm" id="toolHandoffConfirmButton" type="button" onclick="confirmToolAccountabilityHandoff()">Add Action</button>
+    </div>
+  </section>
+</div>
+
 <!-- ============ TOAST ============ -->
 <div class="toast" id="toast">
   <span style="font-size:16px">◆</span>
@@ -3424,6 +3490,157 @@ async function saveMemberState(){
 }
 
 // ---------- ACCOUNTABILITY ----------
+const TOOL_ACCOUNTABILITY_HANDOFFS = Object.freeze({
+  foundationPlan:{
+    label:'Foundation Plan',
+    anchor:'#foundationPlanWorkspace .foundation-plan-actions',
+    daily:'Complete one protected block from my Foundation Plan.',
+    weekly:'Follow my two protected weekly blocks.'
+  },
+  moneyPlanner:{
+    label:'Money System Planner',
+    anchor:'#moneyPlannerWorkspace .money-planner-actions',
+    daily:'Review my spending for 10 minutes.',
+    weekly:"Complete or review this month's Money Plan."
+  },
+  offerOutreach:{
+    label:'Offer & Outreach Tracker',
+    anchor:'#offerTrackerWorkspace .offer-tracker-actions',
+    daily:'Send two outreach messages.',
+    weekly:'Complete 10 outreach attempts this week.'
+  },
+  aiWorkbench:{
+    label:'AI Workbench',
+    anchor:'#aiWorkbenchWorkspace > .ai-workbench-actions',
+    daily:'Use one saved AI prompt on a real task.',
+    weekly:'Build or improve three reusable AI prompts.'
+  },
+  serviceOperations:{
+    label:'Service Operations',
+    anchor:'#serviceOperationsWorkspace .service-operations-actions',
+    daily:'Use my quality checklist on the next service task.',
+    weekly:'Review and improve my Service Operations process.'
+  },
+  propertyReadiness:{
+    label:'Property Readiness',
+    anchor:'#propertyReadinessWorkspace .property-readiness-actions',
+    daily:'Review one assumption in my Property Readiness plan.',
+    weekly:'Complete or update my Property Readiness plan.'
+  }
+});
+const TOOL_ACCOUNTABILITY_KEYS = new Set(Object.keys(TOOL_ACCOUNTABILITY_HANDOFFS));
+let TOOL_HANDOFF_STATE = null;
+let TOOL_HANDOFF_RETURN_FOCUS = null;
+
+function canUseToolAccountabilityHandoff(){
+  return !IS_PREVIEW_MODE && ['active','trialing'].includes(CURRENT_MEMBER?.subscriptionStatus);
+}
+function renderToolAccountabilityHandoffs(){
+  Object.entries(TOOL_ACCOUNTABILITY_HANDOFFS).forEach(([sourceTool,config]) => {
+    const anchor = document.querySelector(config.anchor);
+    if (!anchor || anchor.parentElement.querySelector(`[data-tool-accountability="${sourceTool}"]`)) return;
+    anchor.insertAdjacentHTML('beforebegin', `
+      <div class="tool-accountability-handoff" data-tool-accountability="${sourceTool}">
+        <div class="tool-accountability-copy">
+          <h3>Next step</h3>
+          <p>Turn this ${config.label.toLowerCase()} into an optional accountability item.</p>
+        </div>
+        <div class="tool-accountability-actions">
+          <button class="btn btn-ghost btn-sm" type="button" onclick="openToolAccountabilityHandoff('${sourceTool}','daily')">Daily Action</button>
+          <button class="btn btn-ghost btn-sm" type="button" onclick="openToolAccountabilityHandoff('${sourceTool}','weekly')">Weekly Goal</button>
+        </div>
+      </div>`);
+  });
+}
+function normalizeHandoffText(value){
+  return String(value || '').trim().toLowerCase();
+}
+function setToolHandoffStatus(message, state = ''){
+  const status = document.getElementById('toolHandoffStatus');
+  status.className = `tool-handoff-status${state ? ` ${state}` : ''}`;
+  status.textContent = message;
+}
+function showToolHandoffLimit(type){
+  document.getElementById('toolHandoffEditor').hidden = true;
+  document.getElementById('toolHandoffConfirmButton').hidden = true;
+  document.getElementById('toolHandoffGoalsButton').hidden = false;
+  setToolHandoffStatus(type === 'daily'
+    ? 'You already have 3 Daily Actions for today.'
+    : 'You already have 3 Weekly Goals this week.');
+}
+function openToolAccountabilityHandoff(sourceTool, type){
+  const config = TOOL_ACCOUNTABILITY_HANDOFFS[sourceTool];
+  if (!config || !['daily','weekly'].includes(type)) return;
+  if (!canUseToolAccountabilityHandoff()) { resubscribe(); return; }
+  normalizeAccountability();
+  const accountability = getAccountability();
+  const list = type === 'daily' ? accountability.daily.actions : accountability.weekly.goals;
+  TOOL_HANDOFF_STATE = {sourceTool,type};
+  TOOL_HANDOFF_RETURN_FOCUS = document.activeElement;
+  document.getElementById('toolHandoffEyebrow').textContent = config.label;
+  document.getElementById('toolHandoffTitle').textContent = type === 'daily' ? 'Add to Daily Actions' : 'Add to Weekly Goals';
+  const input = document.getElementById('toolHandoffInput');
+  input.value = config[type];
+  document.getElementById('toolHandoffEditor').hidden = false;
+  const confirmButton = document.getElementById('toolHandoffConfirmButton');
+  confirmButton.hidden = false;
+  confirmButton.disabled = false;
+  confirmButton.textContent = type === 'daily' ? 'Add Action' : 'Add Goal';
+  document.getElementById('toolHandoffGoalsButton').hidden = true;
+  setToolHandoffStatus('Review the suggestion before adding it.');
+  if (list.length >= 3) showToolHandoffLimit(type);
+  const overlay = document.getElementById('toolHandoffOverlay');
+  overlay.hidden = false;
+  document.body.classList.add('tool-handoff-open');
+  setTimeout(() => (list.length >= 3 ? document.getElementById('toolHandoffGoalsButton') : input).focus(),0);
+}
+function closeToolAccountabilityHandoff(){
+  document.getElementById('toolHandoffOverlay').hidden = true;
+  document.body.classList.remove('tool-handoff-open');
+  TOOL_HANDOFF_STATE = null;
+  if (TOOL_HANDOFF_RETURN_FOCUS?.focus) TOOL_HANDOFF_RETURN_FOCUS.focus();
+  TOOL_HANDOFF_RETURN_FOCUS = null;
+}
+function openGoalsFromToolHandoff(){
+  closeToolAccountabilityHandoff();
+  navigateTo('goals');
+}
+async function confirmToolAccountabilityHandoff(){
+  if (!TOOL_HANDOFF_STATE || ACCOUNTABILITY_SAVING) return;
+  const {sourceTool,type} = TOOL_HANDOFF_STATE;
+  if (!canUseToolAccountabilityHandoff()) { closeToolAccountabilityHandoff(); resubscribe(); return; }
+  const input = document.getElementById('toolHandoffInput');
+  const text = input.value.trim().slice(0,120);
+  if (!text) { setToolHandoffStatus('Add a clear action before saving.','error'); input.focus(); return; }
+  const accountability = getAccountability();
+  const list = type === 'daily' ? accountability.daily.actions : accountability.weekly.goals;
+  if (list.length >= 3) { showToolHandoffLimit(type); return; }
+  if (list.some(item => !item.completedAt && normalizeHandoffText(item.text) === normalizeHandoffText(text))) {
+    setToolHandoffStatus(type === 'daily' ? "This is already in today's actions." : "This is already in this week's goals.",'error');
+    return;
+  }
+  const previousProgress = cloneProgress();
+  const item = {id:createAccountabilityId(),text,createdAt:new Date().toISOString(),completedAt:null,sourceTool};
+  list.push(item);
+  renderGoals();
+  renderHomeNextAction();
+  updateAccountabilitySummary();
+  const metadata = type === 'daily'
+    ? {goalId:item.id,goalType:'daily',localDate:accountability.daily.date,source:'tool',sourceTool}
+    : {goalId:item.id,goalType:'weekly',weekStart:accountability.weekly.weekStart,source:'tool',sourceTool};
+  const confirmButton = document.getElementById('toolHandoffConfirmButton');
+  confirmButton.disabled = true;
+  setToolHandoffStatus('Saving...');
+  const saved = await persistAccountabilityChange(previousProgress,null,type === 'daily' ? 'daily_action_added' : 'weekly_goal_added',metadata);
+  if (saved) {
+    closeToolAccountabilityHandoff();
+    showToast(type === 'daily' ? "Added to today's actions." : "Added to this week's goals.");
+    return;
+  }
+  confirmButton.disabled = false;
+  setToolHandoffStatus("Couldn't save. Review the action and try again.",'error');
+}
+
 function localDateKey(date = new Date()){
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2,'0');
@@ -3460,11 +3677,15 @@ function trimHistory(history, limit){
   return removed.length > 0;
 }
 function normalizeAccountabilityItem(item, now){
+  const sourceTool = typeof item?.sourceTool === 'string' && TOOL_ACCOUNTABILITY_KEYS.has(item.sourceTool)
+    ? item.sourceTool
+    : null;
   return {
     id:typeof item?.id === 'string' && item.id ? item.id : createAccountabilityId(),
     text:String(item?.text || '').trim().slice(0,120),
     createdAt:typeof item?.createdAt === 'string' ? item.createdAt : now,
-    completedAt:typeof item?.completedAt === 'string' ? item.completedAt : (item?.done ? now : null)
+    completedAt:typeof item?.completedAt === 'string' ? item.completedAt : (item?.done ? now : null),
+    ...(sourceTool ? {sourceTool} : {})
   };
 }
 function emptyAccountability(){
@@ -3600,19 +3821,21 @@ async function persistAccountabilityChange(previousProgress, successMessage, ana
   if (IS_PREVIEW_MODE) {
     if (analyticsEvent) analytics(analyticsEvent,metadata);
     if (successMessage) showToast(successMessage);
-    return;
+    return true;
   }
   ACCOUNTABILITY_SAVING = true;
   try {
     await saveMemberState();
     if (analyticsEvent) analytics(analyticsEvent,metadata);
     if (successMessage) showToast(successMessage);
+    return true;
   } catch (error) {
     MEMBER_PROGRESS = previousProgress;
     renderGoals();
     renderHomeNextAction();
     updateAccountabilitySummary();
     showToast('That change could not be saved. Please try again.');
+    return false;
   } finally {
     ACCOUNTABILITY_SAVING = false;
   }
@@ -5538,7 +5761,7 @@ function renderPaletteResults(items){
 }
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'k'){ e.preventDefault(); openPalette(); }
-  if (e.key === 'Escape'){ closePalette(); closeMobileMore(); }
+  if (e.key === 'Escape'){ closePalette(); closeMobileMore(); closeToolAccountabilityHandoff(); }
 });
 
 // ---------- ONBOARDING WIZARD ----------
@@ -6004,6 +6227,7 @@ renderOfferTracker();
 renderAiWorkbench();
 renderServiceOperations();
 renderPropertyReadiness();
+renderToolAccountabilityHandoffs();
 if (IS_PREVIEW_MODE) {
   document.body.classList.add('preview-mode');
   document.getElementById('signin')?.classList.add('hidden');
