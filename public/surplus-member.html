@@ -4390,6 +4390,8 @@ async function initializeMemberAccess(){
     const discordResult = MEMBER_QUERY.get('discord');
     if (discordResult === 'connected') showToast('Discord connected. Your member role is active.');
     if (discordResult === 'failed') showToast('Discord could not be connected. Please try again.');
+    if (discordResult === 'replace-revocation-failed') showToast("We couldn't remove access from your previous Discord account. Your existing connection was kept.");
+    if (discordResult === 'role-sync-failed') showToast("Your Discord account was connected, but we couldn't finish syncing access. Please retry.");
     if (discordResult === 'invalid') showToast('That Discord connection expired. Please try again.');
     if (discordResult === 'not-configured') showToast('Discord connection is being configured.');
   } catch {
@@ -4403,11 +4405,12 @@ async function initializeMemberAccess(){
 
 function updateDiscordConnection(discord = {}){
   const connected = Boolean(discord?.connected);
+  const roleSynced = connected && discord?.roleSynced !== false;
   document.querySelectorAll('[data-discord-action]').forEach((link) => {
-    link.href = connected
+    link.href = roleSynced
       ? 'https://discord.com/channels/1509952620801032361'
       : (IS_PREVIEW_MODE ? '/surplus.html#pricing' : '/api/discord/connect');
-    if (connected) {
+    if (roleSynced) {
       link.target = '_blank';
       link.rel = 'noopener';
     } else {
@@ -4416,13 +4419,15 @@ function updateDiscordConnection(discord = {}){
     }
   });
   document.querySelectorAll('[data-discord-label]').forEach((label) => {
-    label.textContent = connected ? 'Open Discord' : (IS_PREVIEW_MODE ? 'Join Surplus' : 'Connect Discord');
+    label.textContent = roleSynced ? 'Open Discord' : (connected ? 'Retry Discord' : (IS_PREVIEW_MODE ? 'Join Surplus' : 'Connect Discord'));
   });
   document.querySelectorAll('[data-discord-status]').forEach((status) => {
-    status.textContent = connected
+    status.textContent = roleSynced
       ? `Connected as ${discord.username || 'your Discord account'}. Your access role stays synced with your membership.`
-      : 'Connect once to join the server and receive your member role automatically.';
-    status.classList.toggle('connected', connected);
+      : (connected
+        ? `Connected as ${discord.username || 'your Discord account'}, but access is not synced yet. Retry Discord to finish.`
+        : 'Connect once to join the server and receive your member role automatically.');
+    status.classList.toggle('connected', roleSynced);
   });
   document.querySelectorAll('[data-discord-disconnect]').forEach((button) => {
     button.hidden = !connected;
@@ -4432,6 +4437,8 @@ function updateDiscordConnection(discord = {}){
 
 async function disconnectDiscord(){
   if (!CURRENT_MEMBER || IS_PREVIEW_MODE) return;
+  const buttons = document.querySelectorAll('[data-discord-disconnect]');
+  buttons.forEach((button) => { button.disabled = true; });
   try {
     const response = await fetch('/api/discord/disconnect', {method:'POST'});
     const result = await response.json();
@@ -4441,6 +4448,8 @@ async function disconnectDiscord(){
     showToast('Discord disconnected.');
   } catch (error) {
     showToast(error.message);
+  } finally {
+    buttons.forEach((button) => { button.disabled = false; });
   }
 }
 

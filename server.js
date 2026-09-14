@@ -524,24 +524,65 @@ async function discordRequest(endpoint, options = {}) {
     },
     body: options.body ? JSON.stringify(options.body) : undefined
   });
-  if (!response.ok) {
-    const details = await response.text();
-    throw new Error(`Discord API ${response.status}: ${details}`);
+  const rawBody = response.status === 204 ? "" : await response.text();
+  let result = null;
+  if (rawBody) {
+    try {
+      result = JSON.parse(rawBody);
+    } catch {
+      result = null;
+    }
   }
-  if (response.status === 204) return null;
-  return response.json().catch(() => null);
+  if (!response.ok) {
+    const error = new Error(`Discord API request failed (${response.status})`);
+    error.name = "DiscordApiError";
+    error.status = response.status;
+    error.discordCode = result?.code ?? null;
+    throw error;
+  }
+  return result;
 }
 
 async function setDiscordRole(discordUserId, roleId, enabled) {
-  if (!discordUserId || !roleId) return;
-  await discordRequest(
-    `/guilds/${discordGuildId}/members/${discordUserId}/roles/${roleId}`,
-    { method: enabled ? "PUT" : "DELETE" }
-  );
+  if (!discordUserId || !roleId) return { skipped: true };
+  try {
+    await discordRequest(
+      `/guilds/${discordGuildId}/members/${discordUserId}/roles/${roleId}`,
+      { method: enabled ? "PUT" : "DELETE" }
+    );
+    return { ok: true };
+  } catch (error) {
+    if (!enabled && error.status === 404 && error.discordCode === 10007) {
+      return { ok: true, alreadyAbsent: true };
+    }
+    throw error;
+  }
+}
+
+async function revokeDiscordRoles(member) {
+  if (!member?.discord_user_id) return { skipped: true };
+  if (!discordConfigured()) throw new Error("Discord role sync is not configured");
+  await setDiscordRole(member.discord_user_id, discordMemberRoleId, false);
+  if (discordFoundingRoleId) {
+    await setDiscordRole(member.discord_user_id, discordFoundingRoleId, false);
+  }
+  return { ok: true };
+}
+
+function logDiscordRoleFailure(operation, member, error, discordUserId = error?.discordUserId || member?.discord_user_id) {
+  console.error("Discord role sync failed", {
+    operation,
+    memberId: member?.id || null,
+    discordUserId: discordUserId || null,
+    status: error?.status || null,
+    code: error?.discordCode || null,
+    message: error?.message || "Discord role sync failed"
+  });
 }
 
 async function syncDiscordRoles(member) {
-  if (!discordConfigured() || !member?.discord_user_id) return;
+  if (!member?.discord_user_id) return { skipped: true };
+  if (!discordConfigured()) throw new Error("Discord role sync is not configured");
   const hasAccess = membershipAllowsAccess(member.subscription_status);
   await setDiscordRole(member.discord_user_id, discordMemberRoleId, hasAccess);
   if (discordFoundingRoleId) {
@@ -555,6 +596,7 @@ async function syncDiscordRoles(member) {
     discord_role_synced_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   });
+  return { ok: true };
 }
 
 async function countFoundingMembers() {
@@ -1004,7 +1046,8 @@ async function handleMemberSession(req, res) {
       discord: {
         connected: Boolean(member.discord_user_id),
         username: member.discord_username || null,
-        connectedAt: member.discord_connected_at || null
+        connectedAt: member.discord_connected_at || null,
+        roleSynced: Boolean(member.discord_role_synced_at)
       }
     }
   });
@@ -1405,18 +1448,41 @@ async function handleDiscordCallback(req, res) {
       method: "PUT",
       body: { access_token: token.access_token }
     });
+    if (member.discord_user_id && member.discord_user_id !== discordUser.id) {
+      try {
+        await revokeDiscordRoles(member);
+      } catch (error) {
+        error.discordFlowCode = "replace-revocation-failed";
+        error.discordUserId = member.discord_user_id;
+        throw error;
+      }
+    }
     const updated = await supabasePatch("members", { id: `eq.${member.id}` }, {
       discord_user_id: discordUser.id,
       discord_username: discordUser.global_name || discordUser.username,
       discord_connected_at: new Date().toISOString(),
+      discord_role_synced_at: null,
       updated_at: new Date().toISOString()
     });
-    await syncDiscordRoles(updated || { ...member, discord_user_id: discordUser.id });
+    const connectedMember = updated || {
+      ...member,
+      discord_user_id: discordUser.id,
+      discord_username: discordUser.global_name || discordUser.username,
+      discord_role_synced_at: null
+    };
+    try {
+      await syncDiscordRoles(connectedMember);
+    } catch (error) {
+      error.discordFlowCode = "role-sync-failed";
+      error.discordUserId = discordUser.id;
+      throw error;
+    }
     res.writeHead(302, { Location: "/surplus-member.html?discord=connected#community" });
     res.end();
   } catch (error) {
-    console.error("Discord connection failed:", error);
-    res.writeHead(302, { Location: "/surplus-member.html?discord=failed#community" });
+    logDiscordRoleFailure("connect", member, error);
+    const result = error.discordFlowCode || "failed";
+    res.writeHead(302, { Location: `/surplus-member.html?discord=${result}#community` });
     res.end();
   }
 }
@@ -1426,12 +1492,7 @@ async function handleDiscordDisconnect(req, res) {
   const member = await getAuthenticatedMember(req);
   if (!member) return sendJson(res, 401, { error: "Sign in to manage Discord." });
   try {
-    if (discordConfigured() && member.discord_user_id) {
-      await setDiscordRole(member.discord_user_id, discordMemberRoleId, false).catch(() => {});
-      if (discordFoundingRoleId) {
-        await setDiscordRole(member.discord_user_id, discordFoundingRoleId, false).catch(() => {});
-      }
-    }
+    await revokeDiscordRoles(member);
     await supabasePatch("members", { id: `eq.${member.id}` }, {
       discord_user_id: null,
       discord_username: null,
@@ -1441,8 +1502,12 @@ async function handleDiscordDisconnect(req, res) {
     });
     sendJson(res, 200, { ok: true });
   } catch (error) {
-    console.error("Discord disconnect failed:", error);
-    sendJson(res, 500, { error: "Discord could not be disconnected." });
+    logDiscordRoleFailure("disconnect", member, error);
+    await supabasePatch("members", { id: `eq.${member.id}` }, {
+      discord_role_synced_at: null,
+      updated_at: new Date().toISOString()
+    }).catch(() => {});
+    sendJson(res, 500, { error: "We couldn't fully disconnect Discord yet. Please try again." });
   }
 }
 
@@ -1596,6 +1661,7 @@ async function syncCheckoutMember(session) {
     current_period_end: subscription?.items?.data?.[0]?.current_period_end
       ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
       : null,
+    discord_role_synced_at: existingMember?.discord_user_id ? null : existingMember?.discord_role_synced_at,
     updated_at: new Date().toISOString()
   }, "email");
   if (!existingMember && member && referrer && referrer.id !== member.id) {
@@ -1624,9 +1690,12 @@ async function syncCheckoutMember(session) {
       console.error("Unable to send new member access email:", error);
     });
   }
-  await syncDiscordRoles(member).catch((error) => {
-    console.error("Unable to sync Discord roles after checkout:", error);
-  });
+  try {
+    await syncDiscordRoles(member);
+  } catch (error) {
+    logDiscordRoleFailure("checkout", member, error);
+    throw error;
+  }
 }
 
 async function syncSubscription(subscription) {
@@ -1641,12 +1710,22 @@ async function syncSubscription(subscription) {
     current_period_end: subscription.items?.data?.[0]?.current_period_end
       ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
       : null,
+    discord_role_synced_at: member.discord_user_id ? null : member.discord_role_synced_at,
     updated_at: new Date().toISOString()
   });
-  await syncDiscordRoles(updated || { ...member, subscription_status: subscription.status }).catch((error) => {
-    console.error("Unable to sync Discord roles after subscription update:", error);
-  });
-  return updated || { ...member, subscription_status: subscription.status };
+  const currentMember = updated || { ...member, subscription_status: subscription.status };
+  try {
+    await syncDiscordRoles(currentMember);
+  } catch (error) {
+    logDiscordRoleFailure("subscription", currentMember, error);
+    throw error;
+  }
+  return currentMember;
+}
+
+async function retrieveCurrentSubscription(subscription) {
+  if (!subscription?.id) return subscription;
+  return stripe.subscriptions.retrieve(subscription.id);
 }
 
 async function syncInvoiceSubscription(invoice, event) {
@@ -1684,19 +1763,25 @@ async function handleStripeWebhook(req, res) {
   if (!stripe || !stripeWebhookSecret) {
     return sendJson(res, 503, { error: "Stripe webhook is not configured." });
   }
+  let event;
   try {
     const payload = await readRawBody(req);
-    const event = stripe.webhooks.constructEvent(
+    event = stripe.webhooks.constructEvent(
       payload,
       req.headers["stripe-signature"],
       stripeWebhookSecret
     );
+  } catch (error) {
+    console.error("Stripe webhook verification failed:", error.message);
+    return sendJson(res, 400, { error: "Webhook verification failed." });
+  }
+  try {
     if (event.type === "checkout.session.completed") {
       await syncCheckoutMember(event.data.object);
     } else if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated") {
-      await syncSubscription(event.data.object);
+      await syncSubscription(await retrieveCurrentSubscription(event.data.object));
     } else if (event.type === "customer.subscription.deleted") {
-      const subscription = event.data.object;
+      const subscription = await retrieveCurrentSubscription(event.data.object);
       const member = await syncSubscription(subscription);
       await recordSubscriptionLifecycle(event, "canceled", member, subscription.id);
     } else if (
@@ -1707,8 +1792,8 @@ async function handleStripeWebhook(req, res) {
     }
     sendJson(res, 200, { received: true });
   } catch (error) {
-    console.error("Stripe webhook failed:", error);
-    sendJson(res, 400, { error: "Webhook verification failed." });
+    console.error("Stripe webhook processing failed:", error.message);
+    sendJson(res, 500, { error: "Webhook processing failed." });
   }
 }
 
