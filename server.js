@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const Stripe = require("stripe");
+const { MEMBER_LESSONS } = require("./member-lessons");
 
 const publicDir = path.join(__dirname, "public");
 const dataDir = path.join(__dirname, "data");
@@ -67,6 +68,15 @@ function sendJson(res, status, payload) {
   res.writeHead(status, {
     "Content-Type": "application/json; charset=utf-8",
     "Cache-Control": "no-store",
+    "X-Content-Type-Options": "nosniff"
+  });
+  res.end(JSON.stringify(payload));
+}
+
+function sendPrivateJson(res, status, payload) {
+  res.writeHead(status, {
+    "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": "private, no-store",
     "X-Content-Type-Options": "nosniff"
   });
   res.end(JSON.stringify(payload));
@@ -1578,6 +1588,27 @@ async function handleMemberState(req, res) {
   }
 }
 
+async function handleMemberLessons(req, res) {
+  if (req.method !== "GET") {
+    return sendPrivateJson(res, 405, { error: "Method not allowed" });
+  }
+  try {
+    const member = await getAuthenticatedMember(req);
+    if (!member) {
+      return sendPrivateJson(res, 401, { error: "Sign in to access lessons." });
+    }
+    if (!membershipAllowsAccess(member.subscription_status)) {
+      return sendPrivateJson(res, 403, {
+        error: "An active Surplus membership is required to access lessons."
+      });
+    }
+    sendPrivateJson(res, 200, MEMBER_LESSONS);
+  } catch (error) {
+    console.error("Member lesson access failed:", error.message);
+    sendPrivateJson(res, 500, { error: "Lessons could not be loaded. Please try again." });
+  }
+}
+
 async function handleAnalytics(req, res) {
   if (req.method !== "POST") return sendJson(res, 405, { error: "Method not allowed" });
   let body;
@@ -1954,6 +1985,11 @@ const server = http.createServer(async (req, res) => {
 
   if (requestPath === "/api/member/state") {
     await handleMemberState(req, res);
+    return;
+  }
+
+  if (requestPath === "/api/member/lessons") {
+    await handleMemberLessons(req, res);
     return;
   }
 
