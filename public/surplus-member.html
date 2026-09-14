@@ -1697,9 +1697,16 @@
     box-shadow:0 20px 60px rgba(185,154,85,.4);
     opacity:0; visibility:hidden;
     transition:transform .5s var(--ease),opacity .25s,visibility .25s; z-index:1000;
-    display:flex; align-items:center; gap:10px;
+    display:flex; align-items:center; gap:10px; width:max-content; max-width:calc(100vw - 32px);
   }
   .toast.show{transform:translateX(-50%) translateY(0);opacity:1;visibility:visible}
+  #toastMsg{min-width:0; line-height:1.4}
+  .toast-action{
+    border:1px solid rgba(10,10,12,.22); border-radius:100px; padding:7px 11px;
+    background:rgba(10,10,12,.12); color:#0a0a0c; font:600 12px/1 var(--sans); cursor:pointer;
+    white-space:nowrap;
+  }
+  .toast-action[hidden]{display:none}
 
   /* Hide everything except active section */
   .section{display:none}
@@ -3229,6 +3236,7 @@ Reusable template</div>
 <div class="toast" id="toast">
   <span style="font-size:16px">◆</span>
   <span id="toastMsg">Action complete</span>
+  <button class="toast-action" id="toastAction" type="button" onclick="runToastAction()" hidden>Reload latest</button>
 </div>
 
 <script>
@@ -3458,9 +3466,14 @@ let CURRENT_STATE = 'active';
 let CURRENT_MEMBER = null;
 let MEMBER_ONBOARDING = {};
 let MEMBER_PROGRESS = { completedModules:[], moduleProgress:{}, lessonProgress:{}, accountability:{} };
+let MEMBER_PROGRESS_VERSION = 0;
+let MEMBER_STATE_SAVE_QUEUE = Promise.resolve();
+let MEMBER_STATE_CONFLICT = false;
 let ACTIVE_MODULE = 1;
 let ACTIVE_LESSON_ID = null;
 let ACCOUNTABILITY_SAVING = false;
+let TOAST_ACTION = null;
+const MEMBER_STATE_CONFLICT_MESSAGE = 'Your Surplus account was updated in another tab or session. Reload to get the latest saved version before making another save.';
 
 function analytics(eventName, metadata = {}){
   const sessionId = sessionStorage.getItem('surplusAnalyticsSession') || crypto.randomUUID();
@@ -3479,19 +3492,59 @@ function analytics(eventName, metadata = {}){
   }).catch(() => {});
 }
 
-async function saveMemberState(){
-  if (IS_PREVIEW_MODE || !CURRENT_MEMBER) return;
-  const response = await fetch('/api/member/state', {
-    method:'PATCH',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({onboarding:MEMBER_ONBOARDING, progress:MEMBER_PROGRESS})
+function createMemberStateConflictError(){
+  const error = new Error(MEMBER_STATE_CONFLICT_MESSAGE);
+  error.code = 'member_state_conflict';
+  return error;
+}
+
+function enterMemberStateConflict(){
+  MEMBER_STATE_CONFLICT = true;
+  showToast(MEMBER_STATE_CONFLICT_MESSAGE, {
+    persistent:true,
+    actionLabel:'Reload latest',
+    onAction:() => window.location.reload(),
+    force:true
   });
-  if (response.status === 413) {
-    const message = "We couldn't save because your Surplus workspace has grown too large. Please try again or contact support.";
-    showToast(message);
-    throw new Error(message);
-  }
-  if (!response.ok) throw new Error('Your dashboard changes could not be saved.');
+}
+
+function saveMemberState(){
+  if (IS_PREVIEW_MODE || !CURRENT_MEMBER) return Promise.resolve();
+  if (MEMBER_STATE_CONFLICT) return Promise.reject(createMemberStateConflictError());
+  const onboardingSnapshot = JSON.parse(JSON.stringify(MEMBER_ONBOARDING || {}));
+  const progressSnapshot = JSON.parse(JSON.stringify(MEMBER_PROGRESS || {}));
+  const save = MEMBER_STATE_SAVE_QUEUE.then(async () => {
+    if (MEMBER_STATE_CONFLICT) throw createMemberStateConflictError();
+    const expectedProgressVersion = MEMBER_PROGRESS_VERSION;
+    const response = await fetch('/api/member/state', {
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        onboarding:onboardingSnapshot,
+        progress:progressSnapshot,
+        expectedProgressVersion
+      })
+    });
+    if (response.status === 409) {
+      enterMemberStateConflict();
+      throw createMemberStateConflictError();
+    }
+    if (response.status === 413) {
+      const message = "We couldn't save because your Surplus workspace has grown too large. Please try again or contact support.";
+      showToast(message);
+      throw new Error(message);
+    }
+    if (!response.ok) throw new Error('Your dashboard changes could not be saved.');
+    const result = await response.json();
+    if (!Number.isSafeInteger(result.progressVersion) || result.progressVersion !== expectedProgressVersion + 1) {
+      enterMemberStateConflict();
+      throw createMemberStateConflictError();
+    }
+    MEMBER_PROGRESS_VERSION = result.progressVersion;
+    CURRENT_MEMBER.progressVersion = result.progressVersion;
+  });
+  MEMBER_STATE_SAVE_QUEUE = save.catch(() => {});
+  return save;
 }
 
 // ---------- ACCOUNTABILITY ----------
@@ -3980,6 +4033,9 @@ async function logOut(){
   }
   await fetch('/api/auth/logout', {method:'POST'}).catch(() => {});
   CURRENT_MEMBER = null;
+  MEMBER_PROGRESS_VERSION = 0;
+  MEMBER_STATE_SAVE_QUEUE = Promise.resolve();
+  MEMBER_STATE_CONFLICT = false;
   document.getElementById('signin').classList.remove('hidden');
   document.getElementById('wizard')?.classList.remove('open');
   document.getElementById('palette')?.classList.remove('open');
@@ -4234,6 +4290,10 @@ function renderHomeNextAction(){
 
 function applyMember(member){
   CURRENT_MEMBER = member;
+  MEMBER_PROGRESS_VERSION = Number.isSafeInteger(member.progressVersion) && member.progressVersion >= 0
+    ? member.progressVersion
+    : 0;
+  MEMBER_STATE_CONFLICT = false;
   MEMBER_ONBOARDING = member.onboarding || {};
   const savedProgress = member.progress && typeof member.progress === 'object' ? member.progress : {};
   MEMBER_PROGRESS = {
@@ -5673,12 +5733,20 @@ function setDate(){
 }
 
 // ---------- TOAST ----------
-function showToast(msg){
+function showToast(msg, options = {}){
+  if (MEMBER_STATE_CONFLICT && msg !== MEMBER_STATE_CONFLICT_MESSAGE && !options.force) return;
   const t = document.getElementById('toast');
   document.getElementById('toastMsg').textContent = msg;
+  const actionButton = document.getElementById('toastAction');
+  TOAST_ACTION = typeof options.onAction === 'function' ? options.onAction : null;
+  actionButton.hidden = !TOAST_ACTION;
+  actionButton.textContent = options.actionLabel || 'Continue';
   t.classList.add('show');
   clearTimeout(window._toastT);
-  window._toastT = setTimeout(() => t.classList.remove('show'), 2800);
+  if (!options.persistent) window._toastT = setTimeout(() => t.classList.remove('show'), 2800);
+}
+function runToastAction(){
+  if (TOAST_ACTION) TOAST_ACTION();
 }
 
 // ---------- THEME TOGGLE ----------

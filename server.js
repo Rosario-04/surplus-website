@@ -996,6 +996,7 @@ async function handleMemberSession(req, res) {
       currentPeriodEnd: member.current_period_end,
       onboarding: member.onboarding || {},
       progress: member.progress || {},
+      progressVersion: Number(member.progress_version || 0),
       referralCode: member.referral_code,
       referralCount: member.referral_count || 0,
       referralCredits: member.referral_credits || 0,
@@ -1453,6 +1454,7 @@ async function handleMemberState(req, res) {
     return sendJson(res, 200, {
       onboarding: member.onboarding || {},
       progress: member.progress || {},
+      progressVersion: Number(member.progress_version || 0),
       referralCode: member.referral_code,
       referralCount: member.referral_count || 0,
       referralCredits: member.referral_credits || 0
@@ -1471,10 +1473,15 @@ async function handleMemberState(req, res) {
     return sendJson(res, 400, { error: error.message });
   }
   const update = { updated_at: new Date().toISOString() };
+  let expectedProgressVersion = null;
   if (body.onboarding && typeof body.onboarding === "object" && !Array.isArray(body.onboarding)) {
     update.onboarding = body.onboarding;
   }
   if (body.progress && typeof body.progress === "object" && !Array.isArray(body.progress)) {
+    if (!Number.isSafeInteger(body.expectedProgressVersion) || body.expectedProgressVersion < 0) {
+      return sendJson(res, 400, { error: "A valid progress version is required." });
+    }
+    expectedProgressVersion = body.expectedProgressVersion;
     const changedProtectedTool = getChangedProtectedMemberTool(member.progress, body.progress);
     if (changedProtectedTool && !membershipAllowsAccess(member.subscription_status)) {
       return sendJson(res, 403, {
@@ -1482,14 +1489,23 @@ async function handleMemberState(req, res) {
       });
     }
     update.progress = body.progress;
+    update.progress_version = expectedProgressVersion + 1;
   }
   if (body.name) update.name = normalizeText(body.name, 100);
   try {
-    const updated = await supabasePatch("members", { id: `eq.${member.id}` }, update);
+    const filters = { id: `eq.${member.id}` };
+    if (expectedProgressVersion !== null) {
+      filters.progress_version = `eq.${expectedProgressVersion}`;
+    }
+    const updated = await supabasePatch("members", filters, update);
+    if (expectedProgressVersion !== null && !updated) {
+      return sendJson(res, 409, { error: "member_state_conflict" });
+    }
     sendJson(res, 200, {
       ok: true,
       onboarding: updated?.onboarding || member.onboarding || {},
-      progress: updated?.progress || member.progress || {}
+      progress: updated?.progress || member.progress || {},
+      progressVersion: Number(updated?.progress_version ?? member.progress_version ?? 0)
     });
   } catch (error) {
     console.error("Member state update failed:", error);
