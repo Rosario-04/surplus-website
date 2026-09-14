@@ -29,6 +29,7 @@
     --gold-bright:#a8893f; --gold:#8a7340;
   }
   *{margin:0;padding:0;box-sizing:border-box}
+  [hidden]{display:none !important}
   html,body{height:100%}
   body{
     background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:14px;
@@ -3729,7 +3730,7 @@ function openToolAccountabilityHandoff(sourceTool, type){
   const config = TOOL_ACCOUNTABILITY_HANDOFFS[sourceTool];
   if (!config || !['daily','weekly'].includes(type)) return;
   if (!canUseToolAccountabilityHandoff()) { resubscribe(); return; }
-  normalizeAccountability();
+  ensureCurrentAccountabilityPeriod();
   const accountability = getAccountability();
   const list = type === 'daily' ? accountability.daily.actions : accountability.weekly.goals;
   TOOL_HANDOFF_STATE = {sourceTool,type};
@@ -3769,6 +3770,7 @@ async function confirmToolAccountabilityHandoff(){
   const input = document.getElementById('toolHandoffInput');
   const text = input.value.trim().slice(0,120);
   if (!text) { setToolHandoffStatus('Add a clear action before saving.','error'); input.focus(); return; }
+  ensureCurrentAccountabilityPeriod({persist:false});
   const accountability = getAccountability();
   const list = type === 'daily' ? accountability.daily.actions : accountability.weekly.goals;
   if (list.length >= 3) { showToolHandoffLimit(type); return; }
@@ -3921,13 +3923,30 @@ function normalizeAccountability(){
   if (trimHistory(accountability.history.weekly,104)) changed = true;
   return changed;
 }
+function ensureCurrentAccountabilityPeriod({persist = true} = {}){
+  const accountability = getAccountability();
+  const needsRollover = isEarlierDate(accountability.daily.date,localDateKey())
+    || isEarlierDate(accountability.weekly.weekStart,weekStartKey());
+  if (!needsRollover) return false;
+  const changed = normalizeAccountability();
+  if (persist && changed && !IS_PREVIEW_MODE && ['active','trialing'].includes(CURRENT_MEMBER?.subscriptionStatus)) {
+    saveMemberState().catch(error => {
+      if (error.code !== 'member_state_conflict') {
+        showToast('Your current accountability period could not be saved. Please try again.');
+      }
+    });
+  }
+  return changed;
+}
 function getAccountabilityStats(){
+  ensureCurrentAccountabilityPeriod();
   const accountability = getAccountability();
   const daily = getCompletionSummary(accountability.daily.actions);
   const weekly = getCompletionSummary(accountability.weekly.goals);
   return {daily,weekly,currentStreak:getCurrentStreak(),personalBest:getPersonalBest()};
 }
 function dailySummaryForDate(key){
+  ensureCurrentAccountabilityPeriod();
   const accountability = getAccountability();
   if (accountability.daily.date === key) return getCompletionSummary(accountability.daily.actions);
   return accountability.history.daily[key] || null;
@@ -3947,6 +3966,7 @@ function getCurrentStreak(){
   return streak;
 }
 function getPersonalBest(){
+  ensureCurrentAccountabilityPeriod();
   const accountability = getAccountability();
   const summaries = {...accountability.history.daily};
   summaries[accountability.daily.date] = getCompletionSummary(accountability.daily.actions);
@@ -4238,6 +4258,7 @@ function getWeeklyGoalAction(accountability){
 }
 
 function resolveNextAction(){
+  ensureCurrentAccountabilityPeriod();
   if (!MEMBER_ONBOARDING.completed) {
     return {
       type:'onboarding',
@@ -4610,7 +4631,9 @@ function openMobileMoreSection(id){
 }
 
 function navigateTo(id){
-  const navSection = ['foundation-plan','money-planner','offer-tracker','ai-workbench','service-operations','property-readiness'].includes(id) ? 'spreadsheets' : id;
+  const navSection = id === 'module-detail'
+    ? 'modules'
+    : (['foundation-plan','money-planner','offer-tracker','ai-workbench','service-operations','property-readiness'].includes(id) ? 'spreadsheets' : id);
   document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.section === navSection));
   updateMobileNavigation(id);
   document.querySelectorAll('.section').forEach(el => el.classList.toggle('active', el.id === `section-${id}`));
@@ -6092,6 +6115,7 @@ function renderReplays(){
 
 // ---------- RENDER GOALS ----------
 function updateAccountabilitySummary(){
+  ensureCurrentAccountabilityPeriod();
   const stats = getAccountabilityStats();
   const dailyValue = `${stats.daily.completed} / ${stats.daily.total || 3}`;
   const streakValue = stats.currentStreak ? `${stats.currentStreak} day${stats.currentStreak === 1 ? '' : 's'}` : 'Start today';
@@ -6131,6 +6155,7 @@ function renderGoals(){
   const dailyContainer = document.getElementById('dailyActions');
   const weeklyContainer = document.getElementById('weeklyGoals');
   if (!dailyContainer || !weeklyContainer) return;
+  ensureCurrentAccountabilityPeriod();
   const accountability = getAccountability();
   const stats = getAccountabilityStats();
   dailyContainer.innerHTML = renderAccountabilityRows(accountability.daily.actions,'daily');
@@ -6143,6 +6168,7 @@ function renderGoals(){
 }
 async function addAccountabilityItem(type, input){
   if (ACCOUNTABILITY_SAVING) return;
+  ensureCurrentAccountabilityPeriod({persist:false});
   const text = input.value.trim().slice(0,120);
   if (!text) return;
   const accountability = getAccountability();
@@ -6173,6 +6199,7 @@ function addWeeklyGoal(event){
 }
 async function toggleAccountabilityItem(type, id){
   if (ACCOUNTABILITY_SAVING) return;
+  ensureCurrentAccountabilityPeriod({persist:false});
   const accountability = getAccountability();
   const list = type === 'daily' ? accountability.daily.actions : accountability.weekly.goals;
   const item = list.find(goal => goal.id === id);
@@ -6190,6 +6217,7 @@ async function toggleAccountabilityItem(type, id){
 }
 async function deleteAccountabilityItem(type, id){
   if (ACCOUNTABILITY_SAVING) return;
+  ensureCurrentAccountabilityPeriod({persist:false});
   const accountability = getAccountability();
   const key = type === 'daily' ? 'actions' : 'goals';
   const list = accountability[type][key];
@@ -6281,6 +6309,37 @@ function retryMemberLessons(){
   MEMBER_LESSON_CONTENT_ERROR = null;
   renderModuleDetail();
   loadMemberLessons({retry:true}).then(renderModuleDetail).catch(renderModuleDetail);
+}
+
+async function persistLessonResumePosition(module, lessonId){
+  if (!canAccessMemberLessons() || !getProtectedLessonContent(module.n,lessonId)) return false;
+  const state = getMutableLessonProgress(module);
+  if (state.currentLessonId === lessonId) return false;
+  state.currentLessonId = lessonId;
+  state.updatedAt = new Date().toISOString();
+  try {
+    await saveMemberState();
+    renderHomeNextAction();
+    return true;
+  } catch (error) {
+    showToast(`Your place could not be saved. ${error.message}`);
+    return false;
+  }
+}
+
+async function loadOpenedLesson(module, lessonId){
+  if (!canAccessMemberLessons()) return;
+  if (!getProtectedLessonContent(module.n,lessonId)) {
+    try {
+      await loadMemberLessons();
+    } catch {
+      if (ACTIVE_MODULE === module.n && ACTIVE_LESSON_ID === lessonId) renderModuleDetail();
+      return;
+    }
+  }
+  if (ACTIVE_MODULE !== module.n || ACTIVE_LESSON_ID !== lessonId) return;
+  renderModuleDetail();
+  await persistLessonResumePosition(module,lessonId);
 }
 
 function renderModuleDetail(){
@@ -6385,9 +6444,7 @@ function openModuleDetail(moduleId = 1, lessonId = null){
     ? lessonId
     : lessonState.currentLessonId;
   renderModuleDetail();
-  if (canAccessMemberLessons() && !MEMBER_LESSON_CONTENT) {
-    loadMemberLessons().then(renderModuleDetail).catch(renderModuleDetail);
-  }
+  loadOpenedLesson(module,ACTIVE_LESSON_ID);
   analytics('module_opened',{module:module.n,title:module.title});
   analytics('lesson_opened',{module:module.n,lesson:ACTIVE_LESSON_ID});
   navigateTo('module-detail');
@@ -6396,17 +6453,10 @@ function openModuleDetail(moduleId = 1, lessonId = null){
 async function selectLesson(lessonId){
   const module = getModule(ACTIVE_MODULE);
   if (!module.lessons.some(lesson => lesson.id === lessonId)) return;
-  const state = getMutableLessonProgress(module);
   ACTIVE_LESSON_ID = lessonId;
-  state.currentLessonId = lessonId;
-  state.updatedAt = new Date().toISOString();
   renderModuleDetail();
   analytics('lesson_opened',{module:module.n,lesson:lessonId});
-  try {
-    await saveMemberState();
-  } catch (error) {
-    showToast(`Your place could not be saved. ${error.message}`);
-  }
+  await loadOpenedLesson(module,lessonId);
 }
 
 function openPreviousLesson(){
