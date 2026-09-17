@@ -773,15 +773,19 @@ function compareSubscriptionOwnership(first, second) {
 }
 
 async function resolveSubscriptionOwnership(member, candidateSubscription) {
-  if (!candidateSubscription?.id || !isSurplusMembershipSubscription(candidateSubscription)) {
+  if (!candidateSubscription?.id) {
     return { accepted: false, subscription: null };
   }
-  const candidateCustomerId = stripeObjectId(candidateSubscription.customer);
+  const freshCandidate = await stripe.subscriptions.retrieve(candidateSubscription.id);
+  if (!isSurplusMembershipSubscription(freshCandidate)) {
+    return { accepted: false, subscription: null };
+  }
+  const candidateCustomerId = stripeObjectId(freshCandidate.customer);
   if (!candidateCustomerId) throw new Error("Stripe subscription customer could not be verified");
 
-  const subscriptions = new Map([[candidateSubscription.id, candidateSubscription]]);
+  const subscriptions = new Map([[freshCandidate.id, freshCandidate]]);
   const customerIds = new Set([candidateCustomerId]);
-  if (member?.stripe_subscription_id && member.stripe_subscription_id !== candidateSubscription.id) {
+  if (member?.stripe_subscription_id && member.stripe_subscription_id !== freshCandidate.id) {
     const currentSubscription = await stripe.subscriptions.retrieve(member.stripe_subscription_id);
     const currentCustomerId = stripeObjectId(currentSubscription.customer);
     if (!currentCustomerId || (member.stripe_customer_id && currentCustomerId !== member.stripe_customer_id)) {
@@ -806,7 +810,7 @@ async function resolveSubscriptionOwnership(member, candidateSubscription) {
     .sort(compareSubscriptionOwnership);
   const selected = eligible[0] || null;
   return {
-    accepted: selected?.id === candidateSubscription.id,
+    accepted: selected?.id === freshCandidate.id,
     subscription: selected
   };
 }
@@ -819,7 +823,8 @@ function memberStripeIdentityFilters(member) {
       : "is.null",
     stripe_subscription_id: member.stripe_subscription_id
       ? `eq.${member.stripe_subscription_id}`
-      : "is.null"
+      : "is.null",
+    subscription_sync_version: `eq.${Number(member.subscription_sync_version || 0)}`
   };
 }
 
@@ -844,7 +849,11 @@ async function applyVerifiedSubscription(member, candidateSubscription, extra = 
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const ownership = await resolveSubscriptionOwnership(currentMember, candidateSubscription);
     if (!ownership.accepted) return { accepted: false, member: currentMember };
-    const payload = subscriptionMemberPayload(candidateSubscription, currentMember, extra);
+    const currentSyncVersion = Number(currentMember.subscription_sync_version || 0);
+    const payload = {
+      ...subscriptionMemberPayload(ownership.subscription, currentMember, extra),
+      subscription_sync_version: currentSyncVersion + 1
+    };
     const updated = await supabasePatch("members", memberStripeIdentityFilters(currentMember), payload);
     if (updated) return { accepted: true, member: updated };
     currentMember = await findMemberByEmail(currentMember.email);
@@ -1899,9 +1908,17 @@ async function syncCheckoutMember(session) {
     try {
       member = await supabaseInsert("members", {
         email: sessionEmail,
-        ...subscriptionMemberPayload(subscription, null, memberFields)
+        stripe_customer_id: customerId,
+        stripe_subscription_id: subscription.id,
+        subscription_status: "inactive",
+        subscription_sync_version: 0,
+        ...memberFields,
+        updated_at: new Date().toISOString()
       });
       created = true;
+      const result = await applyVerifiedSubscription(member, subscription, memberFields);
+      if (!result.accepted) return result.member;
+      member = result.member;
     } catch (error) {
       const racedMember = await findMemberByEmail(sessionEmail);
       if (!racedMember) throw error;

@@ -51,6 +51,7 @@ alter table public.members
   add column if not exists first_paid_at timestamptz,
   add column if not exists recurring_amount integer,
   add column if not exists recurring_interval text,
+  add column if not exists subscription_sync_version bigint not null default 0,
   add column if not exists progress_version bigint not null default 0;
 
 create unique index if not exists members_discord_user_id_idx
