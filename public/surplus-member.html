@@ -3564,7 +3564,9 @@ let CURRENT_MEMBER = null;
 let MEMBER_ONBOARDING = {};
 let MEMBER_PROGRESS = { completedModules:[], moduleProgress:{}, lessonProgress:{}, accountability:{} };
 let MEMBER_PROGRESS_VERSION = 0;
+let MEMBER_LAST_ACKNOWLEDGED_PROGRESS = null;
 let MEMBER_STATE_SAVE_QUEUE = Promise.resolve();
+let MEMBER_STATE_SAVE_GENERATION = 0;
 let MEMBER_STATE_CONFLICT = false;
 let MEMBER_LESSON_CONTENT = null;
 let MEMBER_LESSON_CONTENT_PROMISE = null;
@@ -3598,6 +3600,12 @@ function createMemberStateConflictError(){
   return error;
 }
 
+function createMemberStateSaveInvalidatedError(){
+  const error = new Error('A previous dashboard save failed. Please try this change again.');
+  error.code = 'member_state_save_invalidated';
+  return error;
+}
+
 function enterMemberStateConflict(){
   MEMBER_STATE_CONFLICT = true;
   showToast(MEMBER_STATE_CONFLICT_MESSAGE, {
@@ -3613,18 +3621,26 @@ function saveMemberState(){
   if (MEMBER_STATE_CONFLICT) return Promise.reject(createMemberStateConflictError());
   const onboardingSnapshot = JSON.parse(JSON.stringify(MEMBER_ONBOARDING || {}));
   const progressSnapshot = JSON.parse(JSON.stringify(MEMBER_PROGRESS || {}));
+  const saveGeneration = MEMBER_STATE_SAVE_GENERATION;
   const save = MEMBER_STATE_SAVE_QUEUE.then(async () => {
     if (MEMBER_STATE_CONFLICT) throw createMemberStateConflictError();
+    if (saveGeneration !== MEMBER_STATE_SAVE_GENERATION) throw createMemberStateSaveInvalidatedError();
     const expectedProgressVersion = MEMBER_PROGRESS_VERSION;
-    const response = await fetch('/api/member/state', {
-      method:'PATCH',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        onboarding:onboardingSnapshot,
-        progress:progressSnapshot,
-        expectedProgressVersion
-      })
-    });
+    let response;
+    try {
+      response = await fetch('/api/member/state', {
+        method:'PATCH',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          onboarding:onboardingSnapshot,
+          progress:progressSnapshot,
+          expectedProgressVersion
+        })
+      });
+    } catch (error) {
+      MEMBER_STATE_SAVE_GENERATION += 1;
+      throw error;
+    }
     if (response.status === 409) {
       enterMemberStateConflict();
       throw createMemberStateConflictError();
@@ -3632,16 +3648,27 @@ function saveMemberState(){
     if (response.status === 413) {
       const message = "We couldn't save because your Surplus workspace has grown too large. Please try again or contact support.";
       showToast(message);
+      MEMBER_STATE_SAVE_GENERATION += 1;
       throw new Error(message);
     }
-    if (!response.ok) throw new Error('Your dashboard changes could not be saved.');
-    const result = await response.json();
+    if (!response.ok) {
+      MEMBER_STATE_SAVE_GENERATION += 1;
+      throw new Error('Your dashboard changes could not be saved.');
+    }
+    let result;
+    try {
+      result = await response.json();
+    } catch {
+      enterMemberStateConflict();
+      throw createMemberStateConflictError();
+    }
     if (!Number.isSafeInteger(result.progressVersion) || result.progressVersion !== expectedProgressVersion + 1) {
       enterMemberStateConflict();
       throw createMemberStateConflictError();
     }
     MEMBER_PROGRESS_VERSION = result.progressVersion;
     CURRENT_MEMBER.progressVersion = result.progressVersion;
+    MEMBER_LAST_ACKNOWLEDGED_PROGRESS = JSON.parse(JSON.stringify(progressSnapshot));
   });
   MEMBER_STATE_SAVE_QUEUE = save.catch(() => {});
   return save;
@@ -3825,6 +3852,52 @@ function createAccountabilityId(){
   return crypto.randomUUID ? crypto.randomUUID() : `goal-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 function cloneProgress(){ return JSON.parse(JSON.stringify(MEMBER_PROGRESS)); }
+function cloneProgressValue(value){ return value === undefined ? undefined : JSON.parse(JSON.stringify(value)); }
+function restoreProgressMapEntry(mapKey, entryKey, previousProgress){
+  const restoreSource = MEMBER_LAST_ACKNOWLEDGED_PROGRESS || previousProgress;
+  const currentMap = MEMBER_PROGRESS?.[mapKey] && typeof MEMBER_PROGRESS[mapKey] === 'object'
+    ? MEMBER_PROGRESS[mapKey]
+    : {};
+  const previousMap = restoreSource?.[mapKey] && typeof restoreSource[mapKey] === 'object'
+    ? restoreSource[mapKey]
+    : {};
+  const nextMap = {...currentMap};
+  if (Object.prototype.hasOwnProperty.call(previousMap,entryKey)) {
+    nextMap[entryKey] = cloneProgressValue(previousMap[entryKey]);
+  } else {
+    delete nextMap[entryKey];
+  }
+  MEMBER_PROGRESS = {...MEMBER_PROGRESS,[mapKey]:nextMap};
+}
+function restoreToolProgress(toolKey, previousProgress){
+  restoreProgressMapEntry('tools',toolKey,previousProgress);
+}
+function restoreAccountabilityProgress(previousProgress){
+  const restoreSource = MEMBER_LAST_ACKNOWLEDGED_PROGRESS || previousProgress;
+  if (Object.prototype.hasOwnProperty.call(restoreSource || {},'accountability')) {
+    MEMBER_PROGRESS = {...MEMBER_PROGRESS,accountability:cloneProgressValue(restoreSource.accountability)};
+  } else {
+    const nextProgress = {...MEMBER_PROGRESS};
+    delete nextProgress.accountability;
+    MEMBER_PROGRESS = nextProgress;
+  }
+}
+function restoreLessonProgress(moduleId, previousProgress, {includeCompletion = false} = {}){
+  const restoreSource = MEMBER_LAST_ACKNOWLEDGED_PROGRESS || previousProgress;
+  const key = String(moduleId);
+  restoreProgressMapEntry('lessonProgress',key,restoreSource);
+  if (!includeCompletion) return;
+  restoreProgressMapEntry('moduleProgress',key,restoreSource);
+  const wasComplete = Array.isArray(restoreSource?.completedModules)
+    && restoreSource.completedModules.some(id => Number(id) === Number(moduleId));
+  const currentCompleted = Array.isArray(MEMBER_PROGRESS.completedModules) ? MEMBER_PROGRESS.completedModules : [];
+  MEMBER_PROGRESS = {
+    ...MEMBER_PROGRESS,
+    completedModules:wasComplete
+      ? [...new Set([...currentCompleted,moduleId])]
+      : currentCompleted.filter(id => Number(id) !== Number(moduleId))
+  };
+}
 function getCompletionSummary(items){
   const list = Array.isArray(items) ? items : [];
   return { completed:list.filter(item => Boolean(item.completedAt)).length, total:list.length };
@@ -4007,7 +4080,7 @@ async function persistAccountabilityChange(previousProgress, successMessage, ana
     if (successMessage) showToast(successMessage);
     return true;
   } catch (error) {
-    MEMBER_PROGRESS = previousProgress;
+    restoreAccountabilityProgress(previousProgress);
     renderGoals();
     renderHomeNextAction();
     updateAccountabilitySummary();
@@ -4153,7 +4226,9 @@ async function logOut(){
   await fetch('/api/auth/logout', {method:'POST'}).catch(() => {});
   CURRENT_MEMBER = null;
   MEMBER_PROGRESS_VERSION = 0;
+  MEMBER_LAST_ACKNOWLEDGED_PROGRESS = null;
   MEMBER_STATE_SAVE_QUEUE = Promise.resolve();
+  MEMBER_STATE_SAVE_GENERATION = 0;
   MEMBER_STATE_CONFLICT = false;
   document.getElementById('signin').classList.remove('hidden');
   document.getElementById('wizard')?.classList.remove('open');
@@ -4414,6 +4489,7 @@ function applyMember(member){
     ? member.progressVersion
     : 0;
   MEMBER_STATE_CONFLICT = false;
+  MEMBER_STATE_SAVE_GENERATION = 0;
   MEMBER_ONBOARDING = member.onboarding || {};
   const savedProgress = member.progress && typeof member.progress === 'object' ? member.progress : {};
   MEMBER_PROGRESS = {
@@ -4424,6 +4500,7 @@ function applyMember(member){
       ? member.progress.lessonProgress
       : {}
   };
+  MEMBER_LAST_ACKNOWLEDGED_PROGRESS = cloneProgress();
   const progressBeforeAccountabilityNormalization = cloneProgress();
   const accountabilityNeedsSave = normalizeAccountability();
   const name = member.name || 'Surplus Member';
@@ -4492,7 +4569,7 @@ function applyMember(member){
   renderPropertyReadiness();
   if (accountabilityNeedsSave && !IS_PREVIEW_MODE) {
     saveMemberState().catch(() => {
-      MEMBER_PROGRESS = progressBeforeAccountabilityNormalization;
+      restoreAccountabilityProgress(progressBeforeAccountabilityNormalization);
       showToast('Your goal migration could not be saved. Please refresh and try again.');
     });
   }
@@ -4963,7 +5040,7 @@ async function saveFoundationPlan(){
     setFoundationPlanSaveStatus('Saved · just now.', 'success');
     analytics('foundation_plan_saved');
   } catch (error) {
-    MEMBER_PROGRESS = previousProgress;
+    restoreToolProgress('foundationPlan',previousProgress);
     setFoundationPlanSaveStatus("Couldn't save - try again. Your entries are still here.", 'error');
   } finally {
     button.disabled = false;
@@ -5133,7 +5210,7 @@ async function saveMoneyPlanner(){
     setMoneyPlannerSaveStatus('Saved · just now.', 'success');
     analytics('money_planner_saved');
   } catch (error) {
-    MEMBER_PROGRESS = previousProgress;
+    restoreToolProgress('moneyPlanner',previousProgress);
     setMoneyPlannerSaveStatus("Couldn't save - try again. Your entries are still here.", 'error');
   } finally {
     button.disabled = false;
@@ -5361,7 +5438,7 @@ async function saveOfferTracker(){
     setOfferTrackerSaveStatus('Saved · just now.', 'success');
     analytics('offer_tracker_saved');
   } catch (error) {
-    MEMBER_PROGRESS = previousProgress;
+    restoreToolProgress('offerOutreach',previousProgress);
     setOfferTrackerSaveStatus("Couldn't save - try again. Your entries are still here.", 'error');
   } finally {
     button.disabled = false;
@@ -5510,7 +5587,7 @@ async function saveAiWorkbench(nextData, type, button, message, eventName){
   AI_WORKBENCH_SAVING = true; button.disabled = true; setAiWorkbenchStatus(type,'Saving ' + message + '...');
   MEMBER_PROGRESS = {...MEMBER_PROGRESS,tools:{...(MEMBER_PROGRESS.tools && typeof MEMBER_PROGRESS.tools === 'object' ? MEMBER_PROGRESS.tools : {}),aiWorkbench:normalizeAiWorkbench(nextData)}};
   try { await saveMemberState(); AI_WORKBENCH_DRAFT = getAiWorkbenchData(); setAiWorkbenchStatus(type,'Saved · just now.','success'); if (eventName) analytics(eventName); return true; }
-  catch (error) { MEMBER_PROGRESS = previousProgress; AI_WORKBENCH_DRAFT = normalizeAiWorkbench(previousProgress?.tools?.aiWorkbench || {}); setAiWorkbenchStatus(type,"Couldn't save - try again. Your draft is still here.",'error'); return false; }
+  catch (error) { restoreToolProgress('aiWorkbench',previousProgress); setAiWorkbenchStatus(type,"Couldn't save - try again. Your draft is still here.",'error'); return false; }
   finally { AI_WORKBENCH_SAVING = false; button.disabled = false; }
 }
 async function saveAiPrompt(){
@@ -5637,7 +5714,7 @@ async function saveServiceOperations(){
   const button = document.getElementById('saveServiceOperationsButton'); const previousProgress = cloneProgress(); const saved = normalizeServiceOperations({...SERVICE_OPERATIONS_DRAFT,updatedAt:new Date().toISOString()});
   SERVICE_OPERATIONS_SAVING = true; button.disabled = true; setServiceOperationsStatus('Saving...'); MEMBER_PROGRESS = {...MEMBER_PROGRESS,tools:{...(MEMBER_PROGRESS.tools && typeof MEMBER_PROGRESS.tools === 'object' ? MEMBER_PROGRESS.tools : {}),serviceOperations:saved}};
   try { await saveMemberState(); SERVICE_OPERATIONS_DRAFT = getServiceOperationsData(); setServiceOperationsStatus('Saved · just now.','success'); analytics('service_operations_saved'); }
-  catch (error) { MEMBER_PROGRESS = previousProgress; setServiceOperationsStatus("Couldn't save - try again. Your entries are still here.",'error'); }
+  catch (error) { restoreToolProgress('serviceOperations',previousProgress); setServiceOperationsStatus("Couldn't save - try again. Your entries are still here.",'error'); }
   finally { SERVICE_OPERATIONS_SAVING = false; button.disabled = false; }
 }
 document.addEventListener('input', event => { if (event.target.matches('[data-service-offer-field],[data-service-message-field],[data-service-scope-field],[data-service-scope-list],[data-service-check-kind]')) updateServiceOperationsControl(event.target); });
@@ -5740,7 +5817,7 @@ async function savePropertyReadiness(){
   const button = document.getElementById('savePropertyReadinessButton'); const previousProgress = cloneProgress(); const saved = normalizePropertyReadiness({...PROPERTY_READINESS_DRAFT,updatedAt:new Date().toISOString()});
   PROPERTY_READINESS_SAVING = true; button.disabled = true; setPropertyReadinessStatus('Saving...'); MEMBER_PROGRESS = {...MEMBER_PROGRESS,tools:{...(MEMBER_PROGRESS.tools && typeof MEMBER_PROGRESS.tools === 'object' ? MEMBER_PROGRESS.tools : {}),propertyReadiness:saved}};
   try { await saveMemberState(); PROPERTY_READINESS_DRAFT = getPropertyReadinessData(); setPropertyReadinessStatus('Saved · just now.','success'); analytics('property_readiness_saved'); }
-  catch (error) { MEMBER_PROGRESS = previousProgress; setPropertyReadinessStatus("Couldn't save - try again. Your entries are still here.",'error'); }
+  catch (error) { restoreToolProgress('propertyReadiness',previousProgress); setPropertyReadinessStatus("Couldn't save - try again. Your entries are still here.",'error'); }
   finally { PROPERTY_READINESS_SAVING = false; button.disabled = false; }
 }
 document.addEventListener('input', event => { if (event.target.matches('[data-property-readiness-field],[data-property-carrying-field],[data-property-buybox-field],[data-property-rehab-field],[data-property-capital-index]')) updatePropertyReadinessControl(event.target); });
@@ -6313,6 +6390,7 @@ function retryMemberLessons(){
 
 async function persistLessonResumePosition(module, lessonId){
   if (!canAccessMemberLessons() || !getProtectedLessonContent(module.n,lessonId)) return false;
+  const previousProgress = cloneProgress();
   const state = getMutableLessonProgress(module);
   if (state.currentLessonId === lessonId) return false;
   state.currentLessonId = lessonId;
@@ -6322,6 +6400,7 @@ async function persistLessonResumePosition(module, lessonId){
     renderHomeNextAction();
     return true;
   } catch (error) {
+    restoreLessonProgress(module.n,previousProgress);
     showToast(`Your place could not be saved. ${error.message}`);
     return false;
   }
@@ -6504,7 +6583,7 @@ async function completeActiveLesson(){
       showToast('Lesson complete. Progress saved.');
     }
   } catch (error) {
-    MEMBER_PROGRESS = previousProgress;
+    restoreLessonProgress(module.n,previousProgress,{includeCompletion:true});
     renderModules();
     renderHomeNextAction();
     renderModuleDetail();
