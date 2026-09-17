@@ -677,6 +677,109 @@ function subscriptionBillingFields(subscription) {
   };
 }
 
+function configuredMembershipPriceIds() {
+  return new Set([stripeFoundingPriceId, stripeRegularPriceId].filter(Boolean));
+}
+
+function isSurplusMembershipSubscription(subscription) {
+  const priceIds = configuredMembershipPriceIds();
+  if (!priceIds.size) {
+    throw new Error("Stripe membership price IDs are not configured");
+  }
+  return Boolean(subscription?.items?.data?.some((item) => priceIds.has(stripeObjectId(item?.price))));
+}
+
+// Surplus has one membership entitlement: valid access wins, then the newest Stripe-created subscription.
+function compareSubscriptionOwnership(first, second) {
+  const firstAccess = membershipAllowsAccess(first.status) ? 1 : 0;
+  const secondAccess = membershipAllowsAccess(second.status) ? 1 : 0;
+  if (firstAccess !== secondAccess) return secondAccess - firstAccess;
+  const createdDifference = Number(second.created || 0) - Number(first.created || 0);
+  if (createdDifference) return createdDifference;
+  return String(second.id || "").localeCompare(String(first.id || ""));
+}
+
+async function resolveSubscriptionOwnership(member, candidateSubscription) {
+  if (!candidateSubscription?.id || !isSurplusMembershipSubscription(candidateSubscription)) {
+    return { accepted: false, subscription: null };
+  }
+  const candidateCustomerId = stripeObjectId(candidateSubscription.customer);
+  if (!candidateCustomerId) throw new Error("Stripe subscription customer could not be verified");
+
+  const subscriptions = new Map([[candidateSubscription.id, candidateSubscription]]);
+  const customerIds = new Set([candidateCustomerId]);
+  if (member?.stripe_subscription_id && member.stripe_subscription_id !== candidateSubscription.id) {
+    const currentSubscription = await stripe.subscriptions.retrieve(member.stripe_subscription_id);
+    const currentCustomerId = stripeObjectId(currentSubscription.customer);
+    if (!currentCustomerId || (member.stripe_customer_id && currentCustomerId !== member.stripe_customer_id)) {
+      throw new Error("Stored Stripe subscription ownership could not be verified");
+    }
+    subscriptions.set(currentSubscription.id, currentSubscription);
+    customerIds.add(currentCustomerId);
+  } else if (member?.stripe_customer_id) {
+    customerIds.add(member.stripe_customer_id);
+  }
+
+  const subscriptionLists = await Promise.all([...customerIds].map((customerId) => (
+    stripe.subscriptions.list({ customer: customerId, status: "all", limit: 100 })
+  )));
+  subscriptionLists.forEach((list) => {
+    (list?.data || []).forEach((subscription) => subscriptions.set(subscription.id, subscription));
+  });
+
+  const eligible = [...subscriptions.values()]
+    .filter((subscription) => customerIds.has(stripeObjectId(subscription.customer)))
+    .filter(isSurplusMembershipSubscription)
+    .sort(compareSubscriptionOwnership);
+  const selected = eligible[0] || null;
+  return {
+    accepted: selected?.id === candidateSubscription.id,
+    subscription: selected
+  };
+}
+
+function memberStripeIdentityFilters(member) {
+  return {
+    id: `eq.${member.id}`,
+    stripe_customer_id: member.stripe_customer_id
+      ? `eq.${member.stripe_customer_id}`
+      : "is.null",
+    stripe_subscription_id: member.stripe_subscription_id
+      ? `eq.${member.stripe_subscription_id}`
+      : "is.null"
+  };
+}
+
+function subscriptionMemberPayload(subscription, member, extra = {}) {
+  const customerId = stripeObjectId(subscription.customer);
+  return {
+    stripe_customer_id: customerId,
+    stripe_subscription_id: subscription.id,
+    subscription_status: subscription.status,
+    ...subscriptionBillingFields(subscription),
+    current_period_end: subscription.items?.data?.[0]?.current_period_end
+      ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
+      : null,
+    discord_role_synced_at: member?.discord_user_id ? null : member?.discord_role_synced_at || null,
+    ...extra,
+    updated_at: new Date().toISOString()
+  };
+}
+
+async function applyVerifiedSubscription(member, candidateSubscription, extra = {}) {
+  let currentMember = member;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const ownership = await resolveSubscriptionOwnership(currentMember, candidateSubscription);
+    if (!ownership.accepted) return { accepted: false, member: currentMember };
+    const payload = subscriptionMemberPayload(candidateSubscription, currentMember, extra);
+    const updated = await supabasePatch("members", memberStripeIdentityFilters(currentMember), payload);
+    if (updated) return { accepted: true, member: updated };
+    currentMember = await findMemberByEmail(currentMember.email);
+    if (!currentMember) throw new Error("Member changed during Stripe ownership update");
+  }
+  throw new Error("Stripe membership ownership changed during processing");
+}
+
 async function findStripeInvoice(stripeInvoiceId) {
   if (!stripeInvoiceId) return null;
   const rows = await supabaseSelect("stripe_invoices", {
@@ -1671,31 +1774,70 @@ async function handleBillingPortal(req, res) {
 }
 
 async function syncCheckoutMember(session) {
-  const email = normalizeEmail(session.customer_details?.email || session.customer_email);
-  if (!email) return;
-  const existingMember = await findMemberByEmail(email);
-  const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
-  const subscriptionId = typeof session.subscription === "string" ? session.subscription : session.subscription?.id;
-  const subscription = subscriptionId ? await stripe.subscriptions.retrieve(subscriptionId) : null;
+  if (session.mode !== "subscription") return null;
+  const sessionEmail = normalizeEmail(session.customer_details?.email || session.customer_email);
+  const customerId = stripeObjectId(session.customer);
+  const subscriptionId = stripeObjectId(session.subscription);
+  if (!sessionEmail || !customerId || !subscriptionId) return null;
+  const [customer, subscription] = await Promise.all([
+    stripe.customers.retrieve(customerId),
+    stripe.subscriptions.retrieve(subscriptionId)
+  ]);
+  if (customer?.deleted || stripeObjectId(subscription.customer) !== customerId) {
+    throw new Error("Stripe checkout ownership could not be verified");
+  }
+  const customerEmail = normalizeEmail(customer.email);
+  if (customerEmail && customerEmail !== sessionEmail) {
+    throw new Error("Stripe checkout customer email did not match the completed session");
+  }
+  if (!isSurplusMembershipSubscription(subscription)) return null;
+
+  const [emailMember, customerMember, subscriptionMember] = await Promise.all([
+    findMemberByEmail(sessionEmail),
+    findMemberByCustomer(customerId),
+    findMemberBySubscription(subscriptionId)
+  ]);
+  const linkedMember = subscriptionMember || customerMember;
+  if (linkedMember && emailMember && linkedMember.id !== emailMember.id) {
+    throw new Error("Stripe checkout identifiers are already linked to another member");
+  }
+  if (linkedMember && normalizeEmail(linkedMember.email) !== sessionEmail) {
+    throw new Error("Stripe checkout cannot replace another member's billing identity");
+  }
+  const existingMember = linkedMember || emailMember;
+  const ownership = await resolveSubscriptionOwnership(existingMember, subscription);
+  if (!ownership.accepted) return existingMember;
+
   const name = normalizeText(session.customer_details?.name || session.metadata?.member_name || "Surplus Member", 100);
   const referralCode = normalizeCode(session.metadata?.referral_code);
   const referrer = !existingMember && referralCode ? await findMemberByReferralCode(referralCode) : null;
-  const member = await supabaseUpsert("members", {
-    email,
+  const memberFields = {
     name,
-    stripe_customer_id: customerId,
-    stripe_subscription_id: subscriptionId,
-    subscription_status: subscription?.status || "active",
-    founding_member: session.metadata?.founding_member === "true",
-    referred_by: existingMember?.referred_by || referrer?.referral_code || null,
-    ...subscriptionBillingFields(subscription),
-    current_period_end: subscription?.items?.data?.[0]?.current_period_end
-      ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
-      : null,
-    discord_role_synced_at: existingMember?.discord_user_id ? null : existingMember?.discord_role_synced_at,
-    updated_at: new Date().toISOString()
-  }, "email");
-  if (!existingMember && member && referrer && referrer.id !== member.id) {
+    founding_member: Boolean(existingMember?.founding_member) || session.metadata?.founding_member === "true",
+    referred_by: existingMember?.referred_by || referrer?.referral_code || null
+  };
+  let member = null;
+  let created = false;
+  if (existingMember) {
+    const result = await applyVerifiedSubscription(existingMember, subscription, memberFields);
+    if (!result.accepted) return result.member;
+    member = result.member;
+  } else {
+    try {
+      member = await supabaseInsert("members", {
+        email: sessionEmail,
+        ...subscriptionMemberPayload(subscription, null, memberFields)
+      });
+      created = true;
+    } catch (error) {
+      const racedMember = await findMemberByEmail(sessionEmail);
+      if (!racedMember) throw error;
+      const result = await applyVerifiedSubscription(racedMember, subscription, memberFields);
+      if (!result.accepted) return result.member;
+      member = result.member;
+    }
+  }
+  if (created && member && referrer && referrer.id !== member.id) {
     try {
       await supabaseInsert("referral_events", {
         referrer_member_id: referrer.id,
@@ -1727,24 +1869,17 @@ async function syncCheckoutMember(session) {
     logDiscordRoleFailure("checkout", member, error);
     throw error;
   }
+  return member;
 }
 
 async function syncSubscription(subscription) {
   const customerId = stripeObjectId(subscription.customer);
-  if (!customerId) return;
-  const member = await findMemberByCustomer(customerId);
-  if (!member) return;
-  const updated = await supabasePatch("members", { id: `eq.${member.id}` }, {
-    stripe_subscription_id: subscription.id,
-    subscription_status: subscription.status,
-    ...subscriptionBillingFields(subscription),
-    current_period_end: subscription.items?.data?.[0]?.current_period_end
-      ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
-      : null,
-    discord_role_synced_at: member.discord_user_id ? null : member.discord_role_synced_at,
-    updated_at: new Date().toISOString()
-  });
-  const currentMember = updated || { ...member, subscription_status: subscription.status };
+  if (!customerId || !subscription?.id || !isSurplusMembershipSubscription(subscription)) return null;
+  const member = (await findMemberBySubscription(subscription.id)) || await findMemberByCustomer(customerId);
+  if (!member) return null;
+  const result = await applyVerifiedSubscription(member, subscription);
+  if (!result.accepted) return null;
+  const currentMember = result.member;
   try {
     await syncDiscordRoles(currentMember);
   } catch (error) {
@@ -1763,17 +1898,22 @@ async function syncInvoiceSubscription(invoice, event) {
   const subscriptionId = invoiceSubscriptionId(invoice);
   const member = await resolveInvoiceMember(invoice);
   const persistedInvoice = await persistStripeInvoice(invoice, event, event.type, member);
+  let entitlementMember = null;
+  if (subscriptionId) {
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    entitlementMember = await syncSubscription(subscription);
+  }
 
   if (
     event.type === "invoice.paid" &&
-    member &&
+    entitlementMember &&
     subscriptionId &&
     Number(persistedInvoice?.amount_paid || 0) > 0 &&
-    !member.first_paid_at
+    !entitlementMember.first_paid_at
   ) {
     const firstPaidAt = persistedInvoice.paid_at || stripeTimestampToIso(event.created) || new Date().toISOString();
     const updatedMember = await supabasePatch("members", {
-      id: `eq.${member.id}`,
+      id: `eq.${entitlementMember.id}`,
       first_paid_at: "is.null"
     }, {
       first_paid_at: firstPaidAt,
@@ -1783,10 +1923,6 @@ async function syncInvoiceSubscription(invoice, event) {
       await recordSubscriptionLifecycle(event, "started", updatedMember, subscriptionId);
     }
   }
-
-  if (!subscriptionId) return;
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-  await syncSubscription(subscription);
 }
 
 async function handleStripeWebhook(req, res) {
@@ -1814,7 +1950,7 @@ async function handleStripeWebhook(req, res) {
     } else if (event.type === "customer.subscription.deleted") {
       const subscription = await retrieveCurrentSubscription(event.data.object);
       const member = await syncSubscription(subscription);
-      await recordSubscriptionLifecycle(event, "canceled", member, subscription.id);
+      if (member) await recordSubscriptionLifecycle(event, "canceled", member, subscription.id);
     } else if (
       event.type === "invoice.payment_failed" ||
       event.type === "invoice.paid"
