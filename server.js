@@ -82,6 +82,68 @@ function sendPrivateJson(res, status, payload) {
   res.end(JSON.stringify(payload));
 }
 
+function requestPathForLog(req) {
+  return String(req.url || "/")
+    .split("?")[0]
+    .slice(0, 300)
+    .replace(/[^\x20-\x7e]/g, "?");
+}
+
+function isApiRequest(req) {
+  const requestPath = String(req.url || "/").split("?")[0];
+  return requestPath === "/api" || requestPath.startsWith("/api/");
+}
+
+function sendBadRequest(req, res) {
+  if (isApiRequest(req)) {
+    sendJson(res, 400, { error: "bad_request" });
+    return;
+  }
+  res.writeHead(400, {
+    "Content-Type": "text/plain; charset=utf-8",
+    "X-Content-Type-Options": "nosniff"
+  });
+  res.end("Bad request");
+}
+
+function handleUnexpectedRequestError(req, res, error) {
+  try {
+    const category = String(error?.name || "Error").replace(/[^a-z0-9_.-]/gi, "").slice(0, 80) || "Error";
+    const stackFrames = String(error?.stack || "")
+      .split("\n")
+      .slice(1, 12)
+      .join("\n")
+      .slice(0, 4_000);
+    console.error("Unexpected request failure", {
+      method: String(req.method || "UNKNOWN").slice(0, 20),
+      path: requestPathForLog(req),
+      category,
+      stack: stackFrames ? `${category}\n${stackFrames}` : category
+    });
+
+    if (res.writableEnded || res.destroyed) return;
+    if (res.headersSent) {
+      res.destroy();
+      return;
+    }
+    if (isApiRequest(req)) {
+      sendJson(res, 500, { error: "internal_server_error" });
+      return;
+    }
+    res.writeHead(500, {
+      "Content-Type": "text/plain; charset=utf-8",
+      "X-Content-Type-Options": "nosniff"
+    });
+    res.end("Internal server error");
+  } catch (responseError) {
+    try {
+      if (!res.destroyed) res.destroy();
+    } catch (destroyError) {
+      // The request boundary must never raise a second process-level error.
+    }
+  }
+}
+
 function safePath(urlPath) {
   const decodedPath = decodeURIComponent(urlPath.split("?")[0]);
   const requested = decodedPath === "/" ? "/surplus.html" : decodedPath;
@@ -119,6 +181,12 @@ function readJsonBody(req, maxBytes = defaultJsonBodyLimitBytes) {
       }
     });
     req.on("error", reject);
+  });
+}
+
+function sendJsonBodyError(res, error) {
+  return sendJson(res, error?.statusCode === 413 ? 413 : 400, {
+    error: error?.statusCode === 413 ? "Request body is too large." : error.message
   });
 }
 
@@ -210,7 +278,12 @@ function parseCookies(req) {
     .split(";")
     .map((part) => part.trim().split("="))
     .reduce((cookies, [key, ...value]) => {
-      if (key) cookies[key] = decodeURIComponent(value.join("="));
+      if (!key) return cookies;
+      try {
+        cookies[key] = decodeURIComponent(value.join("="));
+      } catch (error) {
+        // Malformed cookie values are invalid credentials, not server failures.
+      }
       return cookies;
     }, {});
 }
@@ -982,7 +1055,7 @@ async function handleCreateCheckout(req, res) {
   try {
     body = await readJsonBody(req);
   } catch (error) {
-    return sendJson(res, 400, { error: error.message });
+    return sendJsonBodyError(res, error);
   }
 
   const email = normalizeEmail(body.email);
@@ -1032,7 +1105,7 @@ async function handleRequestLogin(req, res) {
   try {
     body = await readJsonBody(req);
   } catch (error) {
-    return sendJson(res, 400, { error: error.message });
+    return sendJsonBodyError(res, error);
   }
   const email = normalizeEmail(body.email);
   if (!isValidEmail(email)) return sendJson(res, 400, { error: "Enter a valid email address." });
@@ -1061,7 +1134,7 @@ async function handleVerifyCode(req, res) {
   try {
     body = await readJsonBody(req);
   } catch (error) {
-    return sendJson(res, 400, { error: error.message });
+    return sendJsonBodyError(res, error);
   }
   const email = normalizeEmail(body.email);
   const code = String(body.code || "").replace(/\D/g, "").slice(0, 6);
@@ -1718,7 +1791,7 @@ async function handleAnalytics(req, res) {
   try {
     body = await readJsonBody(req);
   } catch (error) {
-    return sendJson(res, 400, { error: error.message });
+    return sendJsonBodyError(res, error);
   }
   const eventName = normalizeCode(body.eventName, 60);
   if (!eventName) return sendJson(res, 400, { error: "Event name is required." });
@@ -1998,8 +2071,7 @@ async function handleWaitlist(req, res) {
   try {
     body = await readJsonBody(req);
   } catch (error) {
-    sendJson(res, 400, { error: error.message });
-    return;
+    return sendJsonBodyError(res, error);
   }
 
   if (normalizeText(body.company, 100)) {
@@ -2065,8 +2137,16 @@ async function handleWaitlist(req, res) {
   }
 }
 
-const server = http.createServer(async (req, res) => {
-  const requestPath = (req.url || "/").split("?")[0];
+async function handleRequest(req, res) {
+  let requestUrl;
+  try {
+    requestUrl = new URL(req.url || "/", "http://localhost");
+    decodeURIComponent(requestUrl.pathname);
+  } catch (error) {
+    sendBadRequest(req, res);
+    return;
+  }
+  const requestPath = requestUrl.pathname;
 
   if (requestPath === "/api/health") {
     sendJson(res, 200, {
@@ -2180,6 +2260,12 @@ const server = http.createServer(async (req, res) => {
     });
     res.end(data);
   });
+}
+
+const server = http.createServer((req, res) => {
+  Promise.resolve()
+    .then(() => handleRequest(req, res))
+    .catch((error) => handleUnexpectedRequestError(req, res, error));
 });
 
 server.listen(port, host, () => {
