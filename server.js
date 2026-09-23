@@ -663,23 +663,45 @@ function logDiscordRoleFailure(operation, member, error, discordUserId = error?.
   });
 }
 
-async function syncDiscordRoles(member) {
-  if (!member?.discord_user_id) return { skipped: true };
+async function syncDiscordRoles(memberId) {
+  if (!memberId) return { skipped: true };
   if (!discordConfigured()) throw new Error("Discord role sync is not configured");
-  const hasAccess = membershipAllowsAccess(member.subscription_status);
-  await setDiscordRole(member.discord_user_id, discordMemberRoleId, hasAccess);
-  if (discordFoundingRoleId) {
-    await setDiscordRole(
-      member.discord_user_id,
-      discordFoundingRoleId,
-      hasAccess && member.founding_member
-    );
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const member = await findMemberById(memberId);
+    if (!member) throw new Error("Member could not be found during Discord role sync");
+    if (!member.discord_user_id) return { skipped: true };
+
+    const discordUserId = member.discord_user_id;
+    const syncVersion = Number(member.subscription_sync_version || 0);
+    const hasAccess = membershipAllowsAccess(member.subscription_status);
+    await setDiscordRole(discordUserId, discordMemberRoleId, hasAccess);
+    if (discordFoundingRoleId) {
+      await setDiscordRole(
+        discordUserId,
+        discordFoundingRoleId,
+        hasAccess && member.founding_member
+      );
+    }
+
+    const updated = await supabasePatch("members", {
+      id: `eq.${member.id}`,
+      discord_user_id: `eq.${discordUserId}`,
+      subscription_sync_version: `eq.${syncVersion}`
+    }, {
+      discord_role_synced_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    });
+    if (updated) return { ok: true, member: updated };
+
+    const latestMember = await findMemberById(memberId);
+    if (!latestMember) throw new Error("Member could not be found during Discord role sync");
+    if (latestMember.discord_user_id !== discordUserId && hasAccess) {
+      await revokeDiscordRoles({ discord_user_id: discordUserId });
+    }
   }
-  await supabasePatch("members", { id: `eq.${member.id}` }, {
-    discord_role_synced_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  });
-  return { ok: true };
+
+  throw new Error("Discord entitlement changed during role sync");
 }
 
 async function countFoundingMembers() {
@@ -706,6 +728,16 @@ async function findMemberByCustomer(customerId) {
   const rows = await supabaseSelect("members", {
     select: "*",
     stripe_customer_id: `eq.${customerId}`,
+    limit: "1"
+  });
+  return rows[0] || null;
+}
+
+async function findMemberById(memberId) {
+  if (!memberId) return null;
+  const rows = await supabaseSelect("members", {
+    select: "*",
+    id: `eq.${memberId}`,
     limit: "1"
   });
   return rows[0] || null;
@@ -1666,7 +1698,7 @@ async function handleDiscordCallback(req, res) {
       discord_role_synced_at: null
     };
     try {
-      await syncDiscordRoles(connectedMember);
+      await syncDiscordRoles(connectedMember.id);
     } catch (error) {
       error.discordFlowCode = "role-sync-failed";
       error.discordUserId = discordUser.id;
@@ -1954,7 +1986,7 @@ async function syncCheckoutMember(session) {
     });
   }
   try {
-    await syncDiscordRoles(member);
+    await syncDiscordRoles(member.id);
   } catch (error) {
     logDiscordRoleFailure("checkout", member, error);
     throw error;
@@ -1971,7 +2003,7 @@ async function syncSubscription(subscription) {
   if (!result.accepted) return null;
   const currentMember = result.member;
   try {
-    await syncDiscordRoles(currentMember);
+    await syncDiscordRoles(currentMember.id);
   } catch (error) {
     logDiscordRoleFailure("subscription", currentMember, error);
     throw error;
