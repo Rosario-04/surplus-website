@@ -132,6 +132,39 @@ create index if not exists subscription_lifecycle_events_member_idx
 create index if not exists subscription_lifecycle_events_subscription_idx
   on public.subscription_lifecycle_events (stripe_subscription_id, occurred_at desc);
 
+create table if not exists public.discord_role_revocations (
+  member_id uuid not null references public.members(id) on delete cascade,
+  discord_user_id text not null,
+  created_at timestamptz not null default now(),
+  last_failed_at timestamptz,
+  primary key (member_id, discord_user_id)
+);
+
+create index if not exists discord_role_revocations_member_idx
+  on public.discord_role_revocations (member_id, created_at);
+
+create or replace function public.clear_discord_sync_marker_for_revocation()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.members
+  set discord_role_synced_at = null,
+      updated_at = now()
+  where id = new.member_id;
+  return new;
+end;
+$$;
+
+drop trigger if exists discord_role_revocations_clear_sync_marker
+  on public.discord_role_revocations;
+
+create trigger discord_role_revocations_clear_sync_marker
+after insert or update on public.discord_role_revocations
+for each row execute function public.clear_discord_sync_marker_for_revocation();
+
 alter table public.members enable row level security;
 alter table public.member_auth_tokens enable row level security;
 alter table public.member_sessions enable row level security;
@@ -139,3 +172,4 @@ alter table public.referral_events enable row level security;
 alter table public.analytics_events enable row level security;
 alter table public.stripe_invoices enable row level security;
 alter table public.subscription_lifecycle_events enable row level security;
+alter table public.discord_role_revocations enable row level security;
