@@ -381,6 +381,19 @@ async function supabaseDelete(table, filters) {
   }
 }
 
+async function supabaseRpc(functionName, payload) {
+  const response = await fetch(`${supabaseUrl}/rest/v1/rpc/${functionName}`, {
+    method: "POST",
+    headers: supabaseHeaders(),
+    body: JSON.stringify(payload)
+  });
+  const result = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(`Supabase ${functionName} RPC failed (${response.status})`);
+  }
+  return result;
+}
+
 async function saveToSupabase(entry) {
   const headers = {
     apikey: supabaseSecretKey,
@@ -665,7 +678,7 @@ function logDiscordRoleFailure(operation, member, error, discordUserId = error?.
 
 async function findPendingDiscordRoleRevocations(memberId) {
   return supabaseSelect("discord_role_revocations", {
-    select: "member_id,discord_user_id,created_at,last_failed_at",
+    select: "member_id,discord_user_id,obligation_token,created_at,last_failed_at",
     member_id: `eq.${memberId}`,
     order: "created_at.asc"
   });
@@ -675,25 +688,28 @@ async function queueDiscordRoleRevocation(memberId, discordUserId) {
   if (!memberId || !discordUserId) return null;
   return supabaseUpsert("discord_role_revocations", {
     member_id: memberId,
-    discord_user_id: discordUserId
+    discord_user_id: discordUserId,
+    obligation_token: crypto.randomUUID()
   }, "member_id,discord_user_id");
 }
 
-async function completeDiscordRoleRevocation(memberId, discordUserId) {
+async function completeDiscordRoleRevocation(pending) {
   await supabaseDelete("discord_role_revocations", {
-    member_id: `eq.${memberId}`,
-    discord_user_id: `eq.${discordUserId}`
+    member_id: `eq.${pending.member_id}`,
+    discord_user_id: `eq.${pending.discord_user_id}`,
+    obligation_token: `eq.${pending.obligation_token}`
   });
 }
 
-async function processPendingDiscordRoleRevocation(memberId, discordUserId) {
+async function processPendingDiscordRoleRevocation(pending) {
   try {
-    await revokeDiscordRoles({ discord_user_id: discordUserId });
-    await completeDiscordRoleRevocation(memberId, discordUserId);
+    await revokeDiscordRoles({ discord_user_id: pending.discord_user_id });
+    await completeDiscordRoleRevocation(pending);
   } catch (error) {
     await supabasePatch("discord_role_revocations", {
-      member_id: `eq.${memberId}`,
-      discord_user_id: `eq.${discordUserId}`
+      member_id: `eq.${pending.member_id}`,
+      discord_user_id: `eq.${pending.discord_user_id}`,
+      obligation_token: `eq.${pending.obligation_token}`
     }, {
       last_failed_at: new Date().toISOString()
     }).catch(() => {});
@@ -715,7 +731,7 @@ async function syncDiscordRoles(memberId) {
 
     for (const pending of pendingRevocations) {
       if (pending.discord_user_id !== discordUserId) {
-        await processPendingDiscordRoleRevocation(memberId, pending.discord_user_id);
+        await processPendingDiscordRoleRevocation(pending);
       }
     }
 
@@ -726,60 +742,45 @@ async function syncDiscordRoles(memberId) {
     }
 
     const hasAccess = membershipAllowsAccess(member.subscription_status);
-    await setDiscordRole(discordUserId, discordMemberRoleId, hasAccess);
-    if (discordFoundingRoleId) {
-      await setDiscordRole(
-        discordUserId,
-        discordFoundingRoleId,
-        hasAccess && member.founding_member
-      );
+    let roleActionError = null;
+    try {
+      await setDiscordRole(discordUserId, discordMemberRoleId, hasAccess);
+      if (discordFoundingRoleId) {
+        await setDiscordRole(
+          discordUserId,
+          discordFoundingRoleId,
+          hasAccess && member.founding_member
+        );
+      }
+    } catch (error) {
+      roleActionError = error;
     }
 
-    const currentIdentityWasPending = pendingRevocations.some(
+    const currentMember = await findMemberById(memberId);
+    if (!currentMember) throw new Error("Member could not be found during Discord role sync");
+    const currentIdentityChanged = currentMember.discord_user_id !== discordUserId;
+    const currentRevisionChanged = Number(currentMember.subscription_sync_version || 0) !== syncVersion;
+
+    if (currentIdentityChanged && hasAccess) {
+      const pending = await queueDiscordRoleRevocation(memberId, discordUserId);
+      await processPendingDiscordRoleRevocation(pending);
+    }
+    if (currentIdentityChanged || currentRevisionChanged) continue;
+    if (roleActionError) throw roleActionError;
+
+    const currentIdentityPending = pendingRevocations.find(
       (pending) => pending.discord_user_id === discordUserId
     );
-    if (currentIdentityWasPending) {
-      const currentMember = await findMemberById(memberId);
-      if (
-        currentMember?.discord_user_id !== discordUserId
-        || Number(currentMember.subscription_sync_version || 0) !== syncVersion
-      ) {
-        continue;
-      }
-      await completeDiscordRoleRevocation(memberId, discordUserId);
+    if (currentIdentityPending) {
+      await completeDiscordRoleRevocation(currentIdentityPending);
     }
 
-    const revocationsBeforeMarker = await findPendingDiscordRoleRevocations(memberId);
-    const obsoleteRevocations = revocationsBeforeMarker.filter(
-      (pending) => pending.discord_user_id !== discordUserId
-    );
-    if (obsoleteRevocations.length > 0) continue;
-
-    const updated = await supabasePatch("members", {
-      id: `eq.${member.id}`,
-      discord_user_id: `eq.${discordUserId}`,
-      subscription_sync_version: `eq.${syncVersion}`
-    }, {
-      discord_role_synced_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+    const finalized = await supabaseRpc("finalize_discord_role_sync", {
+      p_member_id: member.id,
+      p_expected_subscription_sync_version: syncVersion,
+      p_expected_discord_user_id: discordUserId
     });
-    if (updated) {
-      const remainingRevocations = await findPendingDiscordRoleRevocations(memberId);
-      if (remainingRevocations.length === 0) return { ok: true, member: updated };
-
-      await supabasePatch("members", { id: `eq.${member.id}` }, {
-        discord_role_synced_at: null,
-        updated_at: new Date().toISOString()
-      });
-      continue;
-    }
-
-    const latestMember = await findMemberById(memberId);
-    if (!latestMember) throw new Error("Member could not be found during Discord role sync");
-    if (latestMember.discord_user_id !== discordUserId && hasAccess) {
-      await queueDiscordRoleRevocation(memberId, discordUserId);
-      await processPendingDiscordRoleRevocation(memberId, discordUserId);
-    }
+    if (finalized === true) return { ok: true, member: currentMember };
   }
 
   throw new Error("Discord entitlement changed during role sync");

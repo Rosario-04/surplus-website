@@ -135,10 +135,22 @@ create index if not exists subscription_lifecycle_events_subscription_idx
 create table if not exists public.discord_role_revocations (
   member_id uuid not null references public.members(id) on delete cascade,
   discord_user_id text not null,
+  obligation_token uuid not null default gen_random_uuid(),
   created_at timestamptz not null default now(),
   last_failed_at timestamptz,
   primary key (member_id, discord_user_id)
 );
+
+alter table public.discord_role_revocations
+  add column if not exists obligation_token uuid;
+
+update public.discord_role_revocations
+set obligation_token = gen_random_uuid()
+where obligation_token is null;
+
+alter table public.discord_role_revocations
+  alter column obligation_token set default gen_random_uuid(),
+  alter column obligation_token set not null;
 
 create index if not exists discord_role_revocations_member_idx
   on public.discord_role_revocations (member_id, created_at);
@@ -150,6 +162,7 @@ security definer
 set search_path = public
 as $$
 begin
+  perform pg_advisory_xact_lock(hashtextextended(new.member_id::text, 0));
   update public.members
   set discord_role_synced_at = null,
       updated_at = now()
@@ -164,6 +177,42 @@ drop trigger if exists discord_role_revocations_clear_sync_marker
 create trigger discord_role_revocations_clear_sync_marker
 after insert or update on public.discord_role_revocations
 for each row execute function public.clear_discord_sync_marker_for_revocation();
+
+create or replace function public.finalize_discord_role_sync(
+  p_member_id uuid,
+  p_expected_subscription_sync_version bigint,
+  p_expected_discord_user_id text
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  updated_count integer;
+begin
+  perform pg_advisory_xact_lock(hashtextextended(p_member_id::text, 0));
+  update public.members as member
+  set discord_role_synced_at = now(),
+      updated_at = now()
+  where member.id = p_member_id
+    and member.subscription_sync_version = p_expected_subscription_sync_version
+    and member.discord_user_id is not distinct from p_expected_discord_user_id
+    and not exists (
+      select 1
+      from public.discord_role_revocations as revocation
+      where revocation.member_id = p_member_id
+    );
+
+  get diagnostics updated_count = row_count;
+  return updated_count = 1;
+end;
+$$;
+
+revoke all on function public.finalize_discord_role_sync(uuid, bigint, text) from public;
+revoke all on function public.finalize_discord_role_sync(uuid, bigint, text) from anon;
+revoke all on function public.finalize_discord_role_sync(uuid, bigint, text) from authenticated;
+grant execute on function public.finalize_discord_role_sync(uuid, bigint, text) to service_role;
 
 alter table public.members enable row level security;
 alter table public.member_auth_tokens enable row level security;
