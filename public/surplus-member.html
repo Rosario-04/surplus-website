@@ -4594,6 +4594,7 @@ async function initializeMemberAccess(){
     const discordResult = MEMBER_QUERY.get('discord');
     if (discordResult === 'connected') showToast('Discord connected. Your member role is active.');
     if (discordResult === 'failed') showToast('Discord could not be connected. Please try again.');
+    if (discordResult === 'busy') showToast('Discord access is already being updated. Please retry in a moment.');
     if (discordResult === 'replace-revocation-failed') showToast("We couldn't remove access from your previous Discord account. Your existing connection was kept.");
     if (discordResult === 'role-sync-failed') showToast("Your Discord account was connected, but we couldn't finish syncing access. Please retry.");
     if (discordResult === 'invalid') showToast('That Discord connection expired. Please try again.');

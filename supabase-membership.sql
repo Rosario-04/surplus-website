@@ -155,6 +155,115 @@ alter table public.discord_role_revocations
 create index if not exists discord_role_revocations_member_idx
   on public.discord_role_revocations (member_id, created_at);
 
+create table if not exists public.discord_sync_leases (
+  member_id uuid primary key references public.members(id) on delete cascade,
+  lease_token uuid not null,
+  lease_expires_at timestamptz not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create or replace function public.acquire_discord_sync_lease(
+  p_member_id uuid,
+  p_lease_token uuid,
+  p_lease_seconds integer
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  affected_count integer;
+  lease_duration interval := make_interval(secs => greatest(30, least(p_lease_seconds, 300)));
+begin
+  perform pg_advisory_xact_lock(hashtextextended(p_member_id::text, 0));
+
+  insert into public.discord_sync_leases as lease (
+    member_id,
+    lease_token,
+    lease_expires_at
+  ) values (
+    p_member_id,
+    p_lease_token,
+    now() + lease_duration
+  )
+  on conflict (member_id) do update
+  set lease_token = excluded.lease_token,
+      lease_expires_at = excluded.lease_expires_at,
+      updated_at = now()
+  where lease.lease_token = excluded.lease_token
+     or lease.lease_expires_at <= now();
+
+  get diagnostics affected_count = row_count;
+  return affected_count = 1;
+end;
+$$;
+
+create or replace function public.renew_discord_sync_lease(
+  p_member_id uuid,
+  p_lease_token uuid,
+  p_lease_seconds integer
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  affected_count integer;
+begin
+  perform pg_advisory_xact_lock(hashtextextended(p_member_id::text, 0));
+
+  update public.discord_sync_leases
+  set lease_expires_at = now() + make_interval(secs => greatest(30, least(p_lease_seconds, 300))),
+      updated_at = now()
+  where member_id = p_member_id
+    and lease_token = p_lease_token;
+
+  get diagnostics affected_count = row_count;
+  return affected_count = 1;
+end;
+$$;
+
+create or replace function public.release_discord_sync_lease(
+  p_member_id uuid,
+  p_lease_token uuid
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  affected_count integer;
+begin
+  perform pg_advisory_xact_lock(hashtextextended(p_member_id::text, 0));
+
+  delete from public.discord_sync_leases
+  where member_id = p_member_id
+    and lease_token = p_lease_token;
+
+  get diagnostics affected_count = row_count;
+  return affected_count = 1;
+end;
+$$;
+
+revoke all on function public.acquire_discord_sync_lease(uuid, uuid, integer) from public;
+revoke all on function public.acquire_discord_sync_lease(uuid, uuid, integer) from anon;
+revoke all on function public.acquire_discord_sync_lease(uuid, uuid, integer) from authenticated;
+grant execute on function public.acquire_discord_sync_lease(uuid, uuid, integer) to service_role;
+
+revoke all on function public.renew_discord_sync_lease(uuid, uuid, integer) from public;
+revoke all on function public.renew_discord_sync_lease(uuid, uuid, integer) from anon;
+revoke all on function public.renew_discord_sync_lease(uuid, uuid, integer) from authenticated;
+grant execute on function public.renew_discord_sync_lease(uuid, uuid, integer) to service_role;
+
+revoke all on function public.release_discord_sync_lease(uuid, uuid) from public;
+revoke all on function public.release_discord_sync_lease(uuid, uuid) from anon;
+revoke all on function public.release_discord_sync_lease(uuid, uuid) from authenticated;
+grant execute on function public.release_discord_sync_lease(uuid, uuid) to service_role;
+
 create or replace function public.clear_discord_sync_marker_for_revocation()
 returns trigger
 language plpgsql
@@ -222,3 +331,8 @@ alter table public.analytics_events enable row level security;
 alter table public.stripe_invoices enable row level security;
 alter table public.subscription_lifecycle_events enable row level security;
 alter table public.discord_role_revocations enable row level security;
+alter table public.discord_sync_leases enable row level security;
+
+revoke all on table public.discord_sync_leases from public;
+revoke all on table public.discord_sync_leases from anon;
+revoke all on table public.discord_sync_leases from authenticated;

@@ -37,6 +37,8 @@ const sessionCookieName = "surplus_session";
 const discordStateCookieName = "surplus_discord_state";
 const memberSessionDays = 30;
 const magicLinkMinutes = 20;
+const discordRequestTimeoutMs = 15_000;
+const discordSyncLeaseSeconds = 90;
 const rateLimitWindowMs = 15 * 60 * 1000;
 const rateLimitMax = 5;
 const defaultJsonBodyLimitBytes = 20_000;
@@ -612,35 +614,97 @@ function discordConfigured() {
 }
 
 async function discordRequest(endpoint, options = {}) {
-  const response = await fetch(`https://discord.com/api/v10${endpoint}`, {
-    method: options.method || "GET",
-    headers: {
-      Authorization: options.authorization || `Bot ${discordBotToken}`,
-      ...(options.body ? { "Content-Type": "application/json" } : {})
-    },
-    body: options.body ? JSON.stringify(options.body) : undefined
-  });
-  const rawBody = response.status === 204 ? "" : await response.text();
-  let result = null;
-  if (rawBody) {
-    try {
-      result = JSON.parse(rawBody);
-    } catch {
-      result = null;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), discordRequestTimeoutMs);
+  try {
+    const response = await fetch(`https://discord.com/api/v10${endpoint}`, {
+      method: options.method || "GET",
+      headers: {
+        Authorization: options.authorization || `Bot ${discordBotToken}`,
+        ...(options.body ? { "Content-Type": "application/json" } : {})
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined,
+      signal: controller.signal
+    });
+    const rawBody = response.status === 204 ? "" : await response.text();
+    let result = null;
+    if (rawBody) {
+      try {
+        result = JSON.parse(rawBody);
+      } catch {
+        result = null;
+      }
     }
-  }
-  if (!response.ok) {
-    const error = new Error(`Discord API request failed (${response.status})`);
-    error.name = "DiscordApiError";
-    error.status = response.status;
-    error.discordCode = result?.code ?? null;
+    if (!response.ok) {
+      const error = new Error(`Discord API request failed (${response.status})`);
+      error.name = "DiscordApiError";
+      error.status = response.status;
+      error.discordCode = result?.code ?? null;
+      throw error;
+    }
+    return result;
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      const timeoutError = new Error("Discord API request timed out");
+      timeoutError.name = "DiscordApiTimeoutError";
+      throw timeoutError;
+    }
     throw error;
+  } finally {
+    clearTimeout(timeout);
   }
-  return result;
 }
 
-async function setDiscordRole(discordUserId, roleId, enabled) {
+function discordSyncBusyError() {
+  const error = new Error("Discord access is already being updated. Please retry in a moment.");
+  error.name = "DiscordSyncLeaseBusyError";
+  error.code = "discord_sync_busy";
+  return error;
+}
+
+async function acquireDiscordSyncLease(memberId, leaseToken) {
+  return supabaseRpc("acquire_discord_sync_lease", {
+    p_member_id: memberId,
+    p_lease_token: leaseToken,
+    p_lease_seconds: discordSyncLeaseSeconds
+  });
+}
+
+async function renewDiscordSyncLease(memberId, leaseToken) {
+  const renewed = await supabaseRpc("renew_discord_sync_lease", {
+    p_member_id: memberId,
+    p_lease_token: leaseToken,
+    p_lease_seconds: discordSyncLeaseSeconds
+  });
+  if (renewed !== true) throw discordSyncBusyError();
+}
+
+async function releaseDiscordSyncLease(memberId, leaseToken) {
+  return supabaseRpc("release_discord_sync_lease", {
+    p_member_id: memberId,
+    p_lease_token: leaseToken
+  });
+}
+
+async function withDiscordSyncLease(memberId, operation) {
+  const leaseToken = crypto.randomUUID();
+  const acquired = await acquireDiscordSyncLease(memberId, leaseToken);
+  if (acquired !== true) throw discordSyncBusyError();
+  try {
+    return await operation(leaseToken);
+  } finally {
+    await releaseDiscordSyncLease(memberId, leaseToken).catch((error) => {
+      console.warn("Discord sync lease release failed", {
+        memberId,
+        message: error?.message || "Lease release failed"
+      });
+    });
+  }
+}
+
+async function setDiscordRole(memberId, leaseToken, discordUserId, roleId, enabled) {
   if (!discordUserId || !roleId) return { skipped: true };
+  await renewDiscordSyncLease(memberId, leaseToken);
   try {
     await discordRequest(
       `/guilds/${discordGuildId}/members/${discordUserId}/roles/${roleId}`,
@@ -655,12 +719,12 @@ async function setDiscordRole(discordUserId, roleId, enabled) {
   }
 }
 
-async function revokeDiscordRoles(member) {
+async function revokeDiscordRoles(member, leaseToken) {
   if (!member?.discord_user_id) return { skipped: true };
   if (!discordConfigured()) throw new Error("Discord role sync is not configured");
-  await setDiscordRole(member.discord_user_id, discordMemberRoleId, false);
+  await setDiscordRole(member.id, leaseToken, member.discord_user_id, discordMemberRoleId, false);
   if (discordFoundingRoleId) {
-    await setDiscordRole(member.discord_user_id, discordFoundingRoleId, false);
+    await setDiscordRole(member.id, leaseToken, member.discord_user_id, discordFoundingRoleId, false);
   }
   return { ok: true };
 }
@@ -701,9 +765,12 @@ async function completeDiscordRoleRevocation(pending) {
   });
 }
 
-async function processPendingDiscordRoleRevocation(pending) {
+async function processPendingDiscordRoleRevocation(pending, leaseToken) {
   try {
-    await revokeDiscordRoles({ discord_user_id: pending.discord_user_id });
+    await revokeDiscordRoles({
+      id: pending.member_id,
+      discord_user_id: pending.discord_user_id
+    }, leaseToken);
     await completeDiscordRoleRevocation(pending);
   } catch (error) {
     await supabasePatch("discord_role_revocations", {
@@ -717,7 +784,7 @@ async function processPendingDiscordRoleRevocation(pending) {
   }
 }
 
-async function syncDiscordRoles(memberId) {
+async function syncDiscordRolesWithLease(memberId, leaseToken) {
   if (!memberId) return { skipped: true };
   if (!discordConfigured()) throw new Error("Discord role sync is not configured");
 
@@ -731,7 +798,7 @@ async function syncDiscordRoles(memberId) {
 
     for (const pending of pendingRevocations) {
       if (pending.discord_user_id !== discordUserId) {
-        await processPendingDiscordRoleRevocation(pending);
+        await processPendingDiscordRoleRevocation(pending, leaseToken);
       }
     }
 
@@ -749,9 +816,11 @@ async function syncDiscordRoles(memberId) {
       : null;
     let roleActionError = null;
     try {
-      await setDiscordRole(discordUserId, discordMemberRoleId, hasAccess);
+      await setDiscordRole(memberId, leaseToken, discordUserId, discordMemberRoleId, hasAccess);
       if (discordFoundingRoleId) {
         await setDiscordRole(
+          memberId,
+          leaseToken,
           discordUserId,
           discordFoundingRoleId,
           hasAccess && member.founding_member
@@ -770,7 +839,7 @@ async function syncDiscordRoles(memberId) {
       // The pre-grant guard already records the acted-on identity. Requeue only
       // as defense in depth if a future non-guarded grant path reaches here.
       const pending = grantGuard || await queueDiscordRoleRevocation(memberId, discordUserId);
-      await processPendingDiscordRoleRevocation(pending);
+      await processPendingDiscordRoleRevocation(pending, leaseToken);
     }
     if (currentIdentityChanged || currentRevisionChanged) continue;
     if (roleActionError) throw roleActionError;
@@ -782,6 +851,7 @@ async function syncDiscordRoles(memberId) {
       await completeDiscordRoleRevocation(currentIdentityPending);
     }
 
+    await renewDiscordSyncLease(memberId, leaseToken);
     const finalized = await supabaseRpc("finalize_discord_role_sync", {
       p_member_id: member.id,
       p_expected_subscription_sync_version: syncVersion,
@@ -791,6 +861,13 @@ async function syncDiscordRoles(memberId) {
   }
 
   throw new Error("Discord entitlement changed during role sync");
+}
+
+async function syncDiscordRoles(memberId, leaseToken = null) {
+  if (leaseToken) return syncDiscordRolesWithLease(memberId, leaseToken);
+  return withDiscordSyncLease(memberId, (ownedLeaseToken) => (
+    syncDiscordRolesWithLease(memberId, ownedLeaseToken)
+  ));
 }
 
 async function countFoundingMembers() {
@@ -1764,40 +1841,48 @@ async function handleDiscordCallback(req, res) {
       method: "PUT",
       body: { access_token: token.access_token }
     });
-    if (member.discord_user_id && member.discord_user_id !== discordUser.id) {
+    await withDiscordSyncLease(member.id, async (leaseToken) => {
+      const currentMember = await findMemberById(member.id);
+      if (!currentMember || !membershipAllowsAccess(currentMember.subscription_status)) {
+        throw new Error("Member is no longer eligible for Discord access");
+      }
+      if (currentMember.discord_user_id && currentMember.discord_user_id !== discordUser.id) {
+        try {
+          await revokeDiscordRoles(currentMember, leaseToken);
+        } catch (error) {
+          error.discordFlowCode = "replace-revocation-failed";
+          error.discordUserId = currentMember.discord_user_id;
+          throw error;
+        }
+      }
+      const updated = await supabasePatch("members", { id: `eq.${currentMember.id}` }, {
+        discord_user_id: discordUser.id,
+        discord_username: discordUser.global_name || discordUser.username,
+        discord_connected_at: new Date().toISOString(),
+        discord_role_synced_at: null,
+        updated_at: new Date().toISOString()
+      });
+      const connectedMember = updated || {
+        ...currentMember,
+        discord_user_id: discordUser.id,
+        discord_username: discordUser.global_name || discordUser.username,
+        discord_role_synced_at: null
+      };
       try {
-        await revokeDiscordRoles(member);
+        await syncDiscordRoles(connectedMember.id, leaseToken);
       } catch (error) {
-        error.discordFlowCode = "replace-revocation-failed";
-        error.discordUserId = member.discord_user_id;
+        if (error?.code !== "discord_sync_busy") {
+          error.discordFlowCode = "role-sync-failed";
+        }
+        error.discordUserId = discordUser.id;
         throw error;
       }
-    }
-    const updated = await supabasePatch("members", { id: `eq.${member.id}` }, {
-      discord_user_id: discordUser.id,
-      discord_username: discordUser.global_name || discordUser.username,
-      discord_connected_at: new Date().toISOString(),
-      discord_role_synced_at: null,
-      updated_at: new Date().toISOString()
     });
-    const connectedMember = updated || {
-      ...member,
-      discord_user_id: discordUser.id,
-      discord_username: discordUser.global_name || discordUser.username,
-      discord_role_synced_at: null
-    };
-    try {
-      await syncDiscordRoles(connectedMember.id);
-    } catch (error) {
-      error.discordFlowCode = "role-sync-failed";
-      error.discordUserId = discordUser.id;
-      throw error;
-    }
     res.writeHead(302, { Location: "/surplus-member.html?discord=connected#community" });
     res.end();
   } catch (error) {
     logDiscordRoleFailure("connect", member, error);
-    const result = error.discordFlowCode || "failed";
+    const result = error?.code === "discord_sync_busy" ? "busy" : error.discordFlowCode || "failed";
     res.writeHead(302, { Location: `/surplus-member.html?discord=${result}#community` });
     res.end();
   }
@@ -1808,13 +1893,17 @@ async function handleDiscordDisconnect(req, res) {
   const member = await getAuthenticatedMember(req);
   if (!member) return sendJson(res, 401, { error: "Sign in to manage Discord." });
   try {
-    await revokeDiscordRoles(member);
-    await supabasePatch("members", { id: `eq.${member.id}` }, {
-      discord_user_id: null,
-      discord_username: null,
-      discord_connected_at: null,
-      discord_role_synced_at: null,
-      updated_at: new Date().toISOString()
+    await withDiscordSyncLease(member.id, async (leaseToken) => {
+      const currentMember = await findMemberById(member.id);
+      if (!currentMember) throw new Error("Member could not be found during Discord disconnect");
+      await revokeDiscordRoles(currentMember, leaseToken);
+      await supabasePatch("members", { id: `eq.${currentMember.id}` }, {
+        discord_user_id: null,
+        discord_username: null,
+        discord_connected_at: null,
+        discord_role_synced_at: null,
+        updated_at: new Date().toISOString()
+      });
     });
     sendJson(res, 200, { ok: true });
   } catch (error) {
@@ -1823,6 +1912,9 @@ async function handleDiscordDisconnect(req, res) {
       discord_role_synced_at: null,
       updated_at: new Date().toISOString()
     }).catch(() => {});
+    if (error?.code === "discord_sync_busy") {
+      return sendJson(res, 409, { error: error.message });
+    }
     sendJson(res, 500, { error: "We couldn't fully disconnect Discord yet. Please try again." });
   }
 }
