@@ -742,6 +742,11 @@ async function syncDiscordRoles(memberId) {
     }
 
     const hasAccess = membershipAllowsAccess(member.subscription_status);
+    // Persist a conservative cleanup path before any operation can grant access.
+    // A later successful verification resolves this exact token generation.
+    const grantGuard = hasAccess
+      ? await queueDiscordRoleRevocation(memberId, discordUserId)
+      : null;
     let roleActionError = null;
     try {
       await setDiscordRole(discordUserId, discordMemberRoleId, hasAccess);
@@ -762,13 +767,15 @@ async function syncDiscordRoles(memberId) {
     const currentRevisionChanged = Number(currentMember.subscription_sync_version || 0) !== syncVersion;
 
     if (currentIdentityChanged && hasAccess) {
-      const pending = await queueDiscordRoleRevocation(memberId, discordUserId);
+      // The pre-grant guard already records the acted-on identity. Requeue only
+      // as defense in depth if a future non-guarded grant path reaches here.
+      const pending = grantGuard || await queueDiscordRoleRevocation(memberId, discordUserId);
       await processPendingDiscordRoleRevocation(pending);
     }
     if (currentIdentityChanged || currentRevisionChanged) continue;
     if (roleActionError) throw roleActionError;
 
-    const currentIdentityPending = pendingRevocations.find(
+    const currentIdentityPending = grantGuard || pendingRevocations.find(
       (pending) => pending.discord_user_id === discordUserId
     );
     if (currentIdentityPending) {
