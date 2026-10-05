@@ -303,10 +303,15 @@ create trigger discord_role_revocations_clear_sync_marker
 after insert or update on public.discord_role_revocations
 for each row execute function public.clear_discord_sync_marker_for_revocation();
 
+begin;
+
+drop function if exists public.finalize_discord_role_sync(uuid, bigint, text);
+
 create or replace function public.finalize_discord_role_sync(
   p_member_id uuid,
   p_expected_subscription_sync_version bigint,
-  p_expected_discord_user_id text
+  p_expected_discord_user_id text,
+  p_expected_lease_token uuid
 )
 returns boolean
 language plpgsql
@@ -327,6 +332,13 @@ begin
       select 1
       from public.discord_role_revocations as revocation
       where revocation.member_id = p_member_id
+    )
+    and exists (
+      select 1
+      from public.discord_sync_leases as lease
+      where lease.member_id = p_member_id
+        and lease.lease_token = p_expected_lease_token
+        and lease.lease_expires_at > clock_timestamp()
     );
 
   get diagnostics updated_count = row_count;
@@ -334,10 +346,12 @@ begin
 end;
 $$;
 
-revoke all on function public.finalize_discord_role_sync(uuid, bigint, text) from public;
-revoke all on function public.finalize_discord_role_sync(uuid, bigint, text) from anon;
-revoke all on function public.finalize_discord_role_sync(uuid, bigint, text) from authenticated;
-grant execute on function public.finalize_discord_role_sync(uuid, bigint, text) to service_role;
+revoke all on function public.finalize_discord_role_sync(uuid, bigint, text, uuid) from public;
+revoke all on function public.finalize_discord_role_sync(uuid, bigint, text, uuid) from anon;
+revoke all on function public.finalize_discord_role_sync(uuid, bigint, text, uuid) from authenticated;
+grant execute on function public.finalize_discord_role_sync(uuid, bigint, text, uuid) to service_role;
+
+commit;
 
 alter table public.members enable row level security;
 alter table public.member_auth_tokens enable row level security;

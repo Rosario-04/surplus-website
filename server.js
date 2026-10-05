@@ -923,7 +923,8 @@ async function syncDiscordRolesWithLease(memberId, leaseContext) {
     const finalized = await supabaseRpc("finalize_discord_role_sync", {
       p_member_id: member.id,
       p_expected_subscription_sync_version: syncVersion,
-      p_expected_discord_user_id: discordUserId
+      p_expected_discord_user_id: discordUserId,
+      p_expected_lease_token: leaseContext.leaseToken
     });
     if (finalized === true) return { ok: true, member: currentMember };
   }
