@@ -163,21 +163,25 @@ create table if not exists public.discord_sync_leases (
   updated_at timestamptz not null default now()
 );
 
-create or replace function public.acquire_discord_sync_lease(
+drop function if exists public.acquire_discord_sync_lease(uuid, uuid, integer);
+
+create function public.acquire_discord_sync_lease(
   p_member_id uuid,
   p_lease_token uuid,
   p_lease_seconds integer
 )
-returns boolean
+returns jsonb
 language plpgsql
 security definer
 set search_path = public
 as $$
 declare
-  affected_count integer;
   lease_duration interval := make_interval(secs => greatest(30, least(p_lease_seconds, 300)));
+  lease_expires_at_result timestamptz;
+  server_now_result timestamptz;
 begin
   perform pg_advisory_xact_lock(hashtextextended(p_member_id::text, 0));
+  server_now_result := clock_timestamp();
 
   insert into public.discord_sync_leases as lease (
     member_id,
@@ -186,43 +190,55 @@ begin
   ) values (
     p_member_id,
     p_lease_token,
-    now() + lease_duration
+    server_now_result + lease_duration
   )
   on conflict (member_id) do update
   set lease_token = excluded.lease_token,
       lease_expires_at = excluded.lease_expires_at,
-      updated_at = now()
+      updated_at = server_now_result
   where lease.lease_token = excluded.lease_token
-     or lease.lease_expires_at <= now();
+     or lease.lease_expires_at <= server_now_result
+  returning lease_expires_at into lease_expires_at_result;
 
-  get diagnostics affected_count = row_count;
-  return affected_count = 1;
+  return jsonb_build_object(
+    'ok', lease_expires_at_result is not null,
+    'lease_expires_at', lease_expires_at_result,
+    'server_now', server_now_result
+  );
 end;
 $$;
 
-create or replace function public.renew_discord_sync_lease(
+drop function if exists public.renew_discord_sync_lease(uuid, uuid, integer);
+
+create function public.renew_discord_sync_lease(
   p_member_id uuid,
   p_lease_token uuid,
   p_lease_seconds integer
 )
-returns boolean
+returns jsonb
 language plpgsql
 security definer
 set search_path = public
 as $$
 declare
-  affected_count integer;
+  lease_expires_at_result timestamptz;
+  server_now_result timestamptz;
 begin
   perform pg_advisory_xact_lock(hashtextextended(p_member_id::text, 0));
+  server_now_result := clock_timestamp();
 
   update public.discord_sync_leases
-  set lease_expires_at = now() + make_interval(secs => greatest(30, least(p_lease_seconds, 300))),
-      updated_at = now()
+  set lease_expires_at = server_now_result + make_interval(secs => greatest(30, least(p_lease_seconds, 300))),
+      updated_at = server_now_result
   where member_id = p_member_id
-    and lease_token = p_lease_token;
+    and lease_token = p_lease_token
+  returning lease_expires_at into lease_expires_at_result;
 
-  get diagnostics affected_count = row_count;
-  return affected_count = 1;
+  return jsonb_build_object(
+    'ok', lease_expires_at_result is not null,
+    'lease_expires_at', lease_expires_at_result,
+    'server_now', server_now_result
+  );
 end;
 $$;
 

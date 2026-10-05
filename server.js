@@ -39,6 +39,10 @@ const memberSessionDays = 30;
 const magicLinkMinutes = 20;
 const discordRequestTimeoutMs = 15_000;
 const discordSyncLeaseSeconds = 90;
+const discordLeaseRpcTimeoutMs = 7_500;
+const discordLeaseDeadlineSafetyMs = 1_000;
+const discordMutationLeaseBufferMs = 10_000;
+const discordMutationMinimumLeaseMs = discordRequestTimeoutMs + discordMutationLeaseBufferMs;
 const rateLimitWindowMs = 15 * 60 * 1000;
 const rateLimitMax = 5;
 const defaultJsonBodyLimitBytes = 20_000;
@@ -383,17 +387,33 @@ async function supabaseDelete(table, filters) {
   }
 }
 
-async function supabaseRpc(functionName, payload) {
-  const response = await fetch(`${supabaseUrl}/rest/v1/rpc/${functionName}`, {
-    method: "POST",
-    headers: supabaseHeaders(),
-    body: JSON.stringify(payload)
-  });
-  const result = await response.json().catch(() => null);
-  if (!response.ok) {
-    throw new Error(`Supabase ${functionName} RPC failed (${response.status})`);
+async function supabaseRpc(functionName, payload, options = {}) {
+  const controller = options.timeoutMs ? new AbortController() : null;
+  const timeout = controller
+    ? setTimeout(() => controller.abort(), options.timeoutMs)
+    : null;
+  try {
+    const response = await fetch(`${supabaseUrl}/rest/v1/rpc/${functionName}`, {
+      method: "POST",
+      headers: supabaseHeaders(),
+      body: JSON.stringify(payload),
+      signal: controller?.signal
+    });
+    const result = await response.json().catch(() => null);
+    if (!response.ok) {
+      throw new Error(`Supabase ${functionName} RPC failed (${response.status})`);
+    }
+    return result;
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      const timeoutError = new Error(`Supabase ${functionName} RPC timed out`);
+      timeoutError.name = "SupabaseRpcTimeoutError";
+      throw timeoutError;
+    }
+    throw error;
+  } finally {
+    if (timeout) clearTimeout(timeout);
   }
-  return result;
 }
 
 async function saveToSupabase(entry) {
@@ -662,38 +682,77 @@ function discordSyncBusyError() {
   return error;
 }
 
-async function acquireDiscordSyncLease(memberId, leaseToken) {
-  return supabaseRpc("acquire_discord_sync_lease", {
-    p_member_id: memberId,
-    p_lease_token: leaseToken,
-    p_lease_seconds: discordSyncLeaseSeconds
-  });
+async function discordLeaseRpc(functionName, payload) {
+  try {
+    return await supabaseRpc(functionName, payload, { timeoutMs: discordLeaseRpcTimeoutMs });
+  } catch (error) {
+    const busyError = discordSyncBusyError();
+    busyError.cause = error;
+    throw busyError;
+  }
 }
 
-async function renewDiscordSyncLease(memberId, leaseToken) {
-  const renewed = await supabaseRpc("renew_discord_sync_lease", {
-    p_member_id: memberId,
-    p_lease_token: leaseToken,
-    p_lease_seconds: discordSyncLeaseSeconds
-  });
-  if (renewed !== true) throw discordSyncBusyError();
+function applyDiscordLeaseTiming(leaseContext, result, rpcStartedAt, rpcReturnedAt) {
+  const serverNow = Date.parse(result?.server_now || "");
+  const leaseExpiresAt = Date.parse(result?.lease_expires_at || "");
+  if (
+    result?.ok !== true ||
+    !Number.isFinite(serverNow) ||
+    !Number.isFinite(leaseExpiresAt) ||
+    leaseExpiresAt <= serverNow
+  ) {
+    throw discordSyncBusyError();
+  }
+
+  const roundTripMs = Math.max(0, rpcReturnedAt - rpcStartedAt);
+  const remainingAtServerMs = leaseExpiresAt - serverNow;
+  // Treat the full RPC round trip as response age so delayed success fails closed.
+  const conservativeRemainingMs = Math.max(
+    0,
+    remainingAtServerMs - roundTripMs - discordLeaseDeadlineSafetyMs
+  );
+  leaseContext.deadlineMonotonic = rpcReturnedAt + conservativeRemainingMs;
+  if (conservativeRemainingMs <= 0) throw discordSyncBusyError();
+  return leaseContext;
 }
 
-async function releaseDiscordSyncLease(memberId, leaseToken) {
-  return supabaseRpc("release_discord_sync_lease", {
-    p_member_id: memberId,
-    p_lease_token: leaseToken
+async function refreshDiscordSyncLease(leaseContext, functionName) {
+  const rpcStartedAt = performance.now();
+  const result = await discordLeaseRpc(functionName, {
+    p_member_id: leaseContext.memberId,
+    p_lease_token: leaseContext.leaseToken,
+    p_lease_seconds: discordSyncLeaseSeconds
+  });
+  const rpcReturnedAt = performance.now();
+  return applyDiscordLeaseTiming(leaseContext, result, rpcStartedAt, rpcReturnedAt);
+}
+
+async function acquireDiscordSyncLease(leaseContext) {
+  return refreshDiscordSyncLease(leaseContext, "acquire_discord_sync_lease");
+}
+
+async function renewDiscordSyncLease(leaseContext) {
+  return refreshDiscordSyncLease(leaseContext, "renew_discord_sync_lease");
+}
+
+async function releaseDiscordSyncLease(leaseContext) {
+  return discordLeaseRpc("release_discord_sync_lease", {
+    p_member_id: leaseContext.memberId,
+    p_lease_token: leaseContext.leaseToken
   });
 }
 
 async function withDiscordSyncLease(memberId, operation) {
-  const leaseToken = crypto.randomUUID();
-  const acquired = await acquireDiscordSyncLease(memberId, leaseToken);
-  if (acquired !== true) throw discordSyncBusyError();
+  const leaseContext = {
+    memberId,
+    leaseToken: crypto.randomUUID(),
+    deadlineMonotonic: 0
+  };
+  await acquireDiscordSyncLease(leaseContext);
   try {
-    return await operation(leaseToken);
+    return await operation(leaseContext);
   } finally {
-    await releaseDiscordSyncLease(memberId, leaseToken).catch((error) => {
+    await releaseDiscordSyncLease(leaseContext).catch((error) => {
       console.warn("Discord sync lease release failed", {
         memberId,
         message: error?.message || "Lease release failed"
@@ -702,9 +761,18 @@ async function withDiscordSyncLease(memberId, operation) {
   }
 }
 
-async function setDiscordRole(memberId, leaseToken, discordUserId, roleId, enabled) {
+async function ensureDiscordLeaseForMutation(leaseContext) {
+  if (leaseContext.deadlineMonotonic - performance.now() < discordMutationMinimumLeaseMs) {
+    await renewDiscordSyncLease(leaseContext);
+  }
+  if (leaseContext.deadlineMonotonic - performance.now() < discordMutationMinimumLeaseMs) {
+    throw discordSyncBusyError();
+  }
+}
+
+async function setDiscordRole(leaseContext, discordUserId, roleId, enabled) {
   if (!discordUserId || !roleId) return { skipped: true };
-  await renewDiscordSyncLease(memberId, leaseToken);
+  await ensureDiscordLeaseForMutation(leaseContext);
   try {
     await discordRequest(
       `/guilds/${discordGuildId}/members/${discordUserId}/roles/${roleId}`,
@@ -719,12 +787,12 @@ async function setDiscordRole(memberId, leaseToken, discordUserId, roleId, enabl
   }
 }
 
-async function revokeDiscordRoles(member, leaseToken) {
+async function revokeDiscordRoles(member, leaseContext) {
   if (!member?.discord_user_id) return { skipped: true };
   if (!discordConfigured()) throw new Error("Discord role sync is not configured");
-  await setDiscordRole(member.id, leaseToken, member.discord_user_id, discordMemberRoleId, false);
+  await setDiscordRole(leaseContext, member.discord_user_id, discordMemberRoleId, false);
   if (discordFoundingRoleId) {
-    await setDiscordRole(member.id, leaseToken, member.discord_user_id, discordFoundingRoleId, false);
+    await setDiscordRole(leaseContext, member.discord_user_id, discordFoundingRoleId, false);
   }
   return { ok: true };
 }
@@ -765,12 +833,12 @@ async function completeDiscordRoleRevocation(pending) {
   });
 }
 
-async function processPendingDiscordRoleRevocation(pending, leaseToken) {
+async function processPendingDiscordRoleRevocation(pending, leaseContext) {
   try {
     await revokeDiscordRoles({
       id: pending.member_id,
       discord_user_id: pending.discord_user_id
-    }, leaseToken);
+    }, leaseContext);
     await completeDiscordRoleRevocation(pending);
   } catch (error) {
     await supabasePatch("discord_role_revocations", {
@@ -784,7 +852,7 @@ async function processPendingDiscordRoleRevocation(pending, leaseToken) {
   }
 }
 
-async function syncDiscordRolesWithLease(memberId, leaseToken) {
+async function syncDiscordRolesWithLease(memberId, leaseContext) {
   if (!memberId) return { skipped: true };
   if (!discordConfigured()) throw new Error("Discord role sync is not configured");
 
@@ -798,7 +866,7 @@ async function syncDiscordRolesWithLease(memberId, leaseToken) {
 
     for (const pending of pendingRevocations) {
       if (pending.discord_user_id !== discordUserId) {
-        await processPendingDiscordRoleRevocation(pending, leaseToken);
+        await processPendingDiscordRoleRevocation(pending, leaseContext);
       }
     }
 
@@ -811,16 +879,16 @@ async function syncDiscordRolesWithLease(memberId, leaseToken) {
     const hasAccess = membershipAllowsAccess(member.subscription_status);
     // Persist a conservative cleanup path before any operation can grant access.
     // A later successful verification resolves this exact token generation.
+    if (hasAccess) await ensureDiscordLeaseForMutation(leaseContext);
     const grantGuard = hasAccess
       ? await queueDiscordRoleRevocation(memberId, discordUserId)
       : null;
     let roleActionError = null;
     try {
-      await setDiscordRole(memberId, leaseToken, discordUserId, discordMemberRoleId, hasAccess);
+      await setDiscordRole(leaseContext, discordUserId, discordMemberRoleId, hasAccess);
       if (discordFoundingRoleId) {
         await setDiscordRole(
-          memberId,
-          leaseToken,
+          leaseContext,
           discordUserId,
           discordFoundingRoleId,
           hasAccess && member.founding_member
@@ -839,7 +907,7 @@ async function syncDiscordRolesWithLease(memberId, leaseToken) {
       // The pre-grant guard already records the acted-on identity. Requeue only
       // as defense in depth if a future non-guarded grant path reaches here.
       const pending = grantGuard || await queueDiscordRoleRevocation(memberId, discordUserId);
-      await processPendingDiscordRoleRevocation(pending, leaseToken);
+      await processPendingDiscordRoleRevocation(pending, leaseContext);
     }
     if (currentIdentityChanged || currentRevisionChanged) continue;
     if (roleActionError) throw roleActionError;
@@ -851,7 +919,7 @@ async function syncDiscordRolesWithLease(memberId, leaseToken) {
       await completeDiscordRoleRevocation(currentIdentityPending);
     }
 
-    await renewDiscordSyncLease(memberId, leaseToken);
+    await ensureDiscordLeaseForMutation(leaseContext);
     const finalized = await supabaseRpc("finalize_discord_role_sync", {
       p_member_id: member.id,
       p_expected_subscription_sync_version: syncVersion,
@@ -863,10 +931,10 @@ async function syncDiscordRolesWithLease(memberId, leaseToken) {
   throw new Error("Discord entitlement changed during role sync");
 }
 
-async function syncDiscordRoles(memberId, leaseToken = null) {
-  if (leaseToken) return syncDiscordRolesWithLease(memberId, leaseToken);
-  return withDiscordSyncLease(memberId, (ownedLeaseToken) => (
-    syncDiscordRolesWithLease(memberId, ownedLeaseToken)
+async function syncDiscordRoles(memberId, leaseContext = null) {
+  if (leaseContext) return syncDiscordRolesWithLease(memberId, leaseContext);
+  return withDiscordSyncLease(memberId, (ownedLeaseContext) => (
+    syncDiscordRolesWithLease(memberId, ownedLeaseContext)
   ));
 }
 
@@ -1841,14 +1909,14 @@ async function handleDiscordCallback(req, res) {
       method: "PUT",
       body: { access_token: token.access_token }
     });
-    await withDiscordSyncLease(member.id, async (leaseToken) => {
+    await withDiscordSyncLease(member.id, async (leaseContext) => {
       const currentMember = await findMemberById(member.id);
       if (!currentMember || !membershipAllowsAccess(currentMember.subscription_status)) {
         throw new Error("Member is no longer eligible for Discord access");
       }
       if (currentMember.discord_user_id && currentMember.discord_user_id !== discordUser.id) {
         try {
-          await revokeDiscordRoles(currentMember, leaseToken);
+          await revokeDiscordRoles(currentMember, leaseContext);
         } catch (error) {
           error.discordFlowCode = "replace-revocation-failed";
           error.discordUserId = currentMember.discord_user_id;
@@ -1869,7 +1937,7 @@ async function handleDiscordCallback(req, res) {
         discord_role_synced_at: null
       };
       try {
-        await syncDiscordRoles(connectedMember.id, leaseToken);
+        await syncDiscordRoles(connectedMember.id, leaseContext);
       } catch (error) {
         if (error?.code !== "discord_sync_busy") {
           error.discordFlowCode = "role-sync-failed";
@@ -1893,10 +1961,10 @@ async function handleDiscordDisconnect(req, res) {
   const member = await getAuthenticatedMember(req);
   if (!member) return sendJson(res, 401, { error: "Sign in to manage Discord." });
   try {
-    await withDiscordSyncLease(member.id, async (leaseToken) => {
+    await withDiscordSyncLease(member.id, async (leaseContext) => {
       const currentMember = await findMemberById(member.id);
       if (!currentMember) throw new Error("Member could not be found during Discord disconnect");
-      await revokeDiscordRoles(currentMember, leaseToken);
+      await revokeDiscordRoles(currentMember, leaseContext);
       await supabasePatch("members", { id: `eq.${currentMember.id}` }, {
         discord_user_id: null,
         discord_username: null,
