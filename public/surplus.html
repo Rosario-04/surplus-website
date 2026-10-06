@@ -1618,6 +1618,21 @@
     line-height:1.55;
   }
   .pricing-microcopy strong{color:var(--ink);font-weight:700}
+  .beta-facts{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;
+    margin:0 0 24px;
+  }
+  .beta-fact{
+    min-width:0;
+    padding:14px;
+    border:1px solid var(--line);
+    border-radius:14px;
+    background:rgba(255,255,255,.025);
+  }
+  .beta-fact strong{display:block;color:var(--ink);font-family:var(--serif);font-size:18px;font-weight:500;margin-bottom:3px}
+  .beta-fact span{display:block;color:var(--ink-dim);font-size:12px;line-height:1.4}
   .included{list-style:none;display:grid;gap:13px}
   .included li{display:flex;gap:12px;align-items:start;color:var(--ink-dim);font-size:15px}
   .included li::before{
@@ -1937,6 +1952,7 @@
     .sheets-stack{min-height:360px}
     .sheet-card{width:96%;padding:18px}
     .pricing-card,.signup-card{padding:26px}
+    .beta-facts{grid-template-columns:1fr}
     .price{font-size:64px}
     .included li{align-items:flex-start}
     .cta-strip{padding:20px}
@@ -2001,7 +2017,7 @@
         <p class="lede">Surplus is the roadmap for people ready to stop surviving, start building income, and create a life with more options.</p>
         <p class="lede" style="font-size:17px;margin-top:-18px">No hype. No fake guru promises. Just practical lessons, real assignments, and a community built to help you turn skills into income and income into freedom.</p>
         <div class="btn-row">
-          <a class="btn btn-primary" href="#pricing" data-checkout>Start Building Today <span aria-hidden="true">&rarr;</span></a>
+          <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the Waitlist <span aria-hidden="true">&rarr;</span></a>
           <a class="btn btn-ghost" href="#build" data-scroll="#build">See What's Inside</a>
         </div>
         <div class="hero-meta" aria-label="Membership highlights">
@@ -2174,9 +2190,9 @@
           <div class="cta-strip">
             <div>
               <strong>Nobody is coming to save you. Let's build.</strong>
-              <p>Start where you are, lock in the founding rate, and get a practical first step instead of more random advice.</p>
+              <p>Start where you are and join the waitlist for future invitation updates.</p>
             </div>
-            <a class="btn btn-primary" href="#pricing" data-scroll="#pricing">Join the Founding 100 <span aria-hidden="true">&rarr;</span></a>
+            <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the Waitlist <span aria-hidden="true">&rarr;</span></a>
           </div>
         </div>
       </div>
@@ -2185,30 +2201,34 @@
 
   <section id="pricing">
     <div class="wrap">
-      <div class="section-eyebrow">Founding Offer</div>
-      <h2 class="section-title">Start here if you want the best rate and the clearest next step.</h2>
-      <p class="section-lede">This is the offer for early builders who want to stop waiting and start moving with structure.</p>
+      <div class="section-eyebrow">Surplus Founding Beta</div>
+      <h2 class="section-title">Ten builders. One practical system.</h2>
+      <p class="section-lede">A small, invitation-only early-access group for people ready to build better money, income, and operating habits with direct support.</p>
       <div class="pricing-card">
         <div>
-          <div class="price-note">Founding Member</div>
-          <div class="price">$30 <span>/ month for life</span></div>
-          <div class="price-anchor">First 100 members only</div>
+          <div class="price-note">Founding Beta</div>
+          <div class="price">$30 <span>/ month</span></div>
+          <div class="price-anchor">10 invitation-based memberships</div>
           <div class="pricing-microcopy">
-            <div><strong>When the first 100 spots are gone, membership increases to $50/month.</strong></div>
-            <div>Lock in your rate forever.</div>
+            <div><strong>Founding pricing remains $30/month while the original subscription stays active.</strong></div>
+            <div>Public visitors join the waitlist. Paid access is available only through a private invitation.</div>
+          </div>
+          <div class="beta-facts" aria-label="Founding Beta details">
+            <div class="beta-fact"><strong>10</strong><span>total paid memberships</span></div>
+            <div class="beta-fact"><strong>$30</strong><span>monthly founding pricing</span></div>
+            <div class="beta-fact"><strong>Invite only</strong><span>private checkout access</span></div>
           </div>
           <p class="price-close">Direct, practical, and built for people who want to improve financially but do not know where to start.</p>
-          <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the Founding 100 <span aria-hidden="true">&rarr;</span></a>
-          <p class="form-note">Cancel anytime. Founding members keep the $30 rate for life.</p>
+          <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the Waitlist <span aria-hidden="true">&rarr;</span></a>
+          <p class="form-note">Joining the waitlist does not reserve or guarantee one of the 10 paid memberships.</p>
         </div>
         <ul class="included">
-          <li>Step-by-step roadmap from financial chaos to real structure</li>
-          <li>Discord community access and accountability</li>
-          <li>Budget system, money audit, and templates</li>
-          <li>Income-building lessons and practical assignments</li>
-          <li>AI prompts and workflows you can actually use</li>
-          <li>Founding member badge for the first 100 builders</li>
-          <li>Affiliate link: earn one free month for every member you refer</li>
+          <li>Six guided learning modules with concrete assignments</li>
+          <li>Practical planning tools for money, income, AI, services, and property readiness</li>
+          <li>Daily actions and weekly accountability that turn lessons into progress</li>
+          <li>Discord community access for questions, support, and shared wins</li>
+          <li>A member dashboard that keeps your tools, goals, and course progress together</li>
+          <li>Early access with direct feedback shaping the Surplus experience</li>
         </ul>
       </div>
     </div>
@@ -2268,7 +2288,7 @@
           <strong>One week from now, you should feel different.</strong>
           <p>That is the point of Surplus: clear sequence, practical action, and a place to build when life already feels full.</p>
         </div>
-        <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the Founding 100 <span aria-hidden="true">&rarr;</span></a>
+        <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the Waitlist <span aria-hidden="true">&rarr;</span></a>
       </div>
     </div>
   </section>
@@ -2288,9 +2308,9 @@
       <div class="cta-strip">
         <div>
           <strong>If the order feels clear, the next move should be too.</strong>
-          <p>Join the founding group and work through the framework with actual accountability instead of trying to piece it together alone.</p>
+          <p>Join the waitlist to hear when invitation-based Founding Beta access becomes available.</p>
         </div>
-        <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the Founding 100 <span aria-hidden="true">&rarr;</span></a>
+        <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the Waitlist <span aria-hidden="true">&rarr;</span></a>
       </div>
     </div>
   </section>
@@ -2328,7 +2348,7 @@
         </article>
       </div>
       <div class="btn-row" style="margin-top:30px">
-        <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the Founding 100 <span aria-hidden="true">&rarr;</span></a>
+        <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the Waitlist <span aria-hidden="true">&rarr;</span></a>
       </div>
     </div>
   </section>
@@ -2389,7 +2409,7 @@
           <strong>People do not need more motivation. They need proof and a plan.</strong>
           <p>Surplus works best when visitors can see exactly what they are getting and how fast they can start.</p>
         </div>
-        <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the Founding 100 <span aria-hidden="true">&rarr;</span></a>
+        <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the Waitlist <span aria-hidden="true">&rarr;</span></a>
       </div>
     </div>
   </section>
@@ -2443,7 +2463,7 @@
           <li>Future live calls and workshops.</li>
         </ul>
         <div class="btn-row" style="margin-top:24px">
-          <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the Founding 100 <span aria-hidden="true">&rarr;</span></a>
+          <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the Waitlist <span aria-hidden="true">&rarr;</span></a>
         </div>
       </div>
     </div>
@@ -2663,7 +2683,7 @@
           <div class="compare-col">
             <h3>Surplus by Rosario</h3>
             <ul class="compare-list">
-              <li>First 100 members lock in $30/month for life with no price increases.</li>
+              <li>Ten invited Founding Beta members receive $30/month pricing while the original subscription stays active.</li>
               <li>Real-time lessons from someone still building the climb.</li>
               <li>Budget sheets, AI prompts, income plays, and weekly actions.</li>
               <li>Discord community for questions, accountability, and networking.</li>
@@ -2723,20 +2743,18 @@
   <section id="signup">
     <div class="wrap signup-grid">
       <div>
-        <div class="section-eyebrow">Founding Waitlist</div>
-        <h2 class="section-title">Claim a shot at the founding rate before the first 100 spots are gone.</h2>
-        <p class="section-lede">Founding Member. $30/month for life. First 100 members only. After that, membership becomes $50/month.</p>
+        <div class="section-eyebrow">Founding Beta Waitlist</div>
+        <h2 class="section-title">Join the waitlist for future invitation updates.</h2>
+        <p class="section-lede">Surplus is preparing 10 invitation-based Founding Beta memberships at $30/month. Joining the waitlist does not reserve or guarantee a paid spot.</p>
       </div>
       <form class="signup-card" id="signupForm">
         <ul class="waitlist-perks" aria-label="Waitlist benefits">
-          <li>Founding Member: $30/month for life.</li>
-          <li>First 100 members only.</li>
-          <li>When the first 100 spots are gone, membership increases to $50/month.</li>
-          <li>Lock in your rate forever.</li>
-          <li>Founding member badge included in your profile.</li>
-          <li>Affiliate link included: earn one free month for every new member you refer.</li>
-          <li>Early access to modules, Discord, templates, tools, and AI prompts.</li>
-          <li>No charge today. This only captures your interest.</li>
+          <li>10 paid Founding Beta memberships in total.</li>
+          <li>$30/month while the original founding subscription stays active.</li>
+          <li>Invitations are sent separately and include private checkout access.</li>
+          <li>Six modules, practical tools, accountability, and Discord community access.</li>
+          <li>No charge today. This only adds you to the public waitlist.</li>
+          <li>The waitlist does not reserve a membership or guarantee an invitation.</li>
         </ul>
         <label for="name">Name</label>
         <input id="name" name="name" autocomplete="name" required placeholder="Your name" />
@@ -2752,7 +2770,7 @@
           <input id="marketingConsent" name="marketingConsent" type="checkbox" required />
           <span>I agree to receive Surplus waitlist and launch emails. I can unsubscribe anytime. See the <a href="/privacy.html">Privacy Policy</a>.</span>
         </label>
-        <button class="btn btn-primary" type="submit" style="width:100%">Become a Builder <span aria-hidden="true">&rarr;</span></button>
+        <button class="btn btn-primary" type="submit" style="width:100%">Join the Waitlist <span aria-hidden="true">&rarr;</span></button>
         <p class="form-note">No charge today. We will only email you about Surplus access and launch updates.</p>
         <div class="success" id="formSuccess" role="status" aria-live="polite"></div>
       </form>
@@ -2796,8 +2814,8 @@
     <div class="wrap">
       <h2>Nobody is coming to save you.<br><em>Let's build.</em></h2>
       <p>If you want a better financial future, the first move is not waiting for perfect timing. It is joining, starting, and stacking wins.</p>
-      <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the Founding 100 <span aria-hidden="true">&rarr;</span></a>
-      <p style="font-size:15px;margin:22px auto 0">Lock in the $30 founding rate before membership moves to $50/month.</p>
+      <a class="btn btn-primary" href="#signup" data-scroll="#signup">Join the Waitlist <span aria-hidden="true">&rarr;</span></a>
+      <p style="font-size:15px;margin:22px auto 0">Waitlist signup is free and does not reserve one of the 10 invitation-based memberships.</p>
     </div>
   </section>
 </main>
@@ -3012,31 +3030,6 @@
     });
   });
 
-  document.querySelectorAll("[data-checkout]").forEach((item) => {
-    item.addEventListener("click", async (event) => {
-      event.preventDefault();
-      if (item.dataset.loading === "true") return;
-      item.dataset.loading = "true";
-      const original = item.innerHTML;
-      item.textContent = "Opening secure checkout...";
-      try {
-        const response = await fetch("/api/checkout", {
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({referralCode})
-        });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || "Checkout is unavailable.");
-        trackEvent("checkout_started",{referral:referralCode ? "present" : "none"});
-        window.location.href = result.url;
-      } catch (error) {
-        showToast(error.message);
-        item.innerHTML = original;
-        item.dataset.loading = "false";
-      }
-    });
-  });
-
   document.querySelectorAll(".faq-button").forEach((button) => {
     button.addEventListener("click", () => {
       button.closest(".faq-item").classList.toggle("is-open");
@@ -3140,7 +3133,7 @@
     }
     form.classList.add("is-submitting");
     submitButton.disabled = true;
-    submitButton.textContent = "Saving your spot...";
+      submitButton.textContent = "Joining waitlist...";
     success.classList.remove("is-visible");
 
     try {
@@ -3153,8 +3146,8 @@
       if (!response.ok) throw new Error(result.error || "Unable to join the waitlist.");
 
       success.textContent = result.duplicate
-        ? "You are already on the Surplus waitlist. Your founding-member interest is saved."
-        : `You're in${result.position ? ` at waitlist spot #${result.position}` : ""}. Watch your inbox for the Surplus launch.`;
+        ? "You are already on the Surplus waitlist. Your interest is saved."
+        : `You're on the waitlist${result.position ? ` at waitlist position #${result.position}` : ""}. Watch your inbox for Surplus updates.`;
       success.classList.add("is-visible");
       if (!result.duplicate) form.reset();
       trackEvent("waitlist_submitted",{duplicate:Boolean(result.duplicate),source:"homepage"});
@@ -3165,7 +3158,7 @@
     } finally {
       form.classList.remove("is-submitting");
       submitButton.disabled = false;
-      submitButton.innerHTML = 'Become a Builder <span aria-hidden="true">&rarr;</span>';
+      submitButton.innerHTML = 'Join the Waitlist <span aria-hidden="true">&rarr;</span>';
     }
   });
   trackEvent("page_view");

@@ -583,8 +583,8 @@ async function sendWaitlistEmail(entry, position) {
         ${positionLine}
         <p>You will be among the first to hear when Surplus opens. Expect practical updates on building income, controlling your money, using AI well, and turning consistent work into more options.</p>
         <div class="offer">
-          <strong>Founding offer</strong>
-          <p>The first 100 people who complete a paid membership will lock in $30/month for life and receive a founding member badge.</p>
+          <strong>Surplus Founding Beta</strong>
+          <p>Surplus is preparing 10 invitation-based Founding Beta memberships at $30/month. Joining the waitlist does not reserve or guarantee a paid spot. Invitations will be sent separately.</p>
         </div>
         <a href="${siteUrl}" class="button">Visit Live in Surplus</a>
         <p class="footnote">You received this because you joined the Surplus waitlist at ${siteUrl}.</p>
