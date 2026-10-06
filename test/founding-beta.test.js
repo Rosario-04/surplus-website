@@ -166,6 +166,21 @@ test("Invalid invitation and mismatched invited email fail closed", async () => 
   assert.equal(harness.createCalls, 0);
 });
 
+test("Founding checkout uses one $30 monthly price with no trial or discounts", async () => {
+  const harness = createCheckoutHarness([{ token: "checkout-configuration-token-01", email: "checkout@example.com" }]);
+  await checkout({ email: "checkout@example.com", invitationToken: "checkout-configuration-token-01" }, harness);
+
+  const session = [...harness.sessions.values()].find((item) => item.params)?.params;
+  assert.ok(session);
+  assert.equal(session.mode, "subscription");
+  assert.deepEqual(session.line_items, [{ price: "price_founding_test", quantity: 1 }]);
+  assert.equal(session.customer_email, "checkout@example.com");
+  assert.equal("allow_promotion_codes" in session, false);
+  assert.equal("discounts" in session, false);
+  assert.equal("trial_period_days" in (session.subscription_data || {}), false);
+  assert.equal("trial_end" in (session.subscription_data || {}), false);
+});
+
 test("Twenty simultaneous requests create one Stripe Checkout Session", async () => {
   const harness = createCheckoutHarness([{ token: "parallel-invitation-token-01", email: "parallel@example.com" }]);
   const results = await Promise.allSettled(Array.from({ length: 20 }, () => (

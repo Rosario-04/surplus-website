@@ -7,7 +7,9 @@
   },
   "scripts": {
     "dev": "node server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "beta:staging:verify": "node scripts/founding-beta-staging.js verify",
+    "beta:staging:invite": "node scripts/founding-beta-staging.js invite"
   },
   "dependencies": {
     "stripe": "^22.2.0"
