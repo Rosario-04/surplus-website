@@ -21,6 +21,10 @@ const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
 const stripeFoundingPriceId = process.env.STRIPE_FOUNDING_PRICE_ID || "";
 const stripeRegularPriceId = process.env.STRIPE_REGULAR_PRICE_ID || "";
 const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
+const foundingBetaCheckoutEnabled = process.env.FOUNDING_BETA_CHECKOUT_ENABLED === "true";
+const foundingBetaReservationSeconds = 120;
+const foundingBetaExpectedAmount = 3000;
+const foundingBetaExpectedCurrency = "usd";
 const discordClientId = process.env.DISCORD_CLIENT_ID || "";
 const discordClientSecret = process.env.DISCORD_CLIENT_SECRET || "";
 const discordBotToken = process.env.DISCORD_BOT_TOKEN || "";
@@ -48,6 +52,7 @@ const rateLimitMax = 5;
 const defaultJsonBodyLimitBytes = 20_000;
 const memberStateBodyLimitBytes = 512 * 1024;
 const signupAttempts = new Map();
+let foundingPriceValidationPromise = null;
 const PROTECTED_MEMBER_TOOLS = new Map([
   ["moneyPlanner", "Money System Planner"],
   ["foundationPlan", "Foundation Plan"],
@@ -939,14 +944,169 @@ async function syncDiscordRoles(memberId, leaseContext = null) {
   ));
 }
 
-async function countFoundingMembers() {
-  const rows = await supabaseSelect("members", {
-    select: "id",
-    founding_member: "eq.true",
-    subscription_status: "in.(active,trialing)",
-    limit: "100"
+class FoundingBetaCheckoutError extends Error {
+  constructor(statusCode, code, message) {
+    super(message);
+    this.name = "FoundingBetaCheckoutError";
+    this.statusCode = statusCode;
+    this.code = code;
+  }
+}
+
+function hashFoundingInvitationToken(token) {
+  return crypto.createHash("sha256").update(String(token || ""), "utf8").digest("hex");
+}
+
+function foundingBetaMetadata(object) {
+  const metadata = object?.metadata || {};
+  const spotNumber = Number(metadata.founding_beta_spot_number);
+  const checkoutAttemptId = normalizeText(metadata.founding_beta_checkout_attempt_id, 80);
+  return {
+    spotNumber: Number.isInteger(spotNumber) && spotNumber >= 1 && spotNumber <= 10 ? spotNumber : null,
+    checkoutAttemptId: /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(checkoutAttemptId) ? checkoutAttemptId : null
+  };
+}
+
+function validateFoundingPriceConfiguration(price) {
+  if (!price || price.id !== stripeFoundingPriceId) return false;
+  return price.active === true &&
+    price.type === "recurring" &&
+    price.currency === foundingBetaExpectedCurrency &&
+    price.unit_amount === foundingBetaExpectedAmount &&
+    price.recurring?.interval === "month" &&
+    Number(price.recurring?.interval_count || 1) === 1;
+}
+
+async function ensureFoundingPriceConfiguration(stripeClient = stripe) {
+  if (!stripeClient || !stripeFoundingPriceId) {
+    throw new FoundingBetaCheckoutError(503, "checkout_not_configured", "Founding Beta checkout is not configured.");
+  }
+  if (!foundingPriceValidationPromise) {
+    foundingPriceValidationPromise = stripeClient.prices.retrieve(stripeFoundingPriceId)
+      .then((price) => {
+        if (!validateFoundingPriceConfiguration(price)) {
+          throw new Error("Founding Beta price must be an active USD $30 monthly recurring price");
+        }
+        return price;
+      })
+      .catch((error) => {
+        foundingPriceValidationPromise = null;
+        throw error;
+      });
+  }
+  return foundingPriceValidationPromise;
+}
+
+function foundingReservationError(status) {
+  if (status === "busy") {
+    return new FoundingBetaCheckoutError(409, "checkout_busy", "Checkout is already being prepared. Please try again shortly.");
+  }
+  if (status === "expired") {
+    return new FoundingBetaCheckoutError(410, "invitation_expired", "This Founding Beta invitation has expired.");
+  }
+  if (status === "revoked") {
+    return new FoundingBetaCheckoutError(403, "invitation_revoked", "This Founding Beta invitation is no longer active.");
+  }
+  if (status === "email_mismatch") {
+    return new FoundingBetaCheckoutError(403, "invitation_email_mismatch", "Use the email address that received this invitation.");
+  }
+  if (status === "consumed") {
+    return new FoundingBetaCheckoutError(409, "invitation_consumed", "This Founding Beta membership has already been claimed.");
+  }
+  if (status === "exhausted") {
+    return new FoundingBetaCheckoutError(409, "founding_beta_full", "All Founding Beta memberships have been claimed.");
+  }
+  return new FoundingBetaCheckoutError(403, "invalid_invitation", "A valid Founding Beta invitation is required.");
+}
+
+function foundingCheckoutSessionParams(email, spotNumber, checkoutAttemptId) {
+  const metadata = {
+    founding_beta_spot_number: String(spotNumber),
+    founding_beta_checkout_attempt_id: checkoutAttemptId
+  };
+  return {
+    mode: "subscription",
+    customer_email: email,
+    client_reference_id: `founding-beta-${spotNumber}`,
+    line_items: [{ price: stripeFoundingPriceId, quantity: 1 }],
+    success_url: `${siteUrl}/checkout-success.html?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${siteUrl}/surplus.html#pricing`,
+    billing_address_collection: "auto",
+    metadata,
+    subscription_data: { metadata }
+  };
+}
+
+async function createFoundingBetaCheckout(body, dependencies = {}) {
+  const stripeClient = dependencies.stripeClient || stripe;
+  const rpc = dependencies.rpc || supabaseRpc;
+  const validatePrice = dependencies.validatePrice || (() => ensureFoundingPriceConfiguration(stripeClient));
+  const email = normalizeEmail(body.email);
+  const invitationToken = String(body.invitationToken || "").trim();
+  if (!isValidEmail(email)) {
+    throw new FoundingBetaCheckoutError(400, "invalid_email", "Please enter a valid email address.");
+  }
+  if (invitationToken.length < 16 || invitationToken.length > 512) {
+    throw foundingReservationError("invalid");
+  }
+
+  await validatePrice();
+  const reservationToken = crypto.randomUUID();
+  const reservation = await rpc("reserve_founding_beta_checkout", {
+    p_invited_email: email,
+    p_invitation_token_hash: hashFoundingInvitationToken(invitationToken),
+    p_reservation_token: reservationToken,
+    p_reservation_seconds: foundingBetaReservationSeconds
   });
-  return rows.length;
+  if (!reservation?.ok) throw foundingReservationError(reservation?.status);
+
+  const spotNumber = Number(reservation.spot_number);
+  let checkoutAttemptId = reservation.checkout_attempt_id;
+  let sessionId = reservation.stripe_checkout_session_id || null;
+  try {
+    if (sessionId) {
+      const currentSession = await stripeClient.checkout.sessions.retrieve(sessionId);
+      if (currentSession.status === "open" && currentSession.url) {
+        return { url: currentSession.url, reused: true };
+      }
+      if (currentSession.status === "complete") {
+        throw new FoundingBetaCheckoutError(409, "checkout_completed", "This invitation already has a completed checkout awaiting payment confirmation.");
+      }
+      if (currentSession.status !== "expired") {
+        throw new FoundingBetaCheckoutError(409, "checkout_unavailable", "This checkout is still being reconciled. Please try again shortly.");
+      }
+      const rotated = await rpc("rotate_founding_beta_checkout_attempt", {
+        p_spot_number: spotNumber,
+        p_reservation_token: reservationToken,
+        p_expected_stripe_checkout_session_id: sessionId
+      });
+      if (!rotated?.ok || !rotated.checkout_attempt_id) {
+        throw new FoundingBetaCheckoutError(409, "checkout_busy", "Checkout changed while it was being prepared. Please try again.");
+      }
+      checkoutAttemptId = rotated.checkout_attempt_id;
+      sessionId = null;
+    }
+
+    const params = foundingCheckoutSessionParams(email, spotNumber, checkoutAttemptId);
+    const idempotencyKey = `surplus-founding-beta-v1-${spotNumber}-${checkoutAttemptId}`;
+    const session = await stripeClient.checkout.sessions.create(params, { idempotencyKey });
+    const attached = await rpc("attach_founding_beta_checkout", {
+      p_spot_number: spotNumber,
+      p_reservation_token: reservationToken,
+      p_checkout_attempt_id: checkoutAttemptId,
+      p_stripe_checkout_session_id: session.id,
+      p_checkout_session_expires_at: stripeTimestampToIso(session.expires_at)
+    });
+    if (attached !== true) {
+      throw new FoundingBetaCheckoutError(409, "checkout_retry", "Checkout was created but is still being reconciled. Please try again to continue safely.");
+    }
+    return { url: session.url, reused: false };
+  } finally {
+    await rpc("release_founding_beta_checkout_reservation", {
+      p_spot_number: spotNumber,
+      p_reservation_token: reservationToken
+    }).catch(() => {});
+  }
 }
 
 async function findMemberByEmail(email) {
@@ -1001,6 +1161,108 @@ function stripeTimestampToIso(timestamp) {
 function invoiceSubscriptionId(invoice) {
   return stripeObjectId(invoice.subscription) ||
     stripeObjectId(invoice.parent?.subscription_details?.subscription);
+}
+
+function stripeInvoiceLinePriceId(line) {
+  return stripeObjectId(line?.price) || line?.pricing?.price_details?.price || null;
+}
+
+async function findFoundingBetaSpot(spotNumber) {
+  if (!Number.isInteger(Number(spotNumber))) return null;
+  const rows = await supabaseSelect("founding_beta_spots", {
+    select: "*",
+    spot_number: `eq.${Number(spotNumber)}`,
+    limit: "1"
+  });
+  return rows[0] || null;
+}
+
+function foundingInvoiceQualifies(invoice, subscription) {
+  if (!invoice || !subscription) return false;
+  const subscriptionPrice = subscription?.items?.data?.find(
+    (item) => stripeObjectId(item?.price) === stripeFoundingPriceId
+  )?.price;
+  const hasExpectedInvoiceLine = Boolean(invoice?.lines?.data?.some(
+    (line) => stripeInvoiceLinePriceId(line) === stripeFoundingPriceId
+  ));
+  return invoice.status === "paid" &&
+    invoice.billing_reason === "subscription_create" &&
+    invoice.currency === foundingBetaExpectedCurrency &&
+    Number(invoice.amount_paid) >= foundingBetaExpectedAmount &&
+    invoiceSubscriptionId(invoice) === subscription.id &&
+    stripeObjectId(invoice.customer) === stripeObjectId(subscription.customer) &&
+    stripeObjectId(subscription.latest_invoice) === invoice.id &&
+    subscriptionPrice?.active === true &&
+    subscriptionPrice?.currency === foundingBetaExpectedCurrency &&
+    subscriptionPrice?.unit_amount === foundingBetaExpectedAmount &&
+    subscriptionPrice?.recurring?.interval === "month" &&
+    Number(subscriptionPrice?.recurring?.interval_count || 1) === 1 &&
+    hasExpectedInvoiceLine;
+}
+
+async function verifyFoundingCheckoutSession(session, email) {
+  const metadata = foundingBetaMetadata(session);
+  if (!metadata.spotNumber && !metadata.checkoutAttemptId) return null;
+  if (!metadata.spotNumber || !metadata.checkoutAttemptId) {
+    throw new Error("Founding Beta checkout metadata is incomplete");
+  }
+  const spot = await findFoundingBetaSpot(metadata.spotNumber);
+  if (!spot ||
+      spot.checkout_attempt_id !== metadata.checkoutAttemptId ||
+      spot.stripe_checkout_session_id !== session.id ||
+      normalizeEmail(spot.invited_email) !== normalizeEmail(email)) {
+    throw new Error("Founding Beta checkout could not be matched to its invitation");
+  }
+  return spot;
+}
+
+async function claimFoundingBetaPayment(invoice, subscription, member, dependencies = {}) {
+  const rpc = dependencies.rpc || supabaseRpc;
+  const findSpot = dependencies.findSpot || findFoundingBetaSpot;
+  const findMember = dependencies.findMember || findMemberById;
+  const metadata = foundingBetaMetadata(subscription);
+  if (!metadata.spotNumber && !metadata.checkoutAttemptId) return { applicable: false, claimed: false };
+  if (!metadata.spotNumber || !metadata.checkoutAttemptId || !member) {
+    return { applicable: true, claimed: false, deferred: true };
+  }
+  if (!foundingInvoiceQualifies(invoice, subscription)) {
+    return { applicable: true, claimed: false, deferred: false };
+  }
+
+  const spot = await findSpot(metadata.spotNumber);
+  const customerId = stripeObjectId(subscription.customer);
+  if (!spot ||
+      spot.checkout_attempt_id !== metadata.checkoutAttemptId ||
+      !spot.stripe_checkout_session_id ||
+      normalizeEmail(spot.invited_email) !== normalizeEmail(member.email) ||
+      member.stripe_customer_id !== customerId ||
+      member.stripe_subscription_id !== subscription.id) {
+    throw new Error("Founding Beta payment ownership could not be verified");
+  }
+
+  const paidAt = stripeTimestampToIso(invoice.status_transitions?.paid_at) || new Date().toISOString();
+  const claimed = await rpc("claim_founding_beta_spot", {
+    p_spot_number: metadata.spotNumber,
+    p_checkout_attempt_id: metadata.checkoutAttemptId,
+    p_stripe_checkout_session_id: spot.stripe_checkout_session_id,
+    p_member_id: member.id,
+    p_stripe_customer_id: customerId,
+    p_stripe_subscription_id: subscription.id,
+    p_stripe_invoice_id: invoice.id,
+    p_paid_at: paidAt
+  });
+  if (claimed !== true) throw new Error("Founding Beta payment claim was rejected");
+  return { applicable: true, claimed: true, member: await findMember(member.id) };
+}
+
+async function reconcileFoundingCheckoutPayment(session, member, subscription) {
+  const spot = await verifyFoundingCheckoutSession(session, member.email);
+  if (!spot) return member;
+  const latestInvoiceId = stripeObjectId(subscription.latest_invoice);
+  if (!latestInvoiceId) return member;
+  const invoice = await stripe.invoices.retrieve(latestInvoiceId, { expand: ["lines.data.price"] });
+  const result = await claimFoundingBetaPayment(invoice, subscription, member);
+  return result.member || member;
 }
 
 function subscriptionBillingFields(subscription) {
@@ -1320,8 +1582,14 @@ async function getAuthenticatedMember(req) {
 
 async function handleCreateCheckout(req, res) {
   if (req.method !== "POST") return sendJson(res, 405, { error: "Method not allowed" });
-  if (!stripe || !stripeFoundingPriceId || !stripeRegularPriceId) {
-    return sendJson(res, 503, { error: "Checkout is not configured yet." });
+  if (!foundingBetaCheckoutEnabled) {
+    return sendJson(res, 503, { error: "Founding Beta checkout is not open yet.", code: "founding_beta_disabled" });
+  }
+  if (isRateLimited(clientIp(req))) {
+    return sendJson(res, 429, { error: "Too many attempts. Please try again shortly.", code: "rate_limited" });
+  }
+  if (!stripe || !stripeFoundingPriceId) {
+    return sendJson(res, 503, { error: "Founding Beta checkout is not configured.", code: "checkout_not_configured" });
   }
   if (!supabaseUrl || !supabaseSecretKey) {
     return sendJson(res, 503, { error: "Member storage is not configured." });
@@ -1334,41 +1602,18 @@ async function handleCreateCheckout(req, res) {
     return sendJsonBodyError(res, error);
   }
 
-  const email = normalizeEmail(body.email);
-  const name = normalizeText(body.name, 100);
-  const referralCode = normalizeCode(body.referralCode);
-  if (email && !isValidEmail(email)) {
-    return sendJson(res, 400, { error: "Please enter a valid email address." });
-  }
-
   try {
-    const founding = (await countFoundingMembers()) < 100;
-    const params = {
-      mode: "subscription",
-      line_items: [{ price: founding ? stripeFoundingPriceId : stripeRegularPriceId, quantity: 1 }],
-      success_url: `${siteUrl}/checkout-success.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${siteUrl}/surplus.html#pricing`,
-      allow_promotion_codes: true,
-      billing_address_collection: "auto",
-      metadata: {
-        founding_member: String(founding),
-        member_name: name,
-        referral_code: referralCode
-      },
-      subscription_data: {
-        metadata: {
-          founding_member: String(founding),
-          member_name: name,
-          referral_code: referralCode
-        }
-      }
-    };
-    if (email) params.customer_email = email;
-    const session = await stripe.checkout.sessions.create(params);
-    sendJson(res, 200, { url: session.url });
+    const checkout = await createFoundingBetaCheckout(body);
+    sendJson(res, 200, { url: checkout.url });
   } catch (error) {
-    console.error("Stripe checkout creation failed:", error);
-    sendJson(res, 500, { error: "Checkout could not be started. Please try again." });
+    if (error instanceof FoundingBetaCheckoutError) {
+      return sendJson(res, error.statusCode, { error: error.message, code: error.code });
+    }
+    console.error("Founding Beta checkout creation failed:", error?.name || "Error");
+    sendJson(res, 503, {
+      error: "Checkout could not be started safely. Please try again.",
+      code: "checkout_retry"
+    });
   }
 }
 
@@ -2155,6 +2400,7 @@ async function syncCheckoutMember(session) {
     throw new Error("Stripe checkout customer email did not match the completed session");
   }
   if (!isSurplusMembershipSubscription(subscription)) return null;
+  await verifyFoundingCheckoutSession(session, sessionEmail);
 
   const [emailMember, customerMember, subscriptionMember] = await Promise.all([
     findMemberByEmail(sessionEmail),
@@ -2177,7 +2423,7 @@ async function syncCheckoutMember(session) {
   const referrer = !existingMember && referralCode ? await findMemberByReferralCode(referralCode) : null;
   const memberFields = {
     name,
-    founding_member: Boolean(existingMember?.founding_member) || session.metadata?.founding_member === "true",
+    founding_member: Boolean(existingMember?.founding_member),
     referred_by: existingMember?.referred_by || referrer?.referral_code || null
   };
   let member = null;
@@ -2209,6 +2455,7 @@ async function syncCheckoutMember(session) {
       member = result.member;
     }
   }
+  member = await reconcileFoundingCheckoutPayment(session, member, subscription);
   if (created && member && referrer && referrer.id !== member.id) {
     try {
       await supabaseInsert("referral_events", {
@@ -2271,29 +2518,35 @@ async function syncInvoiceSubscription(invoice, event) {
   const member = await resolveInvoiceMember(invoice);
   const persistedInvoice = await persistStripeInvoice(invoice, event, event.type, member);
   let entitlementMember = null;
+  let subscription = null;
   if (subscriptionId) {
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    subscription = await stripe.subscriptions.retrieve(subscriptionId, { expand: ["latest_invoice", "items.data.price"] });
     entitlementMember = await syncSubscription(subscription);
+    const foundingClaim = await claimFoundingBetaPayment(invoice, subscription, entitlementMember);
+    if (foundingClaim.claimed && foundingClaim.member) {
+      entitlementMember = foundingClaim.member;
+      await syncDiscordRoles(entitlementMember.id);
+    }
   }
 
   if (
     event.type === "invoice.paid" &&
     entitlementMember &&
     subscriptionId &&
-    Number(persistedInvoice?.amount_paid || 0) > 0 &&
-    !entitlementMember.first_paid_at
+    Number(persistedInvoice?.amount_paid || 0) > 0
   ) {
     const firstPaidAt = persistedInvoice.paid_at || stripeTimestampToIso(event.created) || new Date().toISOString();
-    const updatedMember = await supabasePatch("members", {
-      id: `eq.${entitlementMember.id}`,
-      first_paid_at: "is.null"
-    }, {
-      first_paid_at: firstPaidAt,
-      updated_at: new Date().toISOString()
-    });
-    if (updatedMember) {
-      await recordSubscriptionLifecycle(event, "started", updatedMember, subscriptionId);
+    let lifecycleMember = entitlementMember;
+    if (!entitlementMember.first_paid_at) {
+      lifecycleMember = await supabasePatch("members", {
+        id: `eq.${entitlementMember.id}`,
+        first_paid_at: "is.null"
+      }, {
+        first_paid_at: firstPaidAt,
+        updated_at: new Date().toISOString()
+      }) || entitlementMember;
     }
+    await recordSubscriptionLifecycle(event, "started", lifecycleMember, subscriptionId);
   }
 }
 
@@ -2323,6 +2576,10 @@ async function handleStripeWebhook(req, res) {
       const subscription = await retrieveCurrentSubscription(event.data.object);
       const member = await syncSubscription(subscription);
       if (member) await recordSubscriptionLifecycle(event, "canceled", member, subscription.id);
+      await supabaseRpc("mark_founding_beta_subscription_canceled", {
+        p_stripe_subscription_id: subscription.id,
+        p_canceled_at: stripeTimestampToIso(event.created) || new Date().toISOString()
+      });
     } else if (
       event.type === "invoice.payment_failed" ||
       event.type === "invoice.paid"
@@ -2567,6 +2824,25 @@ const server = http.createServer((req, res) => {
     .catch((error) => handleUnexpectedRequestError(req, res, error));
 });
 
-server.listen(port, host, () => {
-  console.log(`Surplus website running at http://${host}:${port}/surplus.html`);
-});
+if (require.main === module) {
+  server.listen(port, host, () => {
+    console.log(`Surplus website running at http://${host}:${port}/surplus.html`);
+  });
+}
+
+module.exports = {
+  server,
+  __test: {
+    FoundingBetaCheckoutError,
+    claimFoundingBetaPayment,
+    createFoundingBetaCheckout,
+    foundingBetaMetadata,
+    foundingCheckoutSessionParams,
+    foundingInvoiceQualifies,
+    hashFoundingInvitationToken,
+    validateFoundingPriceConfiguration,
+    resetFoundingPriceValidation() {
+      foundingPriceValidationPromise = null;
+    }
+  }
+};
