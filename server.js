@@ -2491,14 +2491,19 @@ async function syncCheckoutMember(session) {
   return member;
 }
 
-async function syncSubscription(subscription) {
+async function syncSubscriptionEntitlement(subscription) {
   const customerId = stripeObjectId(subscription.customer);
   if (!customerId || !subscription?.id || !isSurplusMembershipSubscription(subscription)) return null;
   const member = (await findMemberBySubscription(subscription.id)) || await findMemberByCustomer(customerId);
   if (!member) return null;
   const result = await applyVerifiedSubscription(member, subscription);
   if (!result.accepted) return null;
-  const currentMember = result.member;
+  return result.member;
+}
+
+async function syncSubscription(subscription) {
+  const currentMember = await syncSubscriptionEntitlement(subscription);
+  if (!currentMember) return null;
   try {
     await syncDiscordRoles(currentMember.id);
   } catch (error) {
@@ -2511,6 +2516,55 @@ async function syncSubscription(subscription) {
 async function retrieveCurrentSubscription(subscription) {
   if (!subscription?.id) return subscription;
   return stripe.subscriptions.retrieve(subscription.id);
+}
+
+function subscriptionCancellationTimestamp(subscription, event) {
+  return stripeTimestampToIso(subscription?.canceled_at) ||
+    stripeTimestampToIso(subscription?.ended_at) ||
+    stripeTimestampToIso(event?.created) ||
+    new Date().toISOString();
+}
+
+async function syncDeletedSubscription(subscription, event, dependencies = {}) {
+  const syncEntitlement = dependencies.syncEntitlement || syncSubscriptionEntitlement;
+  const rpc = dependencies.rpc || supabaseRpc;
+  const recordLifecycle = dependencies.recordLifecycle || recordSubscriptionLifecycle;
+  const syncDiscord = dependencies.syncDiscord || syncDiscordRoles;
+  const member = await syncEntitlement(subscription);
+  if (!member) return { accepted: false, member: null, cancellationStamped: false };
+
+  const canceledAt = subscriptionCancellationTimestamp(subscription, event);
+  await rpc("mark_founding_beta_subscription_canceled", {
+    p_stripe_subscription_id: subscription.id,
+    p_canceled_at: canceledAt
+  });
+  await recordLifecycle(event, "canceled", member, subscription.id);
+
+  const shouldSyncDiscord = dependencies.shouldSyncDiscord ?? (
+    discordConfigured() || Boolean(member.discord_user_id)
+  );
+  if (shouldSyncDiscord) {
+    try {
+      await syncDiscord(member.id);
+    } catch (error) {
+      logDiscordRoleFailure("subscription", member, error);
+      throw error;
+    }
+  }
+  return { accepted: true, member, cancellationStamped: true, canceledAt };
+}
+
+async function syncStripeSubscriptionEvent(event, dependencies = {}) {
+  const retrieveSubscription = dependencies.retrieveSubscription || retrieveCurrentSubscription;
+  const subscription = await retrieveSubscription(event.data.object);
+  if (event.type === "customer.subscription.deleted") {
+    return syncDeletedSubscription(subscription, event, dependencies);
+  }
+  const syncCurrentSubscription = dependencies.syncSubscription || syncSubscription;
+  return {
+    accepted: Boolean(await syncCurrentSubscription(subscription)),
+    cancellationStamped: false
+  };
 }
 
 async function syncInvoiceSubscription(invoice, event) {
@@ -2570,16 +2624,12 @@ async function handleStripeWebhook(req, res) {
   try {
     if (event.type === "checkout.session.completed") {
       await syncCheckoutMember(event.data.object);
-    } else if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated") {
-      await syncSubscription(await retrieveCurrentSubscription(event.data.object));
-    } else if (event.type === "customer.subscription.deleted") {
-      const subscription = await retrieveCurrentSubscription(event.data.object);
-      const member = await syncSubscription(subscription);
-      if (member) await recordSubscriptionLifecycle(event, "canceled", member, subscription.id);
-      await supabaseRpc("mark_founding_beta_subscription_canceled", {
-        p_stripe_subscription_id: subscription.id,
-        p_canceled_at: stripeTimestampToIso(event.created) || new Date().toISOString()
-      });
+    } else if (
+      event.type === "customer.subscription.created" ||
+      event.type === "customer.subscription.updated" ||
+      event.type === "customer.subscription.deleted"
+    ) {
+      await syncStripeSubscriptionEvent(event);
     } else if (
       event.type === "invoice.payment_failed" ||
       event.type === "invoice.paid"
@@ -2840,6 +2890,10 @@ module.exports = {
     foundingCheckoutSessionParams,
     foundingInvoiceQualifies,
     hashFoundingInvitationToken,
+    membershipAllowsAccess,
+    subscriptionCancellationTimestamp,
+    syncDeletedSubscription,
+    syncStripeSubscriptionEvent,
     validateFoundingPriceConfiguration,
     resetFoundingPriceValidation() {
       foundingPriceValidationPromise = null;

@@ -12,6 +12,10 @@ const {
   createFoundingBetaCheckout,
   foundingInvoiceQualifies,
   hashFoundingInvitationToken,
+  membershipAllowsAccess,
+  subscriptionCancellationTimestamp,
+  syncDeletedSubscription,
+  syncStripeSubscriptionEvent,
   validateFoundingPriceConfiguration
 } = require("../server").__test;
 
@@ -311,6 +315,156 @@ test("Invoice-before-member defers, duplicate paid claims remain idempotent, and
 
   const legacy = await claimFoundingBetaPayment(invoice, { ...subscription, metadata: {} }, member, dependencies);
   assert.deepEqual(legacy, { applicable: false, claimed: false });
+});
+
+function deletedSubscription(overrides = {}) {
+  return foundingSubscription({
+    status: "canceled",
+    canceled_at: 1_800_000_100,
+    ended_at: 1_800_000_110,
+    ...overrides
+  });
+}
+
+function cancellationHarness(options = {}) {
+  const member = {
+    id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    email: "paid@example.com",
+    stripe_customer_id: "cus_test_1",
+    stripe_subscription_id: options.memberSubscriptionId || "sub_test_1",
+    subscription_status: "active",
+    founding_member: true
+  };
+  const spot = {
+    member_id: member.id,
+    stripe_subscription_id: "sub_test_1",
+    paid_at: "2027-01-15T08:00:00.000Z",
+    subscription_canceled_at: null
+  };
+  const calls = { rpc: 0, lifecycle: 0, discord: 0 };
+  const dependencies = {
+    shouldSyncDiscord: false,
+    syncEntitlement: async (subscription) => {
+      if (options.accepted === false) return null;
+      member.subscription_status = subscription.status;
+      member.stripe_subscription_id = subscription.id;
+      return { ...member };
+    },
+    rpc: async (name, payload) => {
+      assert.equal(name, "mark_founding_beta_subscription_canceled");
+      calls.rpc += 1;
+      if (spot.stripe_subscription_id !== payload.p_stripe_subscription_id || !spot.paid_at) return false;
+      spot.subscription_canceled_at ||= payload.p_canceled_at;
+      return true;
+    },
+    recordLifecycle: async () => { calls.lifecycle += 1; },
+    syncDiscord: async () => { calls.discord += 1; }
+  };
+  return { member, spot, calls, dependencies };
+}
+
+test("Paid Founding Beta deletion stamps cancellation without reopening the spot and is duplicate-safe", async () => {
+  const harness = cancellationHarness();
+  const subscription = deletedSubscription();
+  const event = { type: "customer.subscription.deleted", created: 1_800_000_200, data: { object: subscription } };
+
+  const first = await syncDeletedSubscription(subscription, event, harness.dependencies);
+  const duplicate = await syncDeletedSubscription(subscription, { ...event, created: 1_800_000_300 }, harness.dependencies);
+
+  assert.equal(first.accepted, true);
+  assert.equal(duplicate.accepted, true);
+  assert.equal(harness.member.subscription_status, "canceled");
+  assert.equal(membershipAllowsAccess(harness.member.subscription_status), false);
+  assert.equal(harness.spot.paid_at, "2027-01-15T08:00:00.000Z");
+  assert.equal(harness.spot.member_id, harness.member.id);
+  assert.equal(harness.member.founding_member, true);
+  assert.equal(harness.spot.subscription_canceled_at, "2027-01-15T08:01:40.000Z");
+  assert.equal(subscriptionCancellationTimestamp(subscription, event), harness.spot.subscription_canceled_at);
+  assert.equal(harness.calls.rpc, 2);
+  assert.equal(harness.calls.discord, 0);
+});
+
+test("Founding Beta cancellation remains stamped when later Discord synchronization fails", async () => {
+  const harness = cancellationHarness();
+  const subscription = deletedSubscription();
+  const event = { type: "customer.subscription.deleted", created: 1_800_000_200, data: { object: subscription } };
+  harness.dependencies.shouldSyncDiscord = true;
+  harness.dependencies.syncDiscord = async () => {
+    harness.calls.discord += 1;
+    throw new Error("Discord role sync is not configured");
+  };
+
+  await assert.rejects(
+    syncDeletedSubscription(subscription, event, harness.dependencies),
+    /Discord role sync is not configured/
+  );
+
+  assert.equal(harness.member.subscription_status, "canceled");
+  assert.equal(harness.spot.subscription_canceled_at, "2027-01-15T08:01:40.000Z");
+  assert.equal(harness.spot.paid_at, "2027-01-15T08:00:00.000Z");
+  assert.equal(harness.spot.member_id, harness.member.id);
+  assert.equal(harness.calls.discord, 1);
+});
+
+test("Superseded subscription deletion cannot stamp the current Founding Beta claim", async () => {
+  const harness = cancellationHarness({ accepted: false, memberSubscriptionId: "sub_current" });
+  const staleSubscription = deletedSubscription({ id: "sub_stale" });
+  const result = await syncDeletedSubscription(staleSubscription, {
+    type: "customer.subscription.deleted",
+    created: 1_800_000_200,
+    data: { object: staleSubscription }
+  }, harness.dependencies);
+
+  assert.equal(result.accepted, false);
+  assert.equal(harness.spot.subscription_canceled_at, null);
+  assert.equal(harness.member.subscription_status, "active");
+  assert.equal(harness.calls.rpc, 0);
+  assert.equal(harness.calls.lifecycle, 0);
+});
+
+test("cancel_at_period_end stays active until the actual subscription.deleted event", async () => {
+  const harness = cancellationHarness();
+  const activeSubscription = foundingSubscription({ status: "active", cancel_at_period_end: true });
+  const updateResult = await syncStripeSubscriptionEvent({
+    type: "customer.subscription.updated",
+    data: { object: activeSubscription }
+  }, {
+    retrieveSubscription: async () => activeSubscription,
+    syncSubscription: async (subscription) => {
+      harness.member.subscription_status = subscription.status;
+      return { ...harness.member };
+    },
+    rpc: async () => { throw new Error("Cancellation RPC must not run for an update"); }
+  });
+
+  assert.equal(updateResult.cancellationStamped, false);
+  assert.equal(harness.member.subscription_status, "active");
+  assert.equal(membershipAllowsAccess(harness.member.subscription_status), true);
+  assert.equal(harness.spot.subscription_canceled_at, null);
+
+  const deleted = deletedSubscription();
+  const deletionResult = await syncStripeSubscriptionEvent({
+    type: "customer.subscription.deleted",
+    created: 1_800_000_200,
+    data: { object: deleted }
+  }, {
+    retrieveSubscription: async () => deleted,
+    ...harness.dependencies
+  });
+  assert.equal(deletionResult.cancellationStamped, true);
+  assert.equal(harness.member.subscription_status, "canceled");
+  assert.ok(harness.spot.subscription_canceled_at);
+});
+
+test("Canceled members remain locked and the Modules UI has no automatic-unlock promise", () => {
+  const html = fs.readFileSync(path.join(__dirname, "..", "public", "surplus-member.html"), "utf8");
+  assert.equal(membershipAllowsAccess("canceled"), false);
+  assert.equal(membershipAllowsAccess("inactive"), false);
+  assert.equal(membershipAllowsAccess("active"), true);
+  assert.match(html, /Library locked · Membership required/);
+  assert.doesNotMatch(html, /seconds to unlock/i);
+  assert.match(html, /\['active','trialing'\]\.includes\(CURRENT_MEMBER\?\.subscriptionStatus\)/);
+  assert.doesNotMatch(html, /setTimeout\([^\n]*setState\(['"]active['"]/);
 });
 
 test("Migration fixes capacity at ten, keeps paid claims on cancellation, and locks RPCs to service role", () => {
