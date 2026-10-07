@@ -8,6 +8,7 @@ process.env.SITE_URL = "https://example.test";
 
 const {
   FoundingBetaCheckoutError,
+  calculateFoundingBetaCapacity,
   claimFoundingBetaPayment,
   createFoundingBetaCheckout,
   foundingInvoiceQualifies,
@@ -20,6 +21,40 @@ const {
 } = require("../server").__test;
 
 const TEST_ATTEMPT = "11111111-1111-4111-8111-111111111111";
+
+test("Founding Beta capacity counts permanently paid ledger spots", () => {
+  const unpaidSpots = Array.from({ length: 10 }, (_, index) => ({
+    spot_number: index + 1,
+    paid_at: null,
+    subscription_canceled_at: null
+  }));
+  assert.deepEqual(calculateFoundingBetaCapacity(unpaidSpots), {
+    total: 10,
+    consumed: 0,
+    remaining: 10
+  });
+
+  const oneCanceledPaidSpot = unpaidSpots.map((spot, index) => index === 0 ? {
+    ...spot,
+    paid_at: "2027-01-15T08:00:00.000Z",
+    subscription_canceled_at: "2027-02-15T08:00:00.000Z"
+  } : spot);
+  assert.deepEqual(calculateFoundingBetaCapacity(oneCanceledPaidSpot), {
+    total: 10,
+    consumed: 1,
+    remaining: 9
+  });
+
+  assert.deepEqual(calculateFoundingBetaCapacity(Array.from({ length: 10 }, (_, index) => ({
+    spot_number: index + 1,
+    paid_at: "2027-01-15T08:00:00.000Z",
+    subscription_canceled_at: index === 0 ? "2027-02-15T08:00:00.000Z" : null
+  }))), {
+    total: 10,
+    consumed: 10,
+    remaining: 0
+  });
+});
 
 function validPrice(overrides = {}) {
   return {

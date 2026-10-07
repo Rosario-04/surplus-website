@@ -23,6 +23,7 @@ const stripeRegularPriceId = process.env.STRIPE_REGULAR_PRICE_ID || "";
 const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
 const foundingBetaCheckoutEnabled = process.env.FOUNDING_BETA_CHECKOUT_ENABLED === "true";
 const foundingBetaReservationSeconds = 120;
+const foundingBetaSpotLimit = 10;
 const foundingBetaExpectedAmount = 3000;
 const foundingBetaExpectedCurrency = "usd";
 const discordClientId = process.env.DISCORD_CLIENT_ID || "";
@@ -622,6 +623,18 @@ async function runWaitlistEmailTasks(entry, position, recordId) {
 
 function membershipAllowsAccess(status) {
   return ["active", "trialing"].includes(status);
+}
+
+function calculateFoundingBetaCapacity(spots = []) {
+  const consumed = Math.min(
+    foundingBetaSpotLimit,
+    spots.filter((spot) => Boolean(spot?.paid_at)).length
+  );
+  return {
+    total: foundingBetaSpotLimit,
+    consumed,
+    remaining: foundingBetaSpotLimit - consumed
+  };
 }
 
 function isAdminMember(member) {
@@ -1933,11 +1946,16 @@ async function handleAdminOverview(req, res) {
   try {
     const range = resolveDashboardRange(req);
     const rangeLimit = range.key === "all" ? "10000" : "5000";
-    const [members, trafficEvents, waitlistEntries, paidInvoices, unresolvedInvoices, cancellationEvents, rangePaidMembers, recentAnalyticsEvents, recentPaidInvoices, recentLifecycleEvents, recentPaidMembers, recentDiscordMembers] = await Promise.all([
+    const [members, foundingBetaSpots, trafficEvents, waitlistEntries, paidInvoices, unresolvedInvoices, cancellationEvents, rangePaidMembers, recentAnalyticsEvents, recentPaidInvoices, recentLifecycleEvents, recentPaidMembers, recentDiscordMembers] = await Promise.all([
       supabaseSelect("members", {
         select: "id,name,email,subscription_status,founding_member,created_at,current_period_end,first_paid_at,recurring_amount,recurring_interval,onboarding,progress,discord_username,referral_count,referral_credits",
         order: "created_at.desc",
         limit: "1000"
+      }),
+      supabaseSelect("founding_beta_spots", {
+        select: "spot_number,paid_at",
+        order: "spot_number.asc",
+        limit: String(foundingBetaSpotLimit)
       }),
       supabaseSelect("analytics_events", withTimeBoundary({
         select: "member_id,event_name,page,source,session_id,created_at",
@@ -2011,6 +2029,7 @@ async function handleAdminOverview(req, res) {
 
     const activeMembers = members.filter((member) => membershipAllowsAccess(member.subscription_status));
     const foundingMembers = activeMembers.filter((member) => member.founding_member);
+    const foundingBetaCapacity = calculateFoundingBetaCapacity(foundingBetaSpots);
     const onboardingComplete = activeMembers.filter((member) => member.onboarding?.completed).length;
     const discordConnected = activeMembers.filter((member) => member.discord_username).length;
     const moduleTotals = activeMembers.reduce((total, member) => {
@@ -2047,7 +2066,9 @@ async function handleAdminOverview(req, res) {
         active: activeMembers.length,
         inactive: members.length - activeMembers.length,
         founding: foundingMembers.length,
-        foundingRemaining: Math.max(0, 100 - foundingMembers.length),
+        foundingTotal: foundingBetaCapacity.total,
+        foundingConsumed: foundingBetaCapacity.consumed,
+        foundingRemaining: foundingBetaCapacity.remaining,
         discordConnected,
         onboardingComplete,
         averageModulesComplete: activeMembers.length ? Number((moduleTotals / activeMembers.length).toFixed(1)) : 0
@@ -2885,6 +2906,7 @@ module.exports = {
   __test: {
     FoundingBetaCheckoutError,
     claimFoundingBetaPayment,
+    calculateFoundingBetaCapacity,
     createFoundingBetaCheckout,
     foundingBetaMetadata,
     foundingCheckoutSessionParams,
