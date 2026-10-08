@@ -1816,7 +1816,7 @@
     <div class="nav-section-label">Account</div>
     <a class="nav-item" data-section="refer">
       <svg class="ico" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-      <span>Refer &amp; Earn</span>
+      <span>Refer &amp; Track</span>
       <span class="nav-meta"><span class="nav-lock" aria-label="Locked">🔒</span></span>
     </a>
     <a class="nav-item" data-section="profile">
@@ -1993,7 +1993,7 @@
         <div class="expired-hero">
           <div class="expired-hero-grid">
             <div>
-              <div class="expired-eyebrow">Library locked · 30 seconds to unlock</div>
+              <div class="expired-eyebrow">Library locked · Membership required</div>
               <h2 class="expired-title">Your course progress is <em>saved.</em></h2>
               <p class="expired-body">Your completed modules, onboarding path, and weekly goals remain attached to your account.</p>
               <button class="btn btn-primary" onclick="resubscribe()">View membership options →</button>
@@ -2931,7 +2931,7 @@ Reusable template</div>
     <section class="section" id="section-refer">
       <div class="page-head">
         <div>
-          <div class="page-eyebrow">Refer &amp; Earn</div>
+          <div class="page-eyebrow">Refer &amp; Track</div>
           <h1 class="page-title">Bring builders. <em>Track the momentum.</em></h1>
           <p class="page-sub">Every member gets a referral link. Qualified referrals and referral credits are tracked on your Surplus account.</p>
         </div>
@@ -2942,7 +2942,7 @@ Reusable template</div>
           <div>
             <div style="font-family:var(--serif); font-style:italic; color:var(--gold-bright); font-size:14px; margin-bottom:8px">Your referral link</div>
             <div style="font-family:var(--serif); font-weight:500; font-size:24px; letter-spacing:-.01em; margin-bottom:6px">Share Surplus. Keep track.</div>
-            <div style="color:var(--ink-dim); font-size:14px; line-height:1.5">When a qualifying member joins through your link, Surplus records a referral credit on your account. Redemption will be added later; your balance stays visible here.</div>
+            <div style="color:var(--ink-dim); font-size:14px; line-height:1.5">When a qualifying member joins through your link, Surplus records a referral credit on your account. Automatic redemption is not available yet; your balance stays visible here.</div>
             <div class="refer-link-box">
               <span class="refer-link" id="referLink">liveinsurplus.com/?ref=your-code</span>
               <button class="btn btn-primary btn-sm" onclick="copyReferLink()">Copy</button>
@@ -2974,7 +2974,7 @@ Reusable template</div>
           </div>
           <div class="onboard-step">
             <h4>Your credit is tracked</h4>
-            <p>Your referral credit stays visible here. Credit redemption is coming later.</p>
+            <p>Your referral credit stays visible here. Automatic credit redemption is not available yet.</p>
           </div>
           <div class="onboard-step">
             <h4>Both build together</h4>
@@ -3104,7 +3104,7 @@ Reusable template</div>
 
       <div class="card" style="padding:32px; margin-top:20px">
         <h3 class="card-title" style="margin-bottom:8px">Danger zone</h3>
-        <p class="card-sub" style="margin-bottom:18px">Cancel your subscription anytime. You'll keep access through the end of your current billing period.</p>
+        <p class="card-sub" style="margin-bottom:18px">Cancel your subscription anytime. You'll keep access through the end of your current billing period. Founding pricing applies only while the original subscription stays active, and cancellation does not automatically restore a founding spot.</p>
         <button class="btn btn-ghost" style="color:var(--bad); border-color:rgba(217,112,112,.3)" onclick="openBillingPortal()">Manage or cancel subscription</button>
       </div>
     </section>
@@ -3525,7 +3525,7 @@ const PALETTE_ITEMS = [
   { type:'Page',   label:'The Ladder',                section:'ladder' },
   { type:'Page',   label:'Community / Discord',       section:'community' },
   { type:'Page',   label:'Goals & Streak',            section:'goals' },
-  { type:'Page',   label:'Refer & Earn',              section:'refer' },
+  { type:'Page',   label:'Refer & Track',             section:'refer' },
   { type:'Page',   label:'Profile',                   section:'profile' },
   { type:'Page',   label:'Settings & Billing',        section:'settings' },
 ];
@@ -4552,7 +4552,7 @@ function applyMember(member){
     ? `Connected as ${member.discord.username || 'your Discord account'}`
     : 'Connect Discord to join the room';
   document.getElementById('settingsMembership').textContent = member.foundingMember
-    ? 'Founding member · your rate is locked'
+    ? 'Founding member · $30/month while the original subscription stays active'
     : `${member.subscriptionStatus === 'trialing' ? 'Trialing' : 'Active'} Surplus member`;
   updateDiscordConnection(member.discord);
   document.querySelector('.demo-toggle')?.remove();
@@ -4764,7 +4764,9 @@ function setState(state){
     pill.style.color = 'var(--bad)';
     pill.querySelector('::before');
     head.textContent = 'Your Surplus membership is inactive';
-    sub.textContent = 'Resubscribe to restore full access. Your progress and content are preserved.';
+    sub.textContent = CURRENT_MEMBER?.foundingMember
+      ? 'This original founding subscription is inactive. Your saved progress remains, but cancellation does not automatically restore a founding spot.'
+      : 'Resubscribe to restore full access. Your progress and content are preserved.';
     banner.style.background = 'linear-gradient(135deg,rgba(217,112,112,.10),rgba(217,112,112,.02))';
     banner.style.borderColor = 'rgba(217,112,112,.3)';
     acts.innerHTML = `<button class="btn btn-primary btn-sm" onclick="resubscribe()">View membership options →</button>`;
@@ -4774,7 +4776,7 @@ function setState(state){
     pill.style.borderColor = '';
     pill.style.color = '';
     head.textContent = CURRENT_MEMBER?.foundingMember
-      ? '$30 / month · founding member for life'
+      ? '$30 / month · while this original subscription stays active'
       : 'Surplus monthly membership';
     sub.textContent = CURRENT_MEMBER?.currentPeriodEnd
       ? `Current access through ${new Date(CURRENT_MEMBER.currentPeriodEnd).toLocaleDateString()}`

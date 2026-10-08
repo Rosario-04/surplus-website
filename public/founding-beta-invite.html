@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="referrer" content="no-referrer">
+  <title>Founding Beta Invitation | Surplus</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,400&family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    window.foundingBetaInvitation = (() => {
+      const fragment = window.location.hash.slice(1);
+      const values = new URLSearchParams(fragment);
+      let token = (values.get('invite') || values.get('token') || '').trim();
+      if (fragment) history.replaceState(null, '', `${location.pathname}${location.search}`);
+      return {
+        get: () => token,
+        clear: () => { token = ''; }
+      };
+    })();
+  </script>
+  <style>
+    :root{
+      --bg:#0a0a0c;
+      --panel:#111114;
+      --ink:#f4efe2;
+      --ink-dim:#aaa398;
+      --gold:#b99a55;
+      --gold-bright:#d4b66a;
+      --gold-deep:#8a7340;
+      --line:rgba(185,154,85,.22);
+      --bad:#dc8787;
+      --serif:'Fraunces',serif;
+      --sans:'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    }
+    *{box-sizing:border-box}
+    html{color-scheme:dark}
+    body{
+      margin:0;
+      min-height:100vh;
+      background:
+        radial-gradient(ellipse 70% 55% at 8% 0,rgba(185,154,85,.16),transparent 62%),
+        radial-gradient(ellipse 55% 48% at 100% 100%,rgba(138,115,64,.10),transparent 65%),
+        var(--bg);
+      color:var(--ink);
+      font-family:var(--sans);
+      -webkit-font-smoothing:antialiased;
+    }
+    a{color:inherit}
+    .shell{min-height:100vh;display:grid;grid-template-rows:auto 1fr auto}
+    .topbar{width:min(1160px,calc(100% - 40px));margin:0 auto;padding:24px 0;display:flex;justify-content:space-between;align-items:center;gap:20px}
+    .brand{display:inline-flex;align-items:center;gap:12px;text-decoration:none}
+    .brand-mark{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(135deg,var(--gold-bright),var(--gold-deep));color:#0a0a0c;font-family:var(--serif);font-size:24px;font-style:italic;box-shadow:0 10px 30px rgba(185,154,85,.25)}
+    .brand-name{display:block;font-family:var(--serif);font-size:21px;line-height:1}
+    .brand-by{display:block;margin-top:4px;color:#716b61;font-size:9px;letter-spacing:.24em;text-transform:uppercase}
+    .back-link{color:var(--ink-dim);font-size:14px;text-decoration:none}
+    .back-link:hover{color:var(--gold-bright)}
+    main{width:min(1160px,calc(100% - 40px));margin:auto;padding:54px 0 76px}
+    .invite-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(380px,.78fr);gap:72px;align-items:center}
+    .eyebrow{display:inline-flex;align-items:center;gap:9px;margin-bottom:22px;color:var(--gold-bright);font-size:11px;font-weight:700;letter-spacing:.19em;text-transform:uppercase}
+    .eyebrow::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--gold-bright);box-shadow:0 0 14px rgba(212,182,106,.7)}
+    h1{max-width:680px;margin:0 0 22px;font-family:var(--serif);font-size:clamp(46px,6vw,78px);font-weight:400;letter-spacing:-.03em;line-height:1}
+    h1 em{color:var(--gold-bright);font-weight:300}
+    .lede{max-width:590px;margin:0;color:var(--ink-dim);font-size:18px;line-height:1.65}
+    .offer-points{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:34px}
+    .offer-point{padding:16px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025)}
+    .offer-point strong{display:block;font-family:var(--serif);font-size:21px;font-weight:500;margin-bottom:3px}
+    .offer-point span{display:block;color:var(--ink-dim);font-size:12px;line-height:1.4}
+    .invite-card{position:relative;padding:34px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(145deg,rgba(255,255,255,.065),rgba(255,255,255,.018));box-shadow:0 30px 90px rgba(0,0,0,.46);overflow:hidden}
+    .invite-card::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 100% 0,rgba(185,154,85,.13),transparent 45%)}
+    .invite-card > *{position:relative}
+    .card-label{color:var(--gold-bright);font-size:11px;font-weight:700;letter-spacing:.17em;text-transform:uppercase}
+    .invite-card h2{margin:10px 0 8px;font-family:var(--serif);font-size:31px;font-weight:500;line-height:1.08}
+    .card-copy{margin:0 0 25px;color:var(--ink-dim);font-size:14px;line-height:1.55}
+    label{display:block;margin:16px 0 7px;color:var(--ink);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+    input{width:100%;min-height:50px;padding:0 15px;border:1px solid rgba(255,255,255,.12);border-radius:11px;background:rgba(255,255,255,.035);color:var(--ink);font:inherit;font-size:16px;outline:none;transition:border-color .2s,box-shadow .2s}
+    input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(185,154,85,.12)}
+    input::placeholder{color:#69645d}
+    .btn{width:100%;min-height:52px;margin-top:22px;border:0;border-radius:999px;background:linear-gradient(135deg,var(--gold-bright),var(--gold) 60%,var(--gold-deep));color:#0a0a0c;font:600 15px var(--sans);cursor:pointer;box-shadow:0 14px 36px rgba(185,154,85,.25);transition:transform .2s,box-shadow .2s,opacity .2s}
+    .btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 18px 40px rgba(185,154,85,.34)}
+    .btn:disabled{cursor:not-allowed;opacity:.5;box-shadow:none}
+    .status{display:none;margin-top:16px;padding:13px 14px;border:1px solid var(--line);border-radius:10px;background:rgba(185,154,85,.07);color:var(--ink-dim);font-size:13px;line-height:1.5}
+    .status.visible{display:block}
+    .status.error{border-color:rgba(220,135,135,.32);background:rgba(220,135,135,.08);color:#e6b4b4}
+    .terms{margin:17px 0 0;color:#777168;font-size:12px;line-height:1.55;text-align:center}
+    .terms a{color:var(--gold-bright)}
+    footer{width:min(1160px,calc(100% - 40px));margin:0 auto;padding:22px 0 30px;border-top:1px solid rgba(185,154,85,.12);color:#6f6960;font-size:12px}
+    @media(max-width:900px){.invite-layout{grid-template-columns:1fr;gap:38px;max-width:680px;margin:0 auto}.invite-card{max-width:560px}.offer-points{max-width:590px}}
+    @media(max-width:540px){
+      .topbar,main,footer{width:min(100% - 28px,1160px)}
+      .topbar{padding:16px 0}.back-link{font-size:13px}
+      main{padding:34px 0 54px}.invite-layout{gap:30px}
+      h1{font-size:43px}.lede{font-size:16px}
+      .offer-points{grid-template-columns:1fr}.offer-point{display:flex;align-items:center;gap:12px;padding:13px 14px}.offer-point strong{min-width:74px;margin:0;font-size:18px}.offer-point span{font-size:12px}
+      .invite-card{padding:25px 20px;border-radius:19px}.invite-card h2{font-size:27px}
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="/surplus.html" aria-label="Surplus home">
+        <span class="brand-mark">S</span>
+        <span><span class="brand-name">Surplus</span><span class="brand-by">by Rosario</span></span>
+      </a>
+      <a class="back-link" href="/surplus.html">Back to website</a>
+    </header>
+
+    <main>
+      <div class="invite-layout">
+        <section aria-labelledby="inviteTitle">
+          <div class="eyebrow">Private Founding Beta invitation</div>
+          <h1 id="inviteTitle">Build with Surplus from the <em>beginning.</em></h1>
+          <p class="lede">This private invitation lets you continue toward one of 10 Founding Beta memberships. Confirm the invited email below, then choose when to continue to Stripe's secure checkout.</p>
+          <div class="offer-points" aria-label="Invitation terms">
+            <div class="offer-point"><strong>$30/mo</strong><span>while the original subscription stays active</span></div>
+            <div class="offer-point"><strong>10 total</strong><span>spots fill only after successful payment</span></div>
+            <div class="offer-point"><strong>Invite only</strong><span>this link does not guarantee payment completion</span></div>
+          </div>
+        </section>
+
+        <section class="invite-card" aria-labelledby="checkoutTitle">
+          <div class="card-label">Confirm your invitation</div>
+          <h2 id="checkoutTitle">Continue securely.</h2>
+          <p class="card-copy">Use the same email address that received this invitation. You will review the subscription in Stripe before any payment is submitted.</p>
+          <form id="inviteForm" novalidate>
+            <label for="inviteEmail">Invited email</label>
+            <input id="inviteEmail" name="email" type="email" autocomplete="email" required placeholder="you@example.com">
+            <label for="confirmEmail">Confirm email</label>
+            <input id="confirmEmail" name="confirmEmail" type="email" autocomplete="email" required placeholder="Re-enter your email">
+            <button class="btn" id="continueButton" type="submit">Continue to secure checkout</button>
+            <div class="status" id="inviteStatus" role="status" aria-live="polite"></div>
+          </form>
+          <p class="terms">By continuing, you agree to the <a href="/terms.html">Terms</a>, <a href="/refund-policy.html">Refund Policy</a>, and recurring monthly billing shown in Stripe.</p>
+        </section>
+      </div>
+    </main>
+
+    <footer>&copy; 2026 Surplus by Rosario. Private invitation checkout.</footer>
+  </div>
+
+  <script>
+    const form = document.getElementById('inviteForm');
+    const emailInput = document.getElementById('inviteEmail');
+    const confirmInput = document.getElementById('confirmEmail');
+    const continueButton = document.getElementById('continueButton');
+    const statusBox = document.getElementById('inviteStatus');
+
+    const messages = {
+      founding_beta_disabled: 'Founding Beta checkout is not open yet. Your invitation has not been used.',
+      checkout_not_configured: 'Secure checkout is temporarily unavailable. Please try again later.',
+      invalid_email: 'Enter a valid email address.',
+      invalid_invitation: 'This invitation link is invalid. Request a fresh invitation from Surplus.',
+      invitation_expired: 'This invitation has expired. Request a fresh invitation from Surplus.',
+      invitation_revoked: 'This invitation is no longer available. Contact Surplus if you believe this is a mistake.',
+      invitation_email_mismatch: 'That email does not match this invitation. Use the email that received the invitation.',
+      invitation_consumed: 'This invitation has already been used.',
+      founding_beta_full: 'All 10 Founding Beta memberships have been claimed.',
+      checkout_busy: 'This invitation is already being processed. Wait a moment, then try again.',
+      checkout_completed: 'This invitation has already completed checkout.',
+      checkout_unavailable: 'Secure checkout is temporarily unavailable. Please try again shortly.',
+      checkout_retry: 'Checkout could not be started safely. Please try again.',
+      rate_limited: 'Too many attempts. Please wait a moment before trying again.'
+    };
+
+    function showStatus(message, isError = true){
+      statusBox.textContent = message;
+      statusBox.classList.toggle('error', isError);
+      statusBox.classList.add('visible');
+    }
+
+    const initialToken = window.foundingBetaInvitation.get();
+    if (!initialToken){
+      continueButton.disabled = true;
+      emailInput.disabled = true;
+      confirmInput.disabled = true;
+      showStatus('This invitation link is incomplete. Open the full private link from your invitation email.');
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const invitationToken = window.foundingBetaInvitation.get();
+      if (!invitationToken){
+        showStatus('This invitation link is incomplete. Request a fresh invitation from Surplus.');
+        return;
+      }
+
+      const email = emailInput.value.trim().toLowerCase();
+      const confirmedEmail = confirmInput.value.trim().toLowerCase();
+      if (!email || !emailInput.validity.valid){
+        showStatus('Enter the valid email address that received this invitation.');
+        emailInput.focus();
+        return;
+      }
+      if (email !== confirmedEmail){
+        showStatus('The email addresses do not match. Confirm the invited email and try again.');
+        confirmInput.focus();
+        return;
+      }
+
+      continueButton.disabled = true;
+      continueButton.textContent = 'Preparing secure checkout...';
+      statusBox.classList.remove('visible');
+
+      try {
+        const response = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({email, invitationToken})
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.url){
+          const error = new Error(messages[result.code] || result.error || 'Secure checkout is temporarily unavailable.');
+          error.code = result.code;
+          throw error;
+        }
+        window.foundingBetaInvitation.clear();
+        window.location.assign(result.url);
+      } catch (error) {
+        showStatus(error.message || 'Secure checkout is temporarily unavailable. Please try again.');
+        continueButton.disabled = false;
+        continueButton.textContent = 'Continue to secure checkout';
+      }
+    });
+  </script>
+</body>
+</html>
