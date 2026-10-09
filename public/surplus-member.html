@@ -3407,8 +3407,6 @@ Reusable template</div>
         <div class="mobile-more-label">Community</div>
         <button class="mobile-more-item" type="button" onclick="openMobileMoreSection('community')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span class="mobile-more-item-copy"><span class="mobile-more-item-title">Community</span><span class="mobile-more-item-meta">Discord room and member connection</span></span><span class="mobile-more-item-chevron">›</span></button>
         <button class="mobile-more-item" type="button" onclick="openMobileMoreSection('ladder')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v18M16 3v18M8 7h8M8 12h8M8 17h8"/></svg><span class="mobile-more-item-copy"><span class="mobile-more-item-title">Ladder</span><span class="mobile-more-item-meta">Review your seven-stage path</span></span><span class="mobile-more-item-chevron">›</span></button>
-        <button class="mobile-more-item" type="button" onclick="openMobileMoreSection('workshops')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3z"/></svg><span class="mobile-more-item-copy"><span class="mobile-more-item-title">Workshops</span><span class="mobile-more-item-meta">Upcoming member sessions</span></span><span class="mobile-more-item-chevron">›</span></button>
-        <button class="mobile-more-item" type="button" onclick="openMobileMoreSection('replays')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="m10 9 5 3-5 3z"/></svg><span class="mobile-more-item-copy"><span class="mobile-more-item-title">Replays</span><span class="mobile-more-item-meta">Workshop archive preview</span></span><span class="mobile-more-item-chevron">›</span></button>
       </div>
       <div class="mobile-more-group">
         <div class="mobile-more-label">Tools / Account</div>
@@ -4893,10 +4891,10 @@ async function openBillingPortal(){
 // ---------- NAVIGATION ----------
 const MOBILE_TOOL_SECTIONS = new Set(['foundation-plan','money-planner','offer-tracker','ai-workbench','service-operations','property-readiness']);
 const PRIMARY_MOBILE_SECTIONS = new Set(['home','modules','goals','spreadsheets']);
-const MOBILE_MORE_SECTIONS = new Set(['community','ladder','workshops','replays','refer','profile','settings']);
+const MOBILE_MORE_SECTIONS = new Set(['community','ladder','refer','profile','settings']);
 const MOBILE_SECTION_TITLES = {
   home:'Home', modules:'Learn', 'module-detail':'Learn', goals:'Goals', spreadsheets:'Tools',
-  community:'Community', ladder:'Ladder', workshops:'Workshops', replays:'Replays',
+  community:'Community', ladder:'Ladder',
   refer:'Referrals', profile:'Profile', settings:'Settings'
 };
 
