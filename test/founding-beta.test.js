@@ -13,7 +13,10 @@ const {
   createFoundingBetaCheckout,
   foundingInvoiceQualifies,
   hashFoundingInvitationToken,
+  memberStripeIdentityFilters,
   membershipAllowsAccess,
+  resolveCheckoutMember,
+  resolveSubscriptionOwnership,
   subscriptionCancellationTimestamp,
   syncDeletedSubscription,
   syncStripeSubscriptionEvent,
@@ -67,6 +70,155 @@ function validPrice(overrides = {}) {
     ...overrides
   };
 }
+
+function ownershipSubscription(id, customer, overrides = {}) {
+  return {
+    id,
+    customer,
+    status: "active",
+    created: 1_800_000_000,
+    items: { data: [{ price: validPrice() }] },
+    ...overrides
+  };
+}
+
+function resourceMissing(message = "No such Stripe resource") {
+  return Object.assign(new Error(message), { code: "resource_missing" });
+}
+
+function ownershipStripeClient(subscriptions, missingCustomers = new Set()) {
+  return {
+    subscriptions: {
+      retrieve: async (id) => {
+        if (!subscriptions.has(id)) throw resourceMissing(`No such subscription: '${id}'`);
+        return subscriptions.get(id);
+      },
+      list: async ({ customer }) => {
+        if (missingCustomers.has(customer)) throw resourceMissing(`No such customer: '${customer}'`);
+        return {
+          data: [...subscriptions.values()].filter((subscription) => subscription.customer === customer)
+        };
+      }
+    }
+  };
+}
+
+test("stale stored subscription does not block a verified new checkout subscription", async () => {
+  const candidate = ownershipSubscription("sub_live_new", "cus_live_new");
+  const member = {
+    id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    stripe_customer_id: "cus_test_old",
+    stripe_subscription_id: "sub_test_old",
+    subscription_sync_version: 4
+  };
+  const result = await resolveSubscriptionOwnership(member, candidate, {
+    stripeClient: ownershipStripeClient(new Map([[candidate.id, candidate]]))
+  });
+
+  assert.equal(result.accepted, true);
+  assert.equal(result.subscription.id, candidate.id);
+  assert.deepEqual(memberStripeIdentityFilters(member), {
+    id: `eq.${member.id}`,
+    stripe_customer_id: "eq.cus_test_old",
+    stripe_subscription_id: "eq.sub_test_old",
+    subscription_sync_version: "eq.4"
+  });
+});
+
+test("stale stored customer does not block a verified new checkout subscription", async () => {
+  const candidate = ownershipSubscription("sub_live_new", "cus_live_new");
+  const result = await resolveSubscriptionOwnership({
+    stripe_customer_id: "cus_test_old",
+    stripe_subscription_id: null
+  }, candidate, {
+    stripeClient: ownershipStripeClient(
+      new Map([[candidate.id, candidate]]),
+      new Set(["cus_test_old"])
+    )
+  });
+
+  assert.equal(result.accepted, true);
+  assert.equal(result.subscription.id, candidate.id);
+});
+
+test("non-resource-missing errors for stored Stripe identities still throw", async () => {
+  const candidate = ownershipSubscription("sub_live_new", "cus_live_new");
+  const stripeClient = ownershipStripeClient(new Map([[candidate.id, candidate]]));
+  const retrieve = stripeClient.subscriptions.retrieve;
+  stripeClient.subscriptions.retrieve = async (id) => {
+    if (id === "sub_stored") throw Object.assign(new Error("Stripe unavailable"), { code: "api_error" });
+    return retrieve(id);
+  };
+
+  await assert.rejects(
+    resolveSubscriptionOwnership({
+      stripe_customer_id: "cus_stored",
+      stripe_subscription_id: "sub_stored"
+    }, candidate, { stripeClient }),
+    /Stripe unavailable/
+  );
+
+  const customerListClient = ownershipStripeClient(new Map([[candidate.id, candidate]]));
+  const list = customerListClient.subscriptions.list;
+  customerListClient.subscriptions.list = async (params) => {
+    if (params.customer === "cus_stored") {
+      throw Object.assign(new Error("Stripe rate limited"), { code: "rate_limit" });
+    }
+    return list(params);
+  };
+  await assert.rejects(
+    resolveSubscriptionOwnership({ stripe_customer_id: "cus_stored" }, candidate, {
+      stripeClient: customerListClient
+    }),
+    /Stripe rate limited/
+  );
+});
+
+test("valid stored subscription still participates in ownership selection", async () => {
+  const candidate = ownershipSubscription("sub_live_new", "cus_live_new", { created: 1_800_000_000 });
+  const stored = ownershipSubscription("sub_live_existing", "cus_live_existing", { created: 1_900_000_000 });
+  const subscriptions = new Map([[candidate.id, candidate], [stored.id, stored]]);
+  const result = await resolveSubscriptionOwnership({
+    stripe_customer_id: stored.customer,
+    stripe_subscription_id: stored.id
+  }, candidate, { stripeClient: ownershipStripeClient(subscriptions) });
+
+  assert.equal(result.accepted, false);
+  assert.equal(result.subscription.id, stored.id);
+});
+
+test("missing candidate subscription remains a hard failure", async () => {
+  const candidate = ownershipSubscription("sub_missing_candidate", "cus_live_new");
+  await assert.rejects(
+    resolveSubscriptionOwnership(null, candidate, {
+      stripeClient: ownershipStripeClient(new Map())
+    }),
+    (error) => error.code === "resource_missing"
+  );
+});
+
+test("checkout linkage still rejects cross-member Stripe identity takeover", () => {
+  const emailMember = { id: "member_email", email: "buyer@example.com" };
+  const linkedMember = { id: "member_other", email: "other@example.com" };
+
+  assert.throws(
+    () => resolveCheckoutMember(emailMember, linkedMember, null, "buyer@example.com"),
+    /already linked to another member/
+  );
+  assert.throws(
+    () => resolveCheckoutMember(null, linkedMember, null, "buyer@example.com"),
+    /cannot replace another member's billing identity/
+  );
+  assert.throws(
+    () => resolveCheckoutMember(
+      emailMember,
+      emailMember,
+      linkedMember,
+      "buyer@example.com"
+    ),
+    /already linked to another member/
+  );
+});
 
 function createCheckoutHarness(invitations) {
   const spots = new Map(invitations.map((invitation, index) => [hashFoundingInvitationToken(invitation.token), {
