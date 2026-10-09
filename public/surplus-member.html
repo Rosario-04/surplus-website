@@ -2030,6 +2030,16 @@
     border-color:var(--line-gold);
     color:var(--ink-dim);
   }
+  [data-theme="light"] .money-plan-state.balanced{
+    background:rgba(47,109,60,.10);
+    border-color:rgba(47,109,60,.32);
+    color:var(--good);
+  }
+  [data-theme="light"] .money-plan-state.over{
+    background:rgba(155,51,51,.09);
+    border-color:rgba(155,51,51,.30);
+    color:var(--bad);
+  }
   [data-theme="light"] .value-icon,
   [data-theme="light"] .cal-date,
   [data-theme="light"] .rung-node,
@@ -2039,6 +2049,12 @@
   [data-theme="light"] .consistency-stat{
     background:var(--surface-shell);
     border-color:var(--line);
+  }
+  [data-theme="light"] .rung-node.current{
+    background:radial-gradient(circle at 30% 30%,var(--gold-bright),var(--gold-deep));
+    color:#0a0a0c;
+    border-color:transparent;
+    box-shadow:0 0 0 6px var(--bg),0 0 0 3px var(--gold-bright),0 0 36px rgba(212,182,106,.4);
   }
   [data-theme="light"] .discord-hero{
     background:linear-gradient(135deg,rgba(88,101,242,.10),rgba(255,254,250,.98));
@@ -2053,6 +2069,9 @@
     border-color:var(--line-gold);
     color:var(--gold-text);
   }
+  [data-theme="light"] .module-thumb-status.complete{color:var(--good)}
+  [data-theme="light"] .module-thumb-status.in-progress{color:var(--gold-text)}
+  [data-theme="light"] .module-thumb-status.locked{color:var(--ink-faint)}
   [data-theme="light"] .progress-bar,
   [data-theme="light"] .money-buffer-progress{background:#e6dece}
   [data-theme="light"] .btn-ghost,
@@ -2176,6 +2195,11 @@
   [data-theme="light"] .goal-check{
     background:var(--surface-input);
     border-color:rgba(58,47,31,.38);
+  }
+  [data-theme="light"] .goal-check.done{
+    background:var(--gold);
+    border-color:var(--gold);
+    color:#0a0a0c;
   }
   [data-theme="light"] .goal-delete{
     background:var(--surface-shell);
