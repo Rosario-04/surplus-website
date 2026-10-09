@@ -1314,11 +1314,18 @@ function compareSubscriptionOwnership(first, second) {
   return String(second.id || "").localeCompare(String(first.id || ""));
 }
 
-async function resolveSubscriptionOwnership(member, candidateSubscription) {
+function isStripeResourceMissing(error) {
+  return error?.code === "resource_missing"
+    || error?.raw?.code === "resource_missing"
+    || error?.raw?.error?.code === "resource_missing";
+}
+
+async function resolveSubscriptionOwnership(member, candidateSubscription, dependencies = {}) {
+  const stripeClient = dependencies.stripeClient || stripe;
   if (!candidateSubscription?.id) {
     return { accepted: false, subscription: null };
   }
-  const freshCandidate = await stripe.subscriptions.retrieve(candidateSubscription.id);
+  const freshCandidate = await stripeClient.subscriptions.retrieve(candidateSubscription.id);
   if (!isSurplusMembershipSubscription(freshCandidate)) {
     return { accepted: false, subscription: null };
   }
@@ -1326,22 +1333,34 @@ async function resolveSubscriptionOwnership(member, candidateSubscription) {
   if (!candidateCustomerId) throw new Error("Stripe subscription customer could not be verified");
 
   const subscriptions = new Map([[freshCandidate.id, freshCandidate]]);
-  const customerIds = new Set([candidateCustomerId]);
+  const customerIds = new Map([[candidateCustomerId, false]]);
   if (member?.stripe_subscription_id && member.stripe_subscription_id !== freshCandidate.id) {
-    const currentSubscription = await stripe.subscriptions.retrieve(member.stripe_subscription_id);
-    const currentCustomerId = stripeObjectId(currentSubscription.customer);
-    if (!currentCustomerId || (member.stripe_customer_id && currentCustomerId !== member.stripe_customer_id)) {
-      throw new Error("Stored Stripe subscription ownership could not be verified");
+    let currentSubscription = null;
+    try {
+      currentSubscription = await stripeClient.subscriptions.retrieve(member.stripe_subscription_id);
+    } catch (error) {
+      if (!isStripeResourceMissing(error)) throw error;
     }
-    subscriptions.set(currentSubscription.id, currentSubscription);
-    customerIds.add(currentCustomerId);
+    if (currentSubscription) {
+      const currentCustomerId = stripeObjectId(currentSubscription.customer);
+      if (!currentCustomerId || (member.stripe_customer_id && currentCustomerId !== member.stripe_customer_id)) {
+        throw new Error("Stored Stripe subscription ownership could not be verified");
+      }
+      subscriptions.set(currentSubscription.id, currentSubscription);
+      customerIds.set(currentCustomerId, currentCustomerId !== candidateCustomerId);
+    }
   } else if (member?.stripe_customer_id) {
-    customerIds.add(member.stripe_customer_id);
+    customerIds.set(member.stripe_customer_id, member.stripe_customer_id !== candidateCustomerId);
   }
 
-  const subscriptionLists = await Promise.all([...customerIds].map((customerId) => (
-    stripe.subscriptions.list({ customer: customerId, status: "all", limit: 100 })
-  )));
+  const subscriptionLists = await Promise.all([...customerIds].map(async ([customerId, allowMissing]) => {
+    try {
+      return await stripeClient.subscriptions.list({ customer: customerId, status: "all", limit: 100 });
+    } catch (error) {
+      if (allowMissing && isStripeResourceMissing(error)) return { data: [] };
+      throw error;
+    }
+  }));
   subscriptionLists.forEach((list) => {
     (list?.data || []).forEach((subscription) => subscriptions.set(subscription.id, subscription));
   });
@@ -1355,6 +1374,20 @@ async function resolveSubscriptionOwnership(member, candidateSubscription) {
     accepted: selected?.id === freshCandidate.id,
     subscription: selected
   };
+}
+
+function resolveCheckoutMember(emailMember, customerMember, subscriptionMember, sessionEmail) {
+  if (customerMember && subscriptionMember && customerMember.id !== subscriptionMember.id) {
+    throw new Error("Stripe checkout identifiers are already linked to another member");
+  }
+  const linkedMember = subscriptionMember || customerMember;
+  if (linkedMember && emailMember && linkedMember.id !== emailMember.id) {
+    throw new Error("Stripe checkout identifiers are already linked to another member");
+  }
+  if (linkedMember && normalizeEmail(linkedMember.email) !== sessionEmail) {
+    throw new Error("Stripe checkout cannot replace another member's billing identity");
+  }
+  return linkedMember || emailMember;
 }
 
 function memberStripeIdentityFilters(member) {
@@ -2428,14 +2461,12 @@ async function syncCheckoutMember(session) {
     findMemberByCustomer(customerId),
     findMemberBySubscription(subscriptionId)
   ]);
-  const linkedMember = subscriptionMember || customerMember;
-  if (linkedMember && emailMember && linkedMember.id !== emailMember.id) {
-    throw new Error("Stripe checkout identifiers are already linked to another member");
-  }
-  if (linkedMember && normalizeEmail(linkedMember.email) !== sessionEmail) {
-    throw new Error("Stripe checkout cannot replace another member's billing identity");
-  }
-  const existingMember = linkedMember || emailMember;
+  const existingMember = resolveCheckoutMember(
+    emailMember,
+    customerMember,
+    subscriptionMember,
+    sessionEmail
+  );
   const ownership = await resolveSubscriptionOwnership(existingMember, subscription);
   if (!ownership.accepted) return existingMember;
 
@@ -2913,6 +2944,9 @@ module.exports = {
     foundingInvoiceQualifies,
     hashFoundingInvitationToken,
     membershipAllowsAccess,
+    memberStripeIdentityFilters,
+    resolveCheckoutMember,
+    resolveSubscriptionOwnership,
     subscriptionCancellationTimestamp,
     syncDeletedSubscription,
     syncStripeSubscriptionEvent,
